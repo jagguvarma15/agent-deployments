@@ -1,0 +1,61 @@
+# Multi-stage TypeScript base Dockerfile for agent-deployments prototypes
+# Usage: Reference from each prototype's Dockerfile via COPY --from or multi-stage build
+#
+# Build args:
+#   NODE_VERSION - Node.js version (default: 22)
+
+ARG NODE_VERSION=22
+
+# ---------------------------------------------------------------------------
+# Stage 1: Build — install dependencies and compile
+# ---------------------------------------------------------------------------
+FROM node:${NODE_VERSION}-alpine AS builder
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+WORKDIR /app
+
+# Copy dependency files first for layer caching
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source
+COPY . .
+
+# Build TypeScript
+RUN pnpm run build
+
+# Prune dev dependencies
+RUN pnpm prune --prod
+
+# ---------------------------------------------------------------------------
+# Stage 2: Runtime — minimal image
+# ---------------------------------------------------------------------------
+FROM node:${NODE_VERSION}-alpine AS runtime
+
+# Security: non-root user
+RUN addgroup --gid 1001 app && \
+    adduser --uid 1001 --ingroup app --disabled-password app
+
+WORKDIR /app
+
+# Copy built output and production deps from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+
+# Switch to non-root user
+USER app
+
+# Default port for Hono
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://localhost:8000/health || exit 1
+
+# Default command — override in each prototype's Dockerfile if needed
+CMD ["node", "dist/index.js"]
