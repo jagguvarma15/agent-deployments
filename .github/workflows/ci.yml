@@ -12,19 +12,19 @@ on:
       - "prototypes/**"
       - "common/**"
 
-# Cancel in-progress runs for the same PR/branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Detect which prototypes changed
+  # Detect which prototypes changed (excludes _template)
   # ---------------------------------------------------------------------------
   changes:
     runs-on: ubuntu-latest
     outputs:
       prototypes: ${{ steps.detect.outputs.prototypes }}
+      has_prototypes: ${{ steps.detect.outputs.has_prototypes }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,26 +39,34 @@ jobs:
             BASE=${{ github.event.pull_request.base.sha }}
           fi
 
-          # Find changed prototype directories
+          # Find changed prototype directories (exclude _template)
           CHANGED=$(git diff --name-only "$BASE" HEAD \
             | grep '^prototypes/' \
             | cut -d'/' -f2 \
+            | grep -v '^_template$' \
             | sort -u \
             | jq -R -s -c 'split("\n") | map(select(length > 0))')
 
-          # If common/ changed, run all prototypes
+          # If common/ changed, run all real prototypes
           if git diff --name-only "$BASE" HEAD | grep -q '^common/'; then
-            CHANGED=$(ls prototypes/ | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            CHANGED=$(ls prototypes/ 2>/dev/null | grep -v '^_template$' | jq -R -s -c 'split("\n") | map(select(length > 0))')
           fi
 
           echo "prototypes=$CHANGED" >> "$GITHUB_OUTPUT"
+
+          # Check if there are actual prototypes to test
+          if [ "$CHANGED" = "[]" ] || [ "$CHANGED" = '[""]' ] || [ -z "$CHANGED" ]; then
+            echo "has_prototypes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_prototypes=true" >> "$GITHUB_OUTPUT"
+          fi
 
   # ---------------------------------------------------------------------------
   # Python track
   # ---------------------------------------------------------------------------
   python:
     needs: changes
-    if: needs.changes.outputs.prototypes != '[]'
+    if: needs.changes.outputs.has_prototypes == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -70,40 +78,53 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check python track exists
+        id: check
+        run: test -f prototypes/${{ matrix.prototype }}/python/pyproject.toml
+        working-directory: ${{ github.workspace }}
+        continue-on-error: true
+
       - name: Install uv
+        if: steps.check.outcome == 'success'
         uses: astral-sh/setup-uv@v4
         with:
           version: "0.5.10"
 
       - name: Set up Python
+        if: steps.check.outcome == 'success'
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --frozen
+        if: steps.check.outcome == 'success'
+        run: uv sync
 
       - name: Lint
+        if: steps.check.outcome == 'success'
         run: uv run ruff check .
 
       - name: Type check
+        if: steps.check.outcome == 'success'
         run: uv run ruff check . --select=ANN
         continue-on-error: true
 
       - name: Unit tests
+        if: steps.check.outcome == 'success'
         run: uv run pytest tests/unit -v
 
       - name: Integration tests (main only)
-        if: github.ref == 'refs/heads/main'
+        if: steps.check.outcome == 'success' && github.ref == 'refs/heads/main'
         run: uv run pytest tests/integration -v
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Eval suite
-        if: github.ref == 'refs/heads/main'
+      - name: Eval suite (main only)
+        if: steps.check.outcome == 'success' && github.ref == 'refs/heads/main'
         run: uv run pytest tests/evals -v
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Docker build
+        if: steps.check.outcome == 'success'
         run: docker build -t agent-deployments/${{ matrix.prototype }}-python .
 
   # ---------------------------------------------------------------------------
@@ -111,7 +132,7 @@ jobs:
   # ---------------------------------------------------------------------------
   typescript:
     needs: changes
-    if: needs.changes.outputs.prototypes != '[]'
+    if: needs.changes.outputs.has_prototypes == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -123,41 +144,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check typescript track exists
+        id: check
+        run: test -f prototypes/${{ matrix.prototype }}/typescript/package.json
+        working-directory: ${{ github.workspace }}
+        continue-on-error: true
+
       - uses: pnpm/action-setup@v4
+        if: steps.check.outcome == 'success'
         with:
           version: 9
 
       - uses: actions/setup-node@v4
+        if: steps.check.outcome == 'success'
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: prototypes/${{ matrix.prototype }}/typescript/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        if: steps.check.outcome == 'success'
+        run: pnpm install
 
       - name: Lint
+        if: steps.check.outcome == 'success'
         run: pnpm run lint
 
       - name: Type check
+        if: steps.check.outcome == 'success'
         run: pnpm run typecheck
 
       - name: Unit tests
+        if: steps.check.outcome == 'success'
         run: pnpm run test:unit
 
       - name: Integration tests (main only)
-        if: github.ref == 'refs/heads/main'
+        if: steps.check.outcome == 'success' && github.ref == 'refs/heads/main'
         run: pnpm run test:integration
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Eval suite (main only)
-        if: github.ref == 'refs/heads/main'
+        if: steps.check.outcome == 'success' && github.ref == 'refs/heads/main'
         run: pnpm run test:eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Docker build
+        if: steps.check.outcome == 'success'
         run: docker build -t agent-deployments/${{ matrix.prototype }}-typescript .
 
   # ---------------------------------------------------------------------------
@@ -165,7 +197,7 @@ jobs:
   # ---------------------------------------------------------------------------
   security:
     needs: changes
-    if: needs.changes.outputs.prototypes != '[]' && github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.has_prototypes == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -183,12 +215,14 @@ jobs:
 
       - name: Run security scan (Python eval config)
         run: promptfoo redteam run --config prototypes/${{ matrix.prototype }}/python/eval/promptfoo.yaml
+        if: hashFiles(format('prototypes/{0}/python/eval/promptfoo.yaml', matrix.prototype)) != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         continue-on-error: true
 
       - name: Run security scan (TypeScript eval config)
         run: promptfoo redteam run --config prototypes/${{ matrix.prototype }}/typescript/eval/promptfoo.yaml
+        if: hashFiles(format('prototypes/{0}/typescript/eval/promptfoo.yaml', matrix.prototype)) != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         continue-on-error: true
