@@ -1,8 +1,8 @@
-"""Tests for auth/jwt module."""
+"""Tests for agent_common.auth module."""
 
 import pytest
 
-from auth.jwt import create_token, verify_token
+from agent_common.auth.jwt import create_token, verify_token
 
 
 SECRET = "test-secret-key-for-unit-tests"

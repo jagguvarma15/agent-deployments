@@ -14,13 +14,7 @@ def configure(
 ) -> None:
     """Configure structlog for the application.
 
-    In production (env != "development"), outputs JSON.
-    In development, outputs colored, human-readable logs.
-
-    Args:
-        service_name: Name of the service (appears in every log line).
-        env: Environment name ("development", "staging", "production").
-        log_level: Logging level string.
+    In production, outputs JSON. In development, outputs colored human-readable logs.
     """
     shared_processors: list[structlog.types.Processor] = [
         structlog.contextvars.merge_contextvars,
@@ -47,6 +41,5 @@ def configure(
         cache_logger_on_first_use=True,
     )
 
-    # Bind service name to all loggers
     structlog.contextvars.clear_contextvars()
     structlog.contextvars.bind_contextvars(service=service_name, env=env)

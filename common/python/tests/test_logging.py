@@ -1,14 +1,13 @@
-"""Tests for logging/structlog_config module."""
+"""Tests for agent_common.logs module."""
 
 import structlog
 
-from logging.structlog_config import configure
+from agent_common.logs import configure
 
 
 def test_configure_does_not_raise():
     configure("test-service", env="development", log_level="DEBUG")
     logger = structlog.get_logger()
-    # Should not raise — just verify the logger is usable
     assert logger is not None
 
 

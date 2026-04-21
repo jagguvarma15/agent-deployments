@@ -1,5 +1,6 @@
 """Langfuse client singleton and trace decorator."""
 
+import asyncio
 import functools
 from typing import Any, Callable
 
@@ -14,11 +15,7 @@ def get_langfuse(
     secret_key: str | None = None,
     host: str = "http://localhost:3000",
 ) -> Langfuse:
-    """Get or create the Langfuse singleton client.
-
-    If public_key/secret_key are None, Langfuse reads from
-    LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY env vars.
-    """
+    """Get or create the Langfuse singleton client."""
     global _client
     if _client is None:
         _client = Langfuse(
@@ -34,13 +31,7 @@ def traced(
     *,
     metadata: dict[str, Any] | None = None,
 ) -> Callable:
-    """Decorator that wraps a function in a Langfuse trace span.
-
-    Usage:
-        @traced("my-operation")
-        def do_something(x: int) -> int:
-            return x + 1
-    """
+    """Decorator that wraps a function in a Langfuse trace span."""
 
     def decorator(fn: Callable) -> Callable:
         span_name = name or fn.__name__
@@ -70,8 +61,6 @@ def traced(
             except Exception as exc:
                 span.end(level="ERROR", status_message=str(exc))
                 raise
-
-        import asyncio
 
         if asyncio.iscoroutinefunction(fn):
             return async_wrapper

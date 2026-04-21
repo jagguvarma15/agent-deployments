@@ -10,13 +10,10 @@ import httpx
 class MCPClient:
     """A lightweight MCP client wrapper.
 
-    Manages connections to MCP servers and provides a clean interface
-    for listing and calling tools.
-
     Usage:
-        client = MCPClient(base_url="http://localhost:3001")
-        tools = await client.list_tools()
-        result = await client.call_tool("search", {"query": "hello"})
+        async with MCPClient(base_url="http://localhost:3001") as client:
+            tools = await client.list_tools()
+            result = await client.call_tool("search", {"query": "hello"})
     """
 
     base_url: str

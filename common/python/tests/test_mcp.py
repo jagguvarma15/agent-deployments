@@ -1,6 +1,6 @@
-"""Tests for mcp/client module."""
+"""Tests for agent_common.mcp_client module."""
 
-from mcp.client import MCPClient
+from agent_common.mcp_client import MCPClient
 
 
 def test_mcp_client_init():

@@ -10,7 +10,6 @@ from pydantic import BaseModel
 
 _security = HTTPBearer()
 
-# Defaults — override via environment / pydantic-settings in each prototype
 _DEFAULT_ALGORITHM = "HS256"
 _DEFAULT_EXPIRY_HOURS = 24
 

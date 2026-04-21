@@ -5,17 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 
 def mock_llm_response(content: str = "Hello from mock LLM", **kwargs: Any) -> MagicMock:
-    """Create a mock LLM response object.
-
-    Returns a mock that mimics common LLM response shapes
-    (works with litellm, langchain, etc.).
-
-    Usage in tests:
-        from testing import mock_llm_response
-
-        mock = mock_llm_response("The answer is 42")
-        assert mock.choices[0].message.content == "The answer is 42"
-    """
+    """Create a mock LLM response object."""
     message = MagicMock()
     message.content = content
     message.role = "assistant"
@@ -38,15 +28,7 @@ def mock_llm_response(content: str = "Hello from mock LLM", **kwargs: Any) -> Ma
 
 
 def mock_llm_client(responses: list[str] | None = None) -> AsyncMock:
-    """Create a mock async LLM client that returns predefined responses.
-
-    Args:
-        responses: List of response strings. Cycles through them on repeated calls.
-
-    Usage in tests:
-        client = mock_llm_client(["Answer 1", "Answer 2"])
-        result = await client.chat.completions.create(...)
-    """
+    """Create a mock async LLM client that returns predefined responses."""
     _responses = responses or ["Mock response"]
     _call_count = 0
 

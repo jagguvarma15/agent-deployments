@@ -1,8 +1,8 @@
-"""Tests for testing/fixtures module."""
+"""Tests for agent_common.testing module."""
 
 import pytest
 
-from testing.fixtures import mock_llm_response, mock_llm_client
+from agent_common.testing import mock_llm_response, mock_llm_client
 
 
 def test_mock_llm_response_default():
