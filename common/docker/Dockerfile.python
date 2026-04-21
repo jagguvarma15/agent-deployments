@@ -1,0 +1,67 @@
+# Multi-stage Python base Dockerfile for agent-deployments prototypes
+# Usage: Reference from each prototype's Dockerfile via COPY --from or multi-stage build
+#
+# Build args:
+#   PYTHON_VERSION - Python version (default: 3.12)
+#   UV_VERSION     - uv installer version (default: 0.5.10)
+
+ARG PYTHON_VERSION=3.12
+
+# ---------------------------------------------------------------------------
+# Stage 1: Build — install dependencies
+# ---------------------------------------------------------------------------
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+ARG UV_VERSION=0.5.10
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /usr/local/bin/uv
+
+WORKDIR /app
+
+# Copy dependency files first for layer caching
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies (no dev deps in production)
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Copy application source
+COPY . .
+
+# Install the project itself
+RUN uv sync --frozen --no-dev
+
+# ---------------------------------------------------------------------------
+# Stage 2: Runtime — minimal image
+# ---------------------------------------------------------------------------
+FROM python:${PYTHON_VERSION}-slim AS runtime
+
+# Security: non-root user
+RUN groupadd --gid 1001 app && \
+    useradd --uid 1001 --gid 1001 --create-home app
+
+WORKDIR /app
+
+# Copy the virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application source
+COPY --from=builder /app .
+
+# Ensure the venv is on PATH
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Switch to non-root user
+USER app
+
+# Default port for FastAPI
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
+# Default command — override in each prototype's Dockerfile if needed
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
