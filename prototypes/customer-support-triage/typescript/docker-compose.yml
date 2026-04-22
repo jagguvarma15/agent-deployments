@@ -31,6 +31,11 @@ services:
       langfuse-minio:
         condition: service_started
 
+  qdrant:
+    extends:
+      file: ../../../common/docker-compose.base.yml
+      service: qdrant
+
   app:
     build: .
     ports:
@@ -41,9 +46,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   redis_data:
+  qdrant_data:
   langfuse_clickhouse_data:
   langfuse_minio_data:
