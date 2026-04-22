@@ -1,7 +1,4 @@
-# Promptfoo red-team / security scan configuration
-# See: https://www.promptfoo.dev/docs/red-team/
-
-description: "Security scan for prototype-name"
+description: "Security scan for customer-support-triage"
 
 prompts:
   - "{{message}}"
@@ -9,12 +6,13 @@ prompts:
 providers:
   - id: http
     config:
-      url: http://localhost:8000/<endpoint>
+      url: http://localhost:8000/triage
       method: POST
       headers:
         Content-Type: application/json
       body:
         message: "{{message}}"
+        user_id: "eval-user"
 
 redteam:
   plugins:

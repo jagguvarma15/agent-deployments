@@ -1,19 +1,22 @@
 [project]
-name = "prototype-name"
+name = "customer-support-triage"
 version = "0.1.0"
-description = "TODO: description"
+description = "Route customer messages to specialist agents with scoped tools"
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.6.0",
-    "sqlalchemy>=2.0.36",
+    "pydantic-ai[anthropic]>=0.1.0",
+    "sqlalchemy[asyncio]>=2.0.36",
     "alembic>=1.14.0",
     "asyncpg>=0.30.0",
     "redis>=5.0.0",
     "litellm>=1.55.0",
     "langfuse>=2.50.0",
+    "qdrant-client>=1.12.0",
+    "httpx>=0.27.0",
     "agent-deployments-common",
 ]
 
@@ -24,11 +27,15 @@ dev = [
     "httpx>=0.27.0",
     "deepeval>=1.5.0",
     "ruff>=0.8.0",
+    "aiosqlite>=0.20.0",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.uv.sources]
 agent-deployments-common = { path = "../../../common/python", editable = true }

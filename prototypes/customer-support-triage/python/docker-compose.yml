@@ -9,6 +9,11 @@ services:
       file: ../../../common/docker-compose.base.yml
       service: redis
 
+  qdrant:
+    extends:
+      file: ../../../common/docker-compose.base.yml
+      service: qdrant
+
   langfuse-clickhouse:
     extends:
       file: ../../../common/docker-compose.base.yml
@@ -41,11 +46,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
     volumes:
-      - ./app:/app/app  # dev hot-reload
+      - ./app:/app/app
 
 volumes:
   postgres_data:
   redis_data:
+  qdrant_data:
   langfuse_clickhouse_data:
   langfuse_minio_data:
