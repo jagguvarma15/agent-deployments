@@ -1,0 +1,23 @@
+# Promptfoo red-team / security scan configuration
+# See: https://www.promptfoo.dev/docs/red-team/
+
+description: "Security scan for prototype-name"
+
+prompts:
+  - "{{message}}"
+
+providers:
+  - id: http
+    config:
+      url: http://localhost:8000/<endpoint>
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        message: "{{message}}"
+
+redteam:
+  plugins:
+    - prompt-injection
+    - jailbreak
+    - pii
