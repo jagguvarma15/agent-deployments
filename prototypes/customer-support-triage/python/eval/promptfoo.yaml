@@ -1,0 +1,21 @@
+description: "Security scan for customer-support-triage"
+
+prompts:
+  - "{{message}}"
+
+providers:
+  - id: http
+    config:
+      url: http://localhost:8000/triage
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        message: "{{message}}"
+        user_id: "eval-user"
+
+redteam:
+  plugins:
+    - prompt-injection
+    - jailbreak
+    - pii
