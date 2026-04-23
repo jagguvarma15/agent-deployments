@@ -39,19 +39,21 @@ const kbTools = {
   }),
 };
 
-const SPECIALIST_TOOLS: Record<string, Record<string, unknown>> = {
+const SPECIALIST_TOOLS: Record<string, typeof billingTools | typeof kbTools> = {
   billing: billingTools,
   technical: kbTools,
   account: kbTools,
-  general: {},
 };
 
 export async function runSpecialist(
   intent: string,
   message: string,
-): Promise<{ text: string; toolCalls: Array<{ toolName: string; args: Record<string, unknown> }> }> {
+): Promise<{
+  text: string;
+  toolCalls: Array<{ toolName: string; args: Record<string, unknown> }>;
+}> {
   const systemPrompt = SPECIALIST_PROMPTS[intent] ?? SPECIALIST_PROMPTS.general;
-  const tools = SPECIALIST_TOOLS[intent] ?? {};
+  const tools = SPECIALIST_TOOLS[intent] ?? undefined;
 
   const result = await generateText({
     model: anthropic(config.specialistModel),
@@ -63,7 +65,10 @@ export async function runSpecialist(
 
   const toolCalls = result.steps
     .flatMap((s) => s.toolCalls)
-    .map((tc) => ({ toolName: tc.toolName, args: tc.args as Record<string, unknown> }));
+    .map((tc: { toolName: string; args: unknown }) => ({
+      toolName: tc.toolName,
+      args: tc.args as Record<string, unknown>,
+    }));
 
   return { text: result.text, toolCalls };
 }

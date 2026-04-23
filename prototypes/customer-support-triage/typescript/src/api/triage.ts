@@ -15,7 +15,10 @@ triageRouter.post("/triage", async (c) => {
   const parsed = TriageRequest.safeParse(body);
 
   if (!parsed.success) {
-    return c.json({ error: "Invalid request", details: parsed.error.issues }, 400);
+    return c.json(
+      { error: "Invalid request", details: parsed.error.issues },
+      400,
+    );
   }
 
   const { message, user_id } = parsed.data;
@@ -30,14 +33,18 @@ triageRouter.post("/triage", async (c) => {
     return c.json({
       conversation_id: conversationId,
       intent: classification.intent,
-      specialist_response: "Escalated to human agent due to low classification confidence.",
+      specialist_response:
+        "Escalated to human agent due to low classification confidence.",
       escalated: true,
       trace_id: traceId,
     });
   }
 
   // Route to specialist
-  const { text, toolCalls } = await runSpecialist(classification.intent, message);
+  const { text, toolCalls } = await runSpecialist(
+    classification.intent,
+    message,
+  );
 
   return c.json({
     conversation_id: conversationId,

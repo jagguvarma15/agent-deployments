@@ -67,7 +67,8 @@ export function mockSearch(query: string, topK = 3): string {
   scored.sort((a, b) => b[0] - a[0]);
   const top = scored.slice(0, topK);
 
-  if (top.length === 0) return "No relevant articles found in the knowledge base.";
+  if (top.length === 0)
+    return "No relevant articles found in the knowledge base.";
 
   return top.map(([, a]) => `**${a.title}**\n${a.content}`).join("\n\n---\n\n");
 }

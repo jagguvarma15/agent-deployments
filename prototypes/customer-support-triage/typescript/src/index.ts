@@ -10,7 +10,9 @@ app.route("/", triageRouter);
 const port = Number(process.env.PORT ?? 8000);
 
 serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`customer-support-triage running at http://localhost:${info.port}`);
+  console.log(
+    `customer-support-triage running at http://localhost:${info.port}`,
+  );
 });
 
 export default app;
