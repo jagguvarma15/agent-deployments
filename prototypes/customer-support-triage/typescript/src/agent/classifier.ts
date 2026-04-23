@@ -2,8 +2,8 @@
  * Intent classifier using Vercel AI SDK with structured output.
  */
 
-import { generateObject } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
+import { generateObject } from "ai";
 import { config } from "../config.js";
 import { ClassificationResult } from "../schemas/index.js";
 

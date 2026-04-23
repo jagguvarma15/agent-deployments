@@ -2,12 +2,12 @@
  * Specialist agents for each intent category.
  */
 
-import { generateText, tool } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
+import { generateText, tool } from "ai";
 import { z } from "zod";
 import { config } from "../config.js";
-import { stripeLookup } from "../tools/stripe.js";
 import { kbSearch } from "../tools/kb.js";
+import { stripeLookup } from "../tools/stripe.js";
 
 const SPECIALIST_PROMPTS: Record<string, string> = {
   billing: `You are a billing support specialist. Help customers with payment issues,
@@ -39,7 +39,7 @@ const kbTools = {
   }),
 };
 
-const SPECIALIST_TOOLS: Record<string, Record<string, ReturnType<typeof tool>>> = {
+const SPECIALIST_TOOLS: Record<string, Record<string, unknown>> = {
   billing: billingTools,
   technical: kbTools,
   account: kbTools,

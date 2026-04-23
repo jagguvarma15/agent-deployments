@@ -5,8 +5,8 @@
 import { Hono } from "hono";
 import { classifyIntent } from "../agent/classifier.js";
 import { runSpecialist } from "../agent/specialists.js";
-import { TriageRequest } from "../schemas/index.js";
 import { config } from "../config.js";
+import { TriageRequest } from "../schemas/index.js";
 
 export const triageRouter = new Hono();
 
