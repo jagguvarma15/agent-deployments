@@ -1,7 +1,7 @@
 """Unit tests for the API layer using mocked agents."""
 
 import os
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

@@ -1,8 +1,7 @@
 """Tests for agent_common.testing module."""
 
 import pytest
-
-from agent_common.testing import mock_llm_response, mock_llm_client
+from agent_common.testing import mock_llm_client, mock_llm_response
 
 
 def test_mock_llm_response_default():

@@ -13,37 +13,66 @@ _MOCK_KB = [
     {
         "id": "kb-001",
         "title": "How to reset your password",
-        "content": "Go to Settings > Security > Reset Password. Enter your current password, then your new password twice. Click Save. You'll receive a confirmation email.",
+        "content": (
+            "Go to Settings > Security > Reset Password. Enter your current"
+            " password, then your new password twice. Click Save. You'll"
+            " receive a confirmation email."
+        ),
         "category": "account",
     },
     {
         "id": "kb-002",
         "title": "API rate limits and error codes",
-        "content": "Rate limits: 100 requests/minute for free tier, 1000/minute for Pro. When exceeded, you'll get a 429 status code. Implement exponential backoff. Common errors: 400 (bad request), 401 (unauthorized), 500 (server error — contact support).",
+        "content": (
+            "Rate limits: 100 requests/minute for free tier, 1000/minute"
+            " for Pro. When exceeded, you'll get a 429 status code."
+            " Implement exponential backoff. Common errors: 400 (bad"
+            " request), 401 (unauthorized), 500 (server error —"
+            " contact support)."
+        ),
         "category": "technical",
     },
     {
         "id": "kb-003",
         "title": "Updating your billing information",
-        "content": "Navigate to Account > Billing > Payment Methods. Click 'Update' next to your current method. Enter new card details. Changes take effect on your next billing cycle.",
+        "content": (
+            "Navigate to Account > Billing > Payment Methods. Click"
+            " 'Update' next to your current method. Enter new card"
+            " details. Changes take effect on your next billing cycle."
+        ),
         "category": "billing",
     },
     {
         "id": "kb-004",
         "title": "Troubleshooting large payload errors",
-        "content": "Maximum payload size is 10MB for the standard API. For larger payloads, use the streaming endpoint or split your request. If you're getting 500 errors, check that your Content-Type header is set correctly and the JSON is valid.",
+        "content": (
+            "Maximum payload size is 10MB for the standard API. For"
+            " larger payloads, use the streaming endpoint or split your"
+            " request. If you're getting 500 errors, check that your"
+            " Content-Type header is set correctly and the JSON is valid."
+        ),
         "category": "technical",
     },
     {
         "id": "kb-005",
         "title": "Two-factor authentication setup",
-        "content": "Go to Settings > Security > 2FA. Choose your method: authenticator app (recommended) or SMS. Scan the QR code with your authenticator app. Enter the 6-digit code to verify. Save your backup codes in a secure location.",
+        "content": (
+            "Go to Settings > Security > 2FA. Choose your method:"
+            " authenticator app (recommended) or SMS. Scan the QR code"
+            " with your authenticator app. Enter the 6-digit code to"
+            " verify. Save your backup codes in a secure location."
+        ),
         "category": "account",
     },
     {
         "id": "kb-006",
         "title": "Integration webhook configuration",
-        "content": "Set up webhooks at Settings > Integrations > Webhooks. Add your endpoint URL, select events to subscribe to, and save. We'll send a test ping. Webhook payloads are signed with your webhook secret for verification.",
+        "content": (
+            "Set up webhooks at Settings > Integrations > Webhooks. Add"
+            " your endpoint URL, select events to subscribe to, and save."
+            " We'll send a test ping. Webhook payloads are signed with"
+            " your webhook secret for verification."
+        ),
         "category": "technical",
     },
 ]

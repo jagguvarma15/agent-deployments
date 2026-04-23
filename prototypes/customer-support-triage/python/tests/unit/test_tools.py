@@ -2,8 +2,8 @@
 
 import pytest
 
-from app.tools.stripe import stripe_lookup
 from app.tools.kb import _mock_search
+from app.tools.stripe import stripe_lookup
 
 
 @pytest.mark.asyncio
