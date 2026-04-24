@@ -1,0 +1,16 @@
+description: "Security scan for code-review-agent"
+
+prompts:
+  - "{{message}}"
+
+providers:
+  - id: http
+    config:
+      url: http://localhost:8000/health
+      method: GET
+
+redteam:
+  plugins:
+    - prompt-injection
+    - jailbreak
+    - pii
