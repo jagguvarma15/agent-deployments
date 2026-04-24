@@ -1,0 +1,51 @@
+[project]
+name = "docs-rag-qa"
+version = "0.1.0"
+description = "RAG pipeline for document Q&A with chunking and retrieval"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    "pydantic-ai[anthropic]>=0.1.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "alembic>=1.14.0",
+    "asyncpg>=0.30.0",
+    "redis>=5.0.0",
+    "litellm>=1.55.0",
+    "langfuse>=2.50.0",
+    "qdrant-client>=1.12.0",
+    "httpx>=0.27.0",
+    "agent-deployments-common",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.27.0",
+    "deepeval>=1.5.0",
+    "ruff>=0.8.0",
+    "aiosqlite>=0.20.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.uv.sources]
+agent-deployments-common = { path = "../../../common/python", editable = true }
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
