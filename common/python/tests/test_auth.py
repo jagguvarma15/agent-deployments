@@ -4,7 +4,6 @@ import pytest
 
 from agent_common.auth.jwt import create_token, verify_token
 
-
 SECRET = "test-secret-key-for-unit-tests"
 
 

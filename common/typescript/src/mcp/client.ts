@@ -31,7 +31,9 @@ export class MCPClient {
       throw new Error(`MCP list-tools failed: ${response.status}`);
     }
 
-    const data = (await response.json()) as { tools?: Array<Record<string, unknown>> };
+    const data = (await response.json()) as {
+      tools?: Array<Record<string, unknown>>;
+    };
     return data.tools ?? [];
   }
 

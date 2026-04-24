@@ -61,7 +61,10 @@ async def triage(
         assistant_msg = Message(
             conversation_id=conversation.id,
             role="assistant",
-            content="I'm not fully confident in my assessment. Let me connect you with a human agent who can better assist you.",
+            content=(
+                "I'm not fully confident in my assessment. "
+                "Let me connect you with a human agent who can better assist you."
+            ),
             intent=classification.intent.value,
         )
         session.add(assistant_msg)

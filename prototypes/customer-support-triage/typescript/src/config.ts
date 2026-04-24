@@ -11,7 +11,9 @@ const configSchema = z.object({
 
   escalationThreshold: z.coerce.number().default(0.7),
 
-  databaseUrl: z.string().default("postgresql://agent:agent@localhost:5432/agent_db"),
+  databaseUrl: z
+    .string()
+    .default("postgresql://agent:agent@localhost:5432/agent_db"),
   redisUrl: z.string().default("redis://localhost:6379"),
   qdrantUrl: z.string().default("http://localhost:6333"),
 

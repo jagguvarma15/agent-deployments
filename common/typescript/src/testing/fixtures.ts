@@ -8,7 +8,11 @@ export interface MockLlmResponse {
     finish_reason: string;
   }>;
   model: string;
-  usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
 /**
@@ -52,7 +56,7 @@ export function mockLlmClient(responses: string[] = ["Mock response"]) {
     chat: {
       completions: {
         create: async (): Promise<MockLlmResponse> => {
-          const content = responses[callCount % responses.length]!;
+          const content = responses[callCount % responses.length] ?? "";
           callCount++;
           return mockLlmResponse(content);
         },
