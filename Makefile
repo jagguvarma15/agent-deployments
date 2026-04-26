@@ -123,7 +123,7 @@ security: _check_prototype
 
 .PHONY: docker-build
 docker-build: _check_track
-	cd $(PROTO_DIR) && docker build -t agent-deployments/$(PROTOTYPE)-$(TRACK) .
+	docker build -f $(PROTO_DIR)/Dockerfile -t agent-deployments/$(PROTOTYPE)-$(TRACK) .
 
 # ---------------------------------------------------------------------------
 # Utilities

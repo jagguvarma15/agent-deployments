@@ -125,7 +125,8 @@ jobs:
 
       - name: Docker build
         if: steps.check.outcome == 'success'
-        run: docker build -t agent-deployments/${{ matrix.prototype }}-python .
+        run: docker build -f prototypes/${{ matrix.prototype }}/python/Dockerfile -t agent-deployments/${{ matrix.prototype }}-python .
+        working-directory: ${{ github.workspace }}
 
   # ---------------------------------------------------------------------------
   # TypeScript track
