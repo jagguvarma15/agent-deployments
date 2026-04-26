@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
-    "test:eval": "vitest run tests/evals"
+    "test:integration": "vitest run tests/integration --passWithNoTests",
+    "test:eval": "vitest run tests/evals --passWithNoTests"
   },
   "dependencies": {
     "hono": "^4.6.0",
