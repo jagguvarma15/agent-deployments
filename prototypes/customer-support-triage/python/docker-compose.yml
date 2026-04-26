@@ -37,7 +37,9 @@ services:
         condition: service_started
 
   app:
-    build: .
+    build:
+      context: ../../..
+      dockerfile: prototypes/customer-support-triage/python/Dockerfile
     ports:
       - "8000:8000"
     env_file: .env
