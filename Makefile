@@ -64,7 +64,7 @@ endif
 .PHONY: test-integration
 test-integration: _check_track
 ifeq ($(TRACK),python)
-	cd $(PROTO_DIR) && uv run pytest tests/integration -v
+	cd $(PROTO_DIR) && uv run pytest tests/integration -v || test $$? -eq 5
 else
 	cd $(PROTO_DIR) && pnpm run test:integration
 endif
@@ -76,7 +76,7 @@ endif
 .PHONY: eval
 eval: _check_track
 ifeq ($(TRACK),python)
-	cd $(PROTO_DIR) && uv run pytest tests/evals -v
+	cd $(PROTO_DIR) && uv run pytest tests/evals -v || test $$? -eq 5
 else
 	cd $(PROTO_DIR) && pnpm run test:eval
 endif

@@ -113,13 +113,13 @@ jobs:
 
       - name: Integration tests (main only)
         if: steps.check.outcome == 'success' && github.ref == 'refs/heads/main'
-        run: uv run pytest tests/integration -v
+        run: uv run pytest tests/integration -v || test $? -eq 5
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Eval suite (main only)
         if: steps.check.outcome == 'success' && github.ref == 'refs/heads/main'
-        run: uv run pytest tests/evals -v
+        run: uv run pytest tests/evals -v || test $? -eq 5
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
