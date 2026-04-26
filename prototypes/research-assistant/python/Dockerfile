@@ -4,10 +4,12 @@
 ARG PYTHON_VERSION=3.12
 ARG UV_VERSION=0.5.10
 
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+
 # --- Build stage ---
 FROM python:${PYTHON_VERSION}-slim AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 
 WORKDIR /app
 
