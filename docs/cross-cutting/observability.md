@@ -2,7 +2,7 @@
 
 **Concern:** Trace every LLM call, tool invocation, and agent step so you can debug, optimize, and audit agent behavior.
 **Library:** Langfuse (self-hosted, MIT)
-**Lives in:** `common/python/agent_common/observability/` and `common/typescript/src/observability/`
+**Lives in:** Inline below (formerly `common/python/agent_common/observability/` and `common/typescript/src/observability/`)
 
 ## What it provides
 
@@ -76,8 +76,7 @@ async def rag_pipeline(question: str) -> str:
 
 ## Tests
 
-- **Python:** `common/python/tests/test_testing.py` -- tests that the observability fixtures work with mocked Langfuse
-- **TypeScript:** `common/typescript/tests/observability.test.ts` -- tests traced() wrapper behavior (success + error paths)
+Test that the observability fixtures work with mocked Langfuse (Py). Test traced() wrapper behavior for both success and error paths (TS).
 
 ## Configuration via env
 
@@ -107,3 +106,154 @@ For teams already using LangChain/LangGraph heavily, LangSmith is a drop-in alte
 4. Remove Langfuse services from `docker-compose.yml`
 
 This is a **multi-file swap** (common module + env config + docker-compose).
+
+## Reference Implementation
+
+<details>
+<summary>Python — <code>langfuse.py</code></summary>
+
+```python
+"""Langfuse client singleton and trace decorator."""
+
+import asyncio
+import functools
+from typing import Any, Callable
+
+from langfuse import Langfuse
+
+_client: Langfuse | None = None
+
+
+def get_langfuse(
+    *,
+    public_key: str | None = None,
+    secret_key: str | None = None,
+    host: str = "http://localhost:3000",
+) -> Langfuse:
+    """Get or create the Langfuse singleton client."""
+    global _client
+    if _client is None:
+        _client = Langfuse(
+            public_key=public_key,
+            secret_key=secret_key,
+            host=host,
+        )
+    return _client
+
+
+def traced(
+    name: str | None = None,
+    *,
+    metadata: dict[str, Any] | None = None,
+) -> Callable:
+    """Decorator that wraps a function in a Langfuse trace span."""
+
+    def decorator(fn: Callable) -> Callable:
+        span_name = name or fn.__name__
+
+        @functools.wraps(fn)
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+            client = get_langfuse()
+            trace = client.trace(name=span_name, metadata=metadata or {})
+            span = trace.span(name=span_name)
+            try:
+                result = await fn(*args, **kwargs)
+                span.end(output=str(result)[:500])
+                return result
+            except Exception as exc:
+                span.end(level="ERROR", status_message=str(exc))
+                raise
+
+        @functools.wraps(fn)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            client = get_langfuse()
+            trace = client.trace(name=span_name, metadata=metadata or {})
+            span = trace.span(name=span_name)
+            try:
+                result = fn(*args, **kwargs)
+                span.end(output=str(result)[:500])
+                return result
+            except Exception as exc:
+                span.end(level="ERROR", status_message=str(exc))
+                raise
+
+        if asyncio.iscoroutinefunction(fn):
+            return async_wrapper
+        return sync_wrapper
+
+    return decorator
+```
+
+</details>
+
+<details>
+<summary>TypeScript — <code>langfuse.ts</code></summary>
+
+```typescript
+/**
+ * Langfuse client wrapper and trace utilities.
+ *
+ * Note: This is a lightweight wrapper. The actual Langfuse SDK should be
+ * installed in each prototype that needs it. This module provides the
+ * configuration shape and a traced() helper pattern.
+ */
+
+export interface LangfuseConfig {
+  publicKey: string;
+  secretKey: string;
+  host?: string;
+}
+
+interface TraceSpan {
+  name: string;
+  startTime: number;
+  endTime?: number;
+  metadata?: Record<string, unknown>;
+  status?: "ok" | "error";
+  error?: string;
+}
+
+let _config: LangfuseConfig | null = null;
+
+/**
+ * Initialize the Langfuse client configuration.
+ */
+export function createLangfuseClient(config: LangfuseConfig): LangfuseConfig {
+  _config = config;
+  return _config;
+}
+
+/**
+ * Decorator-style wrapper that traces a function execution.
+ *
+ * Usage:
+ *   const result = await traced("my-operation", async () => {
+ *     return doSomething();
+ *   });
+ */
+export async function traced<T>(
+  name: string,
+  fn: () => Promise<T>,
+  metadata?: Record<string, unknown>,
+): Promise<T> {
+  const span: TraceSpan = {
+    name,
+    startTime: Date.now(),
+    metadata,
+  };
+
+  try {
+    const result = await fn();
+    span.endTime = Date.now();
+    span.status = "ok";
+    return result;
+  } catch (error) {
+    span.endTime = Date.now();
+    span.status = "error";
+    span.error = error instanceof Error ? error.message : String(error);
+    throw error;
+  }
+}
+```
+
+</details>

@@ -2,7 +2,7 @@
 
 **Concern:** Protect agent endpoints from abuse with per-user and per-IP request throttling.
 **Library:** `slowapi` (Py) / custom sliding-window middleware (TS)
-**Lives in:** `common/python/agent_common/ratelimit/` and `common/typescript/src/ratelimit/`
+**Lives in:** Inline below (formerly `common/python/agent_common/ratelimit/` and `common/typescript/src/ratelimit/`)
 
 ## What it provides
 
@@ -73,11 +73,99 @@ app.use("*", async (c, next) => {
 
 ## Tests
 
-- **Python:** `common/python/tests/test_ratelimit.py` -- limiter creation with Redis URL
-- **TypeScript:** `common/typescript/tests/ratelimit.test.ts` -- window behavior, allow/deny, reset
+Test limiter creation with Redis URL (Py). Test window behavior, allow/deny, and reset (TS).
 
 ## Production considerations
 
 - The Python implementation is **production-ready** -- slowapi + Redis handles distributed rate limiting across multiple app instances.
 - The TypeScript implementation is **in-memory** -- fine for single-instance dev, but must be swapped to a Redis-backed store (e.g., `hono-rate-limiter` with `ioredis`) for multi-instance production.
 - Add `Retry-After` and `X-RateLimit-*` headers so clients can back off gracefully.
+
+## Reference Implementation
+
+<details>
+<summary>Python — <code>slowapi_setup.py</code></summary>
+
+```python
+"""Rate limiter setup using slowapi + Redis."""
+
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+
+def build_limiter(
+    redis_url: str = "redis://localhost:6379",
+    *,
+    default_limit: str = "60/minute",
+) -> Limiter:
+    """Build a configured slowapi Limiter backed by Redis."""
+    return Limiter(
+        key_func=get_remote_address,
+        default_limits=[default_limit],
+        storage_uri=redis_url,
+    )
+```
+
+</details>
+
+<details>
+<summary>TypeScript — <code>ratelimit.ts</code></summary>
+
+```typescript
+/**
+ * Rate limiting utilities for Hono-based prototypes.
+ */
+
+export interface RateLimitConfig {
+  /** Redis URL for distributed rate limiting */
+  redisUrl: string;
+  /** Max requests per window */
+  maxRequests: number;
+  /** Window size in seconds */
+  windowSeconds: number;
+}
+
+interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+}
+
+/**
+ * Build a rate limiter function.
+ *
+ * Returns a function that checks whether a given key (e.g., user ID or IP)
+ * is within its rate limit. Uses a simple in-memory sliding window for now;
+ * Redis-backed implementation should be added per prototype.
+ */
+export function buildRateLimiter(config: RateLimitConfig) {
+  const windows = new Map<string, { count: number; resetAt: number }>();
+
+  return (key: string): RateLimitResult => {
+    const now = Date.now();
+    const entry = windows.get(key);
+
+    if (!entry || now >= entry.resetAt) {
+      windows.set(key, {
+        count: 1,
+        resetAt: now + config.windowSeconds * 1000,
+      });
+      return {
+        allowed: true,
+        remaining: config.maxRequests - 1,
+        resetAt: now + config.windowSeconds * 1000,
+      };
+    }
+
+    entry.count++;
+    const allowed = entry.count <= config.maxRequests;
+    return {
+      allowed,
+      remaining: Math.max(0, config.maxRequests - entry.count),
+      resetAt: entry.resetAt,
+    };
+  };
+}
+```
+
+</details>

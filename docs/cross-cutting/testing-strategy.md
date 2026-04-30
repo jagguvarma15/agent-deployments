@@ -2,7 +2,7 @@
 
 **Concern:** Three-tier test strategy that validates agent behavior without flaky LLM-dependent suites blocking CI.
 **Library:** `pytest` + `deepeval` (Py) / `vitest` (TS)
-**Lives in:** `common/python/agent_common/testing/` and `common/typescript/src/testing/`
+**Lives in:** Inline below (formerly `common/python/agent_common/testing/` and `common/typescript/src/testing/`)
 
 ## The three tiers
 
@@ -131,5 +131,131 @@ Run via `make security PROTOTYPE=<name>`. Runs on main branch in CI.
 
 ## Tests
 
-- **Python:** `common/python/tests/test_testing.py` -- validates mock fixtures
-- **TypeScript:** `common/typescript/tests/testing.test.ts` -- validates mock fixtures
+Validate that mock fixtures produce correct response shapes and that the mock client cycles through predefined responses.
+
+## Reference Implementation
+
+<details>
+<summary>Python — <code>fixtures.py</code></summary>
+
+```python
+"""Shared pytest fixtures and test utilities for agent-deployments prototypes."""
+
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock
+
+
+def mock_llm_response(content: str = "Hello from mock LLM", **kwargs: Any) -> MagicMock:
+    """Create a mock LLM response object."""
+    message = MagicMock()
+    message.content = content
+    message.role = "assistant"
+    message.tool_calls = kwargs.get("tool_calls", [])
+
+    choice = MagicMock()
+    choice.message = message
+    choice.finish_reason = kwargs.get("finish_reason", "stop")
+
+    response = MagicMock()
+    response.choices = [choice]
+    response.model = kwargs.get("model", "mock-model")
+    response.usage = MagicMock(
+        prompt_tokens=kwargs.get("prompt_tokens", 10),
+        completion_tokens=kwargs.get("completion_tokens", 20),
+        total_tokens=kwargs.get("total_tokens", 30),
+    )
+
+    return response
+
+
+def mock_llm_client(responses: list[str] | None = None) -> AsyncMock:
+    """Create a mock async LLM client that returns predefined responses."""
+    _responses = responses or ["Mock response"]
+    _call_count = 0
+
+    async def _create(**kwargs: Any) -> MagicMock:
+        nonlocal _call_count
+        content = _responses[_call_count % len(_responses)]
+        _call_count += 1
+        return mock_llm_response(content, **kwargs)
+
+    client = AsyncMock()
+    client.chat.completions.create = _create
+    return client
+```
+
+</details>
+
+<details>
+<summary>TypeScript — <code>fixtures.ts</code></summary>
+
+```typescript
+/**
+ * Shared test utilities for agent-deployments prototypes.
+ */
+
+export interface MockLlmResponse {
+  choices: Array<{
+    message: { role: string; content: string; tool_calls?: unknown[] };
+    finish_reason: string;
+  }>;
+  model: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+/**
+ * Create a mock LLM response object.
+ */
+export function mockLlmResponse(
+  content = "Hello from mock LLM",
+  options: {
+    model?: string;
+    finishReason?: string;
+    toolCalls?: unknown[];
+  } = {},
+): MockLlmResponse {
+  return {
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content,
+          tool_calls: options.toolCalls ?? [],
+        },
+        finish_reason: options.finishReason ?? "stop",
+      },
+    ],
+    model: options.model ?? "mock-model",
+    usage: {
+      prompt_tokens: 10,
+      completion_tokens: 20,
+      total_tokens: 30,
+    },
+  };
+}
+
+/**
+ * Create a mock LLM client that returns predefined responses.
+ */
+export function mockLlmClient(responses: string[] = ["Mock response"]) {
+  let callCount = 0;
+
+  return {
+    chat: {
+      completions: {
+        create: async (): Promise<MockLlmResponse> => {
+          const content = responses[callCount % responses.length] ?? "";
+          callCount++;
+          return mockLlmResponse(content);
+        },
+      },
+    },
+  };
+}
+```
+
+</details>
