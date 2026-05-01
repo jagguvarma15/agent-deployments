@@ -15,7 +15,7 @@
 
 ## Local setup
 
-Qdrant is defined in `common/docker-compose.base.yml` and extended by each prototype's `docker-compose.yml`:
+Qdrant is defined in the [Docker Compose template](../reference/docker-compose-template.md):
 
 ```yaml
 qdrant:
@@ -103,10 +103,10 @@ const results = await client.query("docs", {
 
 ## Where used in repo
 
-- **`common/docker-compose.base.yml`** -- Qdrant service definition shared by all prototypes
-- **`prototypes/docs-rag-qa/`** -- Primary use case: document chunk storage and retrieval. Currently uses an in-memory mock store (`app/tools/retriever.py`); production swap points to Qdrant via the `qdrant_url` and `qdrant_collection` settings
-- **`prototypes/memory-assistant/`** -- Semantic memory storage (skeleton, via mem0's Qdrant backend)
-- **Settings:** Each prototype that uses Qdrant exposes `QDRANT_URL` and `QDRANT_COLLECTION` env vars
+- **[Docker Compose template](../reference/docker-compose-template.md)** -- Qdrant service definition
+- **[docs-rag-qa](../recipes/docs-rag-qa.md)** -- Primary use case: document chunk storage and retrieval. The blueprint includes an in-memory mock retriever; production swap points to Qdrant via the `QDRANT_URL` and `QDRANT_COLLECTION` settings
+- **[memory-assistant](../recipes/memory-assistant.md)** -- Semantic memory storage via Qdrant
+- **Settings:** Each blueprint that uses Qdrant exposes `QDRANT_URL` and `QDRANT_COLLECTION` env vars
 
 ## Swapping to pgvector
 

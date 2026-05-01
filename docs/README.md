@@ -2,7 +2,7 @@
 
 Composable markdown context for designing, building, and deploying AI agents.
 
-Instead of reading source code across 9 prototypes x 2 language tracks, load the small docs you need for your design — one file per axis of choice.
+Load the small docs you need for your design — one file per axis of choice.
 
 ## How to use these docs
 
@@ -22,7 +22,7 @@ For AI-assisted design: load the playbook + the relevant pattern + framework + s
 | Doc | Description |
 |-----|-------------|
 | [design-a-new-agent.md](playbook/design-a-new-agent.md) | Step-by-step workflow: pattern, framework, stack, compose |
-| [production-checklist.md](playbook/production-checklist.md) | The 11-point checklist every prototype implements |
+| [production-checklist.md](playbook/production-checklist.md) | The 11-point checklist every blueprint specifies |
 
 ## Patterns
 
@@ -82,16 +82,22 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 
 ## Recipes
 
-One file per prototype. Answers: "Show me a worked example combining all of the above."
+Full-spec agent blueprints. Answers: "Give me everything I need to build this agent."
 
-| Doc | Prototype | Status |
-|-----|-----------|--------|
-| [customer-support-triage.md](recipes/customer-support-triage.md) | Routing + Tool Use | Implemented |
-| [docs-rag-qa.md](recipes/docs-rag-qa.md) | RAG pipeline | Implemented |
-| [research-assistant.md](recipes/research-assistant.md) | ReAct research agent | Implemented |
-| [content-pipeline.md](recipes/content-pipeline.md) | Prompt chaining pipeline | Skeleton |
-| [code-review-agent.md](recipes/code-review-agent.md) | Plan & Execute code reviewer | Skeleton |
-| [ops-crew.md](recipes/ops-crew.md) | Multi-agent ops crew | Skeleton |
-| [parallel-enricher.md](recipes/parallel-enricher.md) | Parallel batch enrichment | Skeleton |
-| [memory-assistant.md](recipes/memory-assistant.md) | Memory-enabled assistant | Skeleton |
-| [hierarchical-agent.md](recipes/hierarchical-agent.md) | Hierarchical multi-agent | Skeleton |
+| Doc | Pattern | Status |
+|-----|---------|--------|
+| [customer-support-triage.md](recipes/customer-support-triage.md) | Routing + Tool Use | Blueprint (validated) |
+| [docs-rag-qa.md](recipes/docs-rag-qa.md) | RAG pipeline | Blueprint (validated) |
+| [research-assistant.md](recipes/research-assistant.md) | ReAct research agent | Blueprint (validated) |
+| [content-pipeline.md](recipes/content-pipeline.md) | Prompt chaining pipeline | Blueprint (design spec) |
+| [code-review-agent.md](recipes/code-review-agent.md) | Plan, Execute, Reflect | Blueprint (design spec) |
+| [ops-crew.md](recipes/ops-crew.md) | Multi-agent ops crew | Blueprint (design spec) |
+| [parallel-enricher.md](recipes/parallel-enricher.md) | Parallel batch enrichment | Blueprint (design spec) |
+| [memory-assistant.md](recipes/memory-assistant.md) | Memory-enabled assistant | Blueprint (design spec) |
+| [hierarchical-agent.md](recipes/hierarchical-agent.md) | Hierarchical multi-agent | Blueprint (design spec) |
+
+## Reference
+
+| Doc | Description |
+|-----|-------------|
+| [reference/](reference/) | Dockerfile, docker-compose, CI, and Makefile templates for project scaffolding |

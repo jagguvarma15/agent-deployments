@@ -63,7 +63,7 @@ Load the stack docs relevant to your agent. Every agent needs at least:
 
 ## Step 5: Apply cross-cutting concerns
 
-These come from `common/` and are shared across all prototypes. Load all five:
+These are shared across all blueprints. Load all five:
 
 - [Auth (JWT)](../cross-cutting/auth-jwt.md)
 - [Structured logging](../cross-cutting/logging-structured.md)

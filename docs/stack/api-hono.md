@@ -16,10 +16,9 @@ Hono was chosen for its minimal footprint, fast performance, native TypeScript, 
 
 ## Local setup
 
-Hono runs inside the `app` service in each prototype's `docker-compose.yml`, or standalone:
+Hono runs inside the `app` service in the project's `docker-compose.yml` (see [Docker Compose template](../reference/docker-compose-template.md)), or standalone:
 
 ```bash
-cd prototypes/<name>/typescript
 pnpm install
 pnpm run dev   # typically runs tsx with --watch
 ```
@@ -97,7 +96,7 @@ app.use("/query/*", async (c, next) => {
 
 ## Where used in repo
 
-Every TypeScript prototype uses Hono as its API layer: `prototypes/<name>/typescript/src/index.ts`.
+Every TypeScript blueprint uses Hono as its API layer. See the `src/index.ts` entry in each blueprint's Key files table.
 
 ## Swapping to Fastify
 
