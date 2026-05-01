@@ -2,7 +2,7 @@
 
 **Concern:** JSON-structured logs with request/session/user context on every line.
 **Library:** `structlog` (Py) / `pino` (TS)
-**Lives in:** `common/python/agent_common/logs/` and `common/typescript/src/logging/`
+**Lives in:** Inline below (formerly `common/python/agent_common/logs/` and `common/typescript/src/logging/`)
 
 ## What it provides
 
@@ -70,8 +70,7 @@ reqLog.info({ citationCount: 3 }, "query_answered");
 
 ## Tests
 
-- **Python:** `common/python/tests/test_logging.py` -- configure in both modes, verify output format
-- **TypeScript:** `common/typescript/tests/logging.test.ts` -- logger creation, child loggers, level filtering
+Test configure in both modes and verify output format (Py). Test logger creation, child loggers, and level filtering (TS).
 
 ## Logging conventions
 
@@ -95,3 +94,103 @@ If your deployment already uses an OTel collector:
 3. Set `OTEL_EXPORTER_OTLP_ENDPOINT` in env.
 
 This is a **multi-file swap** (common module + app startup + docker-compose for the OTel collector).
+
+## Reference Implementation
+
+<details>
+<summary>Python — <code>structlog_config.py</code></summary>
+
+```python
+"""Structured logging configuration using structlog."""
+
+import logging
+import sys
+
+import structlog
+
+
+def configure(
+    service_name: str,
+    *,
+    env: str = "development",
+    log_level: str = "INFO",
+) -> None:
+    """Configure structlog for the application.
+
+    In production, outputs JSON. In development, outputs colored human-readable logs.
+    """
+    shared_processors: list[structlog.types.Processor] = [
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+    ]
+
+    if env == "development":
+        renderer: structlog.types.Processor = structlog.dev.ConsoleRenderer()
+    else:
+        renderer = structlog.processors.JSONRenderer()
+
+    structlog.configure(
+        processors=[
+            *shared_processors,
+            structlog.processors.EventRenamer("msg"),
+            renderer,
+        ],
+        wrapper_class=structlog.make_filtering_bound_logger(logging.getLevelNamesMapping()[log_level.upper()]),
+        context_class=dict,
+        logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),
+        cache_logger_on_first_use=True,
+    )
+
+    structlog.contextvars.clear_contextvars()
+    structlog.contextvars.bind_contextvars(service=service_name, env=env)
+```
+
+</details>
+
+<details>
+<summary>TypeScript — <code>logger.ts</code></summary>
+
+```typescript
+/**
+ * Structured logging using pino.
+ */
+
+import pino from "pino";
+
+export interface LoggerConfig {
+  serviceName: string;
+  env?: string;
+  level?: string;
+}
+
+/**
+ * Create a configured pino logger instance.
+ */
+export function createLogger(config: LoggerConfig): pino.Logger {
+  const { serviceName, env = "development", level = "info" } = config;
+
+  const transport =
+    env === "development"
+      ? {
+          target: "pino/file",
+          options: { destination: 1 }, // stdout
+        }
+      : undefined;
+
+  return pino({
+    name: serviceName,
+    level,
+    transport,
+    base: {
+      service: serviceName,
+      env,
+    },
+    timestamp: pino.stdTimeFunctions.isoTime,
+  });
+}
+```
+
+</details>
