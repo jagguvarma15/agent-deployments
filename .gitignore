@@ -1,13 +1,3 @@
-# Dependencies
-node_modules/
-.venv/
-__pycache__/
-*.pyc
-
-# Build output
-dist/
-*.egg-info/
-
 # Environment
 .env
 .env.local
@@ -18,16 +8,3 @@ dist/
 *.swp
 *.swo
 .DS_Store
-
-# Lockfiles (generated, don't ignore — but listed here for awareness)
-# uv.lock
-# pnpm-lock.yaml
-
-# Test / coverage
-.coverage
-htmlcov/
-.pytest_cache/
-coverage/
-
-# Docker
-*.log
