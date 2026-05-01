@@ -1,6 +1,6 @@
 # Recipe: docs-rag-qa
 
-**Status:** Fully implemented (both tracks)
+**Status:** Blueprint (validated)
 
 **Composes:**
 
@@ -93,21 +93,6 @@ This implements **agentic RAG** -- the LLM decides when and what to retrieve, ra
 | `src/tools/retriever.ts` | In-memory keyword search (swap point for Qdrant) |
 | `src/schemas/index.ts` | Zod request/response schemas |
 
-## Run locally
-
-```bash
-cd prototypes/docs-rag-qa/python   # or typescript
-cp .env.example .env
-# Add ANTHROPIC_API_KEY to .env
-docker compose up
-```
-
-Or from repo root:
-
-```bash
-make up PROTOTYPE=docs-rag-qa TRACK=python
-```
-
 ## Example interaction
 
 ### Ingest a document
@@ -149,19 +134,233 @@ Response:
 }
 ```
 
-## Eval setup
+## Data Models
 
-- **Dataset:** `eval/dataset.jsonl` -- golden Q&A pairs with expected answers
-- **Unit tests:** `tests/unit/` -- test chunker logic, schema validation, API routes (mocked agent)
-- **Integration tests:** `tests/integration/` -- test full pipeline with real LLM (requires `ANTHROPIC_API_KEY`)
-- **Eval metrics:** Faithfulness, answer relevancy, context recall (via DeepEval / RAGAS)
-- **Security scan:** `eval/promptfoo.yaml` -- jailbreak and prompt injection tests
+### Python (Pydantic)
 
-```bash
-make test PROTOTYPE=docs-rag-qa TRACK=python       # unit + integration
-make eval PROTOTYPE=docs-rag-qa TRACK=python        # eval suite
-make security PROTOTYPE=docs-rag-qa                 # promptfoo red-team
+```python
+from pydantic import BaseModel, Field
+
+
+class DocumentIngestRequest(BaseModel):
+    content: str = Field(..., min_length=1)
+    title: str = Field(..., min_length=1)
+    metadata: dict | None = None
+
+
+class DocumentIngestResponse(BaseModel):
+    document_id: str
+    chunk_count: int
+    status: str
+
+
+class QueryRequest(BaseModel):
+    question: str = Field(..., min_length=1)
+    top_k: int = Field(default=5, ge=1, le=20)
+
+
+class Citation(BaseModel):
+    chunk_id: str
+    document_title: str
+    text: str
+    score: float
+
+
+class QueryResponse(BaseModel):
+    answer: str
+    citations: list[Citation]
+    trace_id: str
 ```
+
+### TypeScript (Zod)
+
+```typescript
+import { z } from "zod";
+
+export const DocumentIngestRequest = z.object({
+  content: z.string().min(1),
+  title: z.string().min(1),
+  metadata: z.record(z.unknown()).optional(),
+});
+export const QueryRequest = z.object({
+  question: z.string().min(1),
+  top_k: z.number().min(1).max(20).default(5),
+});
+export const Citation = z.object({
+  chunk_id: z.string(),
+  document_title: z.string(),
+  text: z.string(),
+  score: z.number(),
+});
+export const QueryResponse = z.object({
+  answer: z.string(),
+  citations: z.array(Citation),
+  trace_id: z.string(),
+});
+```
+
+## API Contract
+
+### `POST /documents`
+
+Ingest a document into the knowledge base.
+
+**Request:**
+
+```json
+{
+  "title": "MCP Overview",
+  "content": "The Model Context Protocol (MCP) is an open standard..."
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "document_id": "a1b2c3d4-...",
+  "chunk_count": 3,
+  "status": "ingested"
+}
+```
+
+### `POST /query`
+
+Ask a question against the knowledge base.
+
+**Request:**
+
+```json
+{
+  "question": "What is MCP?",
+  "top_k": 5
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "answer": "MCP (Model Context Protocol) is an open standard for connecting AI models to external data sources and tools...",
+  "citations": [
+    {"chunk_id": "ch-1", "document_title": "MCP Overview", "text": "The Model Context Protocol...", "score": 0.92}
+  ],
+  "trace_id": "e5f6g7h8-..."
+}
+```
+
+**Errors:**
+
+| Status | Body | When |
+|--------|------|------|
+| 400 | `{"error": "Invalid request", "details": [...]}` | Missing question or content |
+| 500 | `{"error": "Internal error"}` | LLM or retrieval failure |
+
+### `GET /health`
+
+Returns `{"status": "ok"}`.
+
+## Tool Specifications
+
+### `search_knowledge_base`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Search the document knowledge base for chunks relevant to a query. Uses keyword matching (dev) or vector similarity (production with Qdrant). |
+| **Parameter** | `query` (string, required) — Natural language search query. |
+| **Return type** | `string` — Formatted matching chunks with document titles and scores, separated by dividers. Returns `"No relevant documents found."` if no matches. |
+
+## Prompt Specifications
+
+### QA System Prompt
+
+```
+You are a document Q&A assistant. Your job is to answer questions
+based on the documents in the knowledge base.
+
+When answering:
+1. Use the search_knowledge_base tool to find relevant document chunks.
+2. Base your answer ONLY on the retrieved content.
+3. Include citations referencing the source documents.
+4. If no relevant information is found, say so clearly.
+
+Always provide accurate, concise answers with proper citations.
+```
+
+**Design rationale:**
+- **"Use the search_knowledge_base tool"** — Explicitly instructs the agent to call retrieval rather than relying on parametric memory. Core of agentic RAG.
+- **"Base your answer ONLY on the retrieved content"** — Prevents hallucination by grounding strictly in retrieved chunks.
+- **"Include citations"** — Makes answers auditable. Users can trace claims to specific documents.
+- **"If no relevant information is found, say so clearly"** — Prevents fabrication when the KB lacks coverage.
+
+## Implementation Roadmap
+
+| Step | Task | Key deliverables |
+|------|------|-----------------|
+| 1 | **Project scaffolding** | FastAPI/Hono app with `/health`, settings, structured logging |
+| 2 | **Data models** | Pydantic + Zod schemas for ingest, query, citation, response |
+| 3 | **Database models** | Document and Chunk tables with SQLAlchemy |
+| 4 | **Chunker** | Sentence-boundary splitting with configurable size (500) and overlap (50) |
+| 5 | **Retriever** | In-memory keyword search (swap point for Qdrant) |
+| 6 | **QA agent** | Pydantic AI agent with `search_knowledge_base` tool |
+| 7 | **Ingest endpoint** | `POST /documents` — chunk, store in DB and retriever |
+| 8 | **Query endpoint** | `POST /query` — run agent, return answer + citations |
+| 9 | **Cross-cutting** | JWT auth, rate limiting, Langfuse tracing |
+| 10 | **Unit tests** | Chunker logic, schema validation, API routes with mocked agent |
+| 11 | **Integration + eval** | End-to-end pipeline with real LLM, promptfoo security scan |
+
+## Environment & Deployment
+
+### Environment variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | — | Anthropic API key |
+| `QA_MODEL` | No | `claude-sonnet-4-6-20250514` | Model for the QA agent |
+| `CHUNK_SIZE` | No | `500` | Max chunk size in characters |
+| `CHUNK_OVERLAP` | No | `50` | Overlap between chunks |
+| `DATABASE_URL` | No | `postgresql+asyncpg://agent:agent@localhost:5432/agent_db` | Postgres connection |
+| `REDIS_URL` | No | `redis://localhost:6379` | Redis for rate limiting |
+| `QDRANT_URL` | No | `http://localhost:6333` | Qdrant vector DB URL |
+| `QDRANT_COLLECTION` | No | `docs_rag` | Qdrant collection name |
+| `LANGFUSE_PUBLIC_KEY` | No | `pk-lf-local` | Langfuse public key |
+| `LANGFUSE_SECRET_KEY` | No | `sk-lf-local` | Langfuse secret key |
+| `LANGFUSE_HOST` | No | `http://localhost:3000` | Langfuse server URL |
+| `JWT_SECRET` | No | `change-me-in-production` | JWT signing secret |
+| `APP_ENV` | No | `development` | Environment name |
+| `LOG_LEVEL` | No | `INFO` | Log level |
+
+### Docker Compose
+
+See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, Qdrant, Langfuse.
+
+## Test Strategy
+
+### Unit tests
+
+```python
+def test_chunker_empty_input():
+    """Empty string returns empty list."""
+    assert chunk_document("") == []
+
+def test_chunker_respects_overlap():
+    """Consecutive chunks overlap by the configured amount."""
+    chunks = chunk_document("A. B. C. D. E. F.", chunk_size=10, overlap=5)
+    # Verify overlap between adjacent chunks
+
+def test_query_returns_citations(mock_llm_client):
+    """Query endpoint returns answer with trace_id."""
+    response = await client.post("/query", json={"question": "What is MCP?"})
+    assert response.status_code == 200
+    assert "trace_id" in response.json()
+```
+
+### Eval assertions
+
+- Answers are grounded in retrieved chunks (faithfulness)
+- Agent always calls `search_knowledge_base` before answering
+- "I don't know" for questions outside KB coverage (no hallucination)
+- Chunker produces correct boundary splits
 
 ## Design decisions
 

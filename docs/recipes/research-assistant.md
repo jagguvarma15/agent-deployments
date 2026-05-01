@@ -1,6 +1,6 @@
 # Recipe: Research Assistant
 
-**Status:** Fully implemented (both tracks)
+**Status:** Blueprint (validated)
 
 **Composes:**
 
@@ -85,21 +85,6 @@ This implements **vanilla ReAct** — a single agent with multiple tools in a re
 | `src/tools/cite-sources.ts` | Citation formatter tool |
 | `src/schemas/index.ts` | Zod request/response schemas |
 
-## Run locally
-
-```bash
-cd prototypes/research-assistant/python   # or typescript
-cp .env.example .env
-# Add ANTHROPIC_API_KEY to .env
-docker compose up
-```
-
-Or from repo root:
-
-```bash
-make up PROTOTYPE=research-assistant TRACK=python
-```
-
 ## Example interaction
 
 ```bash
@@ -120,18 +105,227 @@ Response:
 }
 ```
 
-## Eval setup
+## Data Models
 
-- **Dataset:** `eval/dataset.jsonl` — research questions with expected answer characteristics
-- **Unit tests:** `tests/unit/` — test schema validation, API routes, tool mocks
-- **Integration tests:** `tests/integration/` — test full research pipeline with real LLM
-- **Eval metrics:** Answer completeness, source quality, reasoning coherence
-- **Security scan:** `eval/promptfoo.yaml` — jailbreak and prompt injection tests
+### Python (Pydantic)
 
-```bash
-make test PROTOTYPE=research-assistant TRACK=python
-make eval PROTOTYPE=research-assistant TRACK=python
+```python
+from pydantic import BaseModel, Field
+
+
+class ResearchRequest(BaseModel):
+    question: str = Field(..., min_length=1, description="Research question to investigate")
+    max_steps: int = Field(default=5, ge=1, le=10, description="Max ReAct loop iterations")
+
+
+class Source(BaseModel):
+    title: str
+    url: str | None = None
+    snippet: str
+
+
+class ResearchStep(BaseModel):
+    step: int
+    action: str = Field(..., description="Tool used: search, extract, summarize, cite")
+    content: str = Field(..., description="Summary of what this step produced")
+
+
+class ResearchResult(BaseModel):
+    answer: str
+    sources: list[Source] = Field(default_factory=list)
+    steps: list[ResearchStep]
+    trace_id: str
 ```
+
+### TypeScript (Zod)
+
+```typescript
+import { z } from "zod";
+
+export const ResearchRequest = z.object({
+  question: z.string().min(1),
+  max_steps: z.number().min(1).max(10).default(5),
+});
+export const Source = z.object({
+  title: z.string(),
+  url: z.string().url().optional(),
+  snippet: z.string(),
+});
+export const ResearchStep = z.object({
+  step: z.number(),
+  action: z.string(),
+  content: z.string(),
+});
+export const ResearchResult = z.object({
+  answer: z.string(),
+  sources: z.array(Source).default([]),
+  steps: z.array(ResearchStep),
+  trace_id: z.string(),
+});
+```
+
+## API Contract
+
+### `POST /research`
+
+Submit a research question.
+
+**Request:**
+
+```json
+{
+  "question": "What are the key differences between RAG and fine-tuning for LLM customization?",
+  "max_steps": 5
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "answer": "RAG and fine-tuning serve different purposes for LLM customization...",
+  "sources": [
+    {"title": "RAG vs Fine-tuning Guide", "url": "https://example.com/rag-guide", "snippet": "RAG retrieves external knowledge at inference time..."}
+  ],
+  "steps": [
+    {"step": 1, "action": "search", "content": "Searched: RAG vs fine-tuning differences"},
+    {"step": 2, "action": "extract", "content": "Extracted 5 key comparison points"},
+    {"step": 3, "action": "summarize", "content": "Synthesized findings into structured comparison"}
+  ],
+  "trace_id": "abc123-..."
+}
+```
+
+**Errors:**
+
+| Status | Body | When |
+|--------|------|------|
+| 400 | `{"error": "Invalid request", "details": [...]}` | Empty question |
+| 500 | `{"error": "Research failed"}` | LLM or tool execution failure |
+
+### `GET /health`
+
+Returns `{"status": "ok"}`.
+
+## Tool Specifications
+
+### `search_web`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Search the web for information on a topic. Returns titles, URLs, and snippets. |
+| **Parameter** | `query` (string, required) — Search query. |
+| **Return type** | `string` — Formatted search results. |
+
+### `extract_facts`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Extract key facts and claims from a text passage. |
+| **Parameter** | `text` (string, required) — Text to analyze. |
+| **Return type** | `string` — Bulleted list of extracted facts. |
+
+### `summarize`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Summarize a body of text into a concise overview. |
+| **Parameter** | `text` (string, required) — Text to summarize. |
+| **Return type** | `string` — Concise summary. |
+
+### `cite_sources`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Format source citations from collected research material. |
+| **Parameter** | `sources_json` (string, required) — JSON array of source objects. |
+| **Return type** | `string` — Formatted citations. |
+
+## Prompt Specifications
+
+### Research Agent System Prompt
+
+```
+You are a research assistant. Given a question, research it thoroughly
+by searching the web, extracting key facts, and synthesizing a
+comprehensive answer with citations.
+
+Your process:
+1. Search for relevant information using the search_web tool
+2. Extract key facts from the search results
+3. If needed, search again with refined queries
+4. Summarize your findings
+5. Cite your sources
+
+Be thorough but efficient. Most questions can be answered in 2-3 search iterations.
+If you cannot find relevant information, say so rather than guessing.
+```
+
+**Design rationale:**
+- **Numbered process** — Guides the ReAct loop toward a productive sequence rather than random tool calls.
+- **"Search again with refined queries"** — Encourages iterative refinement when initial results are insufficient.
+- **"Be thorough but efficient"** — Balances quality vs. cost. Without this, the agent tends to either stop after one search or exhaust all steps.
+- **"Say so rather than guessing"** — Prevents fabrication when the web search returns no relevant results.
+
+## Implementation Roadmap
+
+| Step | Task | Key deliverables |
+|------|------|-----------------|
+| 1 | **Project scaffolding** | FastAPI/Hono app with `/health`, settings, structured logging |
+| 2 | **Data models** | Pydantic + Zod schemas for request, source, step, result |
+| 3 | **Database models** | Research and ResearchStep tables for session logging |
+| 4 | **Tool implementations** | `search_web` (mock), `extract_facts`, `summarize`, `cite_sources` |
+| 5 | **Research agent** | Pydantic AI agent with 4 tools, `max_steps` from settings |
+| 6 | **API endpoint** | `POST /research` — run agent, collect steps, return result |
+| 7 | **Cross-cutting** | JWT auth, rate limiting, Langfuse tracing |
+| 8 | **Unit tests** | Schema validation, API routes with mocked agent |
+| 9 | **Integration + eval** | End-to-end research with real LLM, promptfoo security scan |
+
+## Environment & Deployment
+
+### Environment variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | — | Anthropic API key |
+| `RESEARCH_MODEL` | No | `claude-sonnet-4-6-20250514` | Model for research agent |
+| `MAX_STEPS` | No | `5` | Default max ReAct iterations |
+| `DATABASE_URL` | No | `postgresql+asyncpg://agent:agent@localhost:5432/agent_db` | Postgres connection |
+| `REDIS_URL` | No | `redis://localhost:6379` | Redis for rate limiting |
+| `LANGFUSE_PUBLIC_KEY` | No | `pk-lf-local` | Langfuse public key |
+| `LANGFUSE_SECRET_KEY` | No | `sk-lf-local` | Langfuse secret key |
+| `LANGFUSE_HOST` | No | `http://localhost:3000` | Langfuse server URL |
+| `JWT_SECRET` | No | `change-me-in-production` | JWT signing secret |
+| `APP_ENV` | No | `development` | Environment name |
+| `LOG_LEVEL` | No | `INFO` | Log level |
+
+### Docker Compose
+
+See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, Langfuse. No Qdrant required.
+
+## Test Strategy
+
+### Unit tests
+
+```python
+def test_research_request_validates_steps():
+    """max_steps must be between 1 and 10."""
+    with pytest.raises(ValidationError):
+        ResearchRequest(question="test", max_steps=20)
+
+def test_research_endpoint_returns_steps(mock_llm_client):
+    """Response includes steps taken during research."""
+    response = await client.post("/research", json={"question": "What is RAG?"})
+    assert response.status_code == 200
+    assert len(response.json()["steps"]) >= 1
+```
+
+### Eval assertions
+
+- Agent uses `search_web` at least once per research question
+- Answer references information from search results (grounded)
+- Step count stays within `max_steps` limit
+- "I don't know" for unanswerable questions (no fabrication)
 
 ## Design decisions
 
