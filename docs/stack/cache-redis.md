@@ -13,7 +13,7 @@
 
 ## Local setup
 
-Defined in `common/docker-compose.base.yml`:
+Defined in the [Docker Compose template](../reference/docker-compose-template.md):
 
 ```yaml
 redis:
@@ -75,8 +75,8 @@ const value = await redis.get("session:user-1");
 ## Where used in repo
 
 - **Rate limiting** -- `slowapi` (Py) uses Redis as its backing store for distributed counters
-- **Docker Compose** -- every prototype extends the `redis` service from `common/docker-compose.base.yml`
-- **Session state** -- available for prototypes that need transient conversation cache (not used by default; Postgres handles persistent state)
+- **Docker Compose** -- see the `redis` service in [Docker Compose template](../reference/docker-compose-template.md)
+- **Session state** -- available for agents that need transient conversation cache (not used by default; Postgres handles persistent state)
 
 ## Production considerations
 

@@ -1,26 +1,20 @@
 # Contributing to agent-deployments
 
-Thank you for your interest in contributing! This guide covers how to add a new
-prototype, submit a stack swap, or improve existing code.
+Thank you for your interest in contributing! This guide covers how to contribute a new blueprint, improve existing docs, or submit a stack swap.
 
 ## Getting started
 
 1. Fork and clone the repo
-2. Ensure you have Docker, `uv` (Python), and `pnpm` (TypeScript) installed
-3. Pick a prototype and run it locally to verify your setup:
-   ```bash
-   cd prototypes/customer-support-triage/python
-   cp .env.example .env
-   make up
-   ```
+2. Read a few existing blueprints in `docs/recipes/` to understand the format
+3. Check `docs/reference/` for project scaffolding templates
 
 ## Types of contributions
 
-### Bug fixes and improvements to existing prototypes
+### Improvements to existing blueprints
 
-1. Open an issue describing the bug or improvement
-2. Fork, branch (`fix/<short-description>` or `improve/<short-description>`), and fix
-3. Ensure `make test PROTOTYPE=<name>` and `make lint PROTOTYPE=<name>` pass
+1. Open an issue describing the improvement
+2. Fork, branch (`improve/<short-description>`), and make changes
+3. Ensure all internal markdown links still resolve
 4. Submit a PR referencing the issue
 
 ### Stack swaps
@@ -28,57 +22,53 @@ prototype, submit a stack swap, or improve existing code.
 Want to document how to swap a default pick (e.g., Qdrant to Pinecone)?
 
 1. Use the `stack-swap` issue template
-2. Add documentation to the relevant prototype's `docs/swaps.md`
-3. If the swap requires code changes, include those in the same PR
-4. Categorize the swap: single-file, multi-file, or architectural
+2. Add documentation to the relevant stack doc in `docs/stack/`
+3. If the swap affects blueprint specs, update those too
 
-### New prototypes
+### New blueprints
 
-New prototypes must:
+New blueprints must:
 
-1. Use the `new-prototype` issue template for discussion first
-2. Map to a pattern from [`agent-blueprints`](https://github.com/jagguvarma15/agent-blueprints)
-3. Implement **both** Python and TypeScript tracks
-4. Meet all acceptance criteria (see below)
-5. Start from the `prototypes/_template/` directory
+1. Use the `new-blueprint` issue template for discussion first
+2. Map to a pattern from [`docs/patterns/`](docs/patterns/) or propose a new one
+3. Include specifications for **both** Python and TypeScript tracks
+4. Follow the 13-section blueprint template (see any existing recipe for reference)
 
-## Acceptance criteria
+### Blueprint template sections
 
-Before a PR is merged, every prototype must satisfy:
+Every blueprint should include:
 
-- [ ] Both `python/` and `typescript/` tracks implemented
-- [ ] `make up PROTOTYPE=<name> TRACK=python` works with only Docker and env vars
-- [ ] `make up PROTOTYPE=<name> TRACK=typescript` works similarly
-- [ ] `curl localhost:PORT/health` returns 200
-- [ ] Example curl from README executes and returns a valid response
-- [ ] Langfuse UI shows a trace with all spans
-- [ ] `make test PROTOTYPE=<name>` passes
-- [ ] `make eval PROTOTYPE=<name>` runs and reports metrics
-- [ ] `make security PROTOTYPE=<name>` passes (no criticals)
-- [ ] README has: Blueprint Map, Stack table, Architecture diagram, Run instructions, API, Observability, Evaluation, Swaps link, Py-vs-TS reflection
-- [ ] Every secret lives in `.env.example` with a comment
-- [ ] Docker image <200 MB (Python) / <150 MB (TypeScript)
-- [ ] CI green across both tracks
+- [ ] What it does
+- [ ] Architecture (ASCII diagram)
+- [ ] Data Models (Pydantic + Zod schemas)
+- [ ] API Contract (endpoints with request/response JSON)
+- [ ] Tool Specifications (if applicable)
+- [ ] Prompt Specifications (actual prompts with design rationale)
+- [ ] Key files (Python + TypeScript tracks)
+- [ ] Implementation Roadmap (ordered build steps)
+- [ ] Environment & Deployment (env vars table)
+- [ ] Test Strategy (example tests per tier)
+- [ ] Eval Dataset (inline golden examples)
+- [ ] Design Decisions (trade-offs and rationale)
 
 ## Code style
 
-- **Python**: formatted and linted with `ruff`
-- **TypeScript**: formatted and linted with `Biome`
-- Run `make lint PROTOTYPE=<name>` before submitting
+- **Markdown**: clean formatting, consistent heading levels
+- **Code blocks**: include language identifiers (```python, ```typescript)
+- **Links**: use relative paths within docs/
 
 ## Commit messages
 
 Use concise, descriptive commit messages:
-- `add: <prototype-name> python track`
-- `fix: rate limiter race condition in common/python/ratelimit`
-- `docs: update stack.md with Qdrant version bump`
+- `add: memory-assistant blueprint`
+- `fix: incorrect schema in docs-rag-qa data models`
+- `docs: update stack rationale for Qdrant version bump`
 
 ## PR checklist
 
 - [ ] I have read the contributing guide
-- [ ] Both language tracks are included (for new prototypes)
-- [ ] Tests pass locally
-- [ ] I have updated relevant documentation
+- [ ] Both language tracks are specified (for new blueprints)
+- [ ] All internal markdown links resolve
 - [ ] I have not committed secrets or API keys
 
 ## Questions?

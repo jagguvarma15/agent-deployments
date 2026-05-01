@@ -16,7 +16,7 @@ MCP was chosen because tools built as MCP servers are portable across frameworks
 ## Core concepts
 
 - **MCP Server** -- a service that exposes tools via the MCP protocol (HTTP transport). Implements `list-tools` and `call-tool` endpoints.
-- **MCP Client** -- a client that discovers and invokes tools on an MCP server. This repo provides a lightweight client in `common/`.
+- **MCP Client** -- a client that discovers and invokes tools on an MCP server. See the Reference Implementation section below for a lightweight client.
 - **Tool schema** -- each tool has a name, description, and JSON Schema for its parameters. Clients use this schema for LLM tool binding.
 
 ## Local setup

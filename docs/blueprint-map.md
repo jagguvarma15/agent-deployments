@@ -1,15 +1,15 @@
 # Blueprint Map
 
-Full mapping between `agent-deployments` prototypes and `agent-blueprints` patterns.
+Full mapping between `agent-deployments` recipes and `agent-blueprints` patterns.
 
 > [`agent-blueprints`](https://github.com/jagguvarma15/agent-blueprints) teaches
 > architecture at three tiers: Overview, Design, Implementation.
-> Each prototype below links to the relevant pattern pages.
+> Each blueprint below links to the relevant pattern pages.
 
-## Prototype-to-pattern mapping
+## Recipe-to-pattern mapping
 
-| Prototype | Primary pattern(s) | Blueprint links |
-|-----------|-------------------|-----------------|
+| Recipe | Primary pattern(s) | Blueprint links |
+|--------|-------------------|-----------------|
 | `customer-support-triage` | Routing + Tool Use | `patterns/routing/` (overview, design, implementation) · `patterns/tool-use/` · `foundations/choosing-a-pattern.md` |
 | `docs-rag-qa` | RAG | `patterns/rag/` (overview, design, implementation) |
 | `research-assistant` | ReAct + Tool Use | `patterns/react/` (overview, design, implementation) · `patterns/tool-use/` · `patterns/react/evolution.md` |
@@ -22,7 +22,7 @@ Full mapping between `agent-deployments` prototypes and `agent-blueprints` patte
 
 ## How to read this
 
-Each prototype's README opens with a **Blueprint Map** block that links directly
+Each blueprint's README opens with a **Blueprint Map** block that links directly
 to the relevant `agent-blueprints` pages. For example:
 
 ```markdown
@@ -68,9 +68,9 @@ composition/                         ──►   content-pipeline (headline exam
 
 ## Contributing
 
-When adding a new prototype, you must:
+When adding a new blueprint, you must:
 
 1. Identify the corresponding pattern(s) in `agent-blueprints`
-2. Add the Blueprint Map block to the prototype's README
+2. Add the Composes section to the recipe linking back to the pattern
 3. Update this file with the new mapping
-4. Coordinate a PR to `agent-blueprints` adding a cross-link back to this prototype
+4. Coordinate a PR to `agent-blueprints` adding a cross-link back to this recipe

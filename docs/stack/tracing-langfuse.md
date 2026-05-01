@@ -16,7 +16,7 @@ Langfuse was chosen because it's open-source, self-hostable, framework-agnostic,
 
 ## Local setup
 
-Langfuse requires Postgres (shared), ClickHouse, and MinIO. All defined in `common/docker-compose.base.yml`:
+Langfuse requires Postgres (shared), ClickHouse, and MinIO. All defined in the [Docker Compose template](../reference/docker-compose-template.md):
 
 ```yaml
 langfuse-clickhouse:
@@ -91,9 +91,9 @@ Each agent request creates a trace with:
 
 ## Where used in repo
 
-- **`common/observability/`** -- Langfuse client wrapper and `@traced` decorator
-- **`common/docker-compose.base.yml`** -- Langfuse + ClickHouse + MinIO services
-- **Every prototype** -- traces agent execution via the common observability module
+- **[Observability cross-cutting doc](../cross-cutting/observability.md)** -- Langfuse client wrapper and `@traced` decorator (with reference implementation)
+- **[Docker Compose template](../reference/docker-compose-template.md)** -- Langfuse + ClickHouse + MinIO services
+- **Every blueprint** -- traces agent execution via the observability module
 - **Settings** -- `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` in each `.env.example`
 
 ## Swapping to LangSmith

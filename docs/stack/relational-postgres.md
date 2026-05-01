@@ -14,7 +14,7 @@
 
 ## Local setup
 
-Defined in `common/docker-compose.base.yml`:
+Defined in the [Docker Compose template](../reference/docker-compose-template.md):
 
 ```yaml
 postgres:

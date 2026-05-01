@@ -14,13 +14,13 @@
 
 ## Local setup
 
-FastAPI runs inside the `app` service in each prototype's `docker-compose.yml`:
+FastAPI runs inside the `app` service in the project's `docker-compose.yml` (see [Docker Compose template](../reference/docker-compose-template.md)):
 
 ```yaml
 app:
   build:
-    context: ../../..
-    dockerfile: prototypes/<name>/python/Dockerfile
+    context: .
+    dockerfile: Dockerfile  # see docs/reference/docker-templates.md
   ports:
     - "8000:8000"
   env_file: .env
@@ -34,7 +34,6 @@ app:
 For local dev without Docker:
 
 ```bash
-cd prototypes/<name>/python
 uv sync
 uv run uvicorn app.main:app --reload --port 8000
 ```
@@ -101,7 +100,7 @@ app.state.limiter = limiter
 
 ## Where used in repo
 
-Every Python prototype uses FastAPI as its API layer: `prototypes/<name>/python/app/main.py`.
+Every Python blueprint uses FastAPI as its API layer. See the `app/main.py` entry in each blueprint's Key files table.
 
 ## Swapping to Litestar
 

@@ -53,7 +53,7 @@ tests/
 
 ## Shared test fixtures
 
-The `common/testing` module provides mock LLM utilities so unit tests never hit a real model:
+The shared testing utilities provide mock LLM utilities so unit tests never hit a real model (see Reference Implementation below for the full source):
 
 ### Python
 

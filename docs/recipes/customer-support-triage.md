@@ -1,6 +1,6 @@
 # Recipe: Customer Support Triage
 
-**Status:** Fully implemented (both tracks)
+**Status:** Blueprint (validated)
 
 **Composes:**
 
@@ -87,21 +87,6 @@ This implements **single-hop routing** — classify once, route once. The classi
 | `src/tools/kb.ts` | Knowledge base search tool |
 | `src/schemas/index.ts` | Zod schemas for classification and request/response |
 
-## Run locally
-
-```bash
-cd prototypes/customer-support-triage/python   # or typescript
-cp .env.example .env
-# Add ANTHROPIC_API_KEY to .env
-docker compose up
-```
-
-Or from repo root:
-
-```bash
-make up PROTOTYPE=customer-support-triage TRACK=python
-```
-
 ## Example interaction
 
 ```bash
@@ -127,18 +112,234 @@ Response:
 }
 ```
 
-## Eval setup
+## Data Models
 
-- **Dataset:** `eval/dataset.jsonl` — customer messages with expected intent labels
-- **Unit tests:** `tests/unit/` — test classifier output schema, specialist routing, tool mocks
-- **Integration tests:** `tests/integration/` — test full triage pipeline with real LLM
-- **Eval metrics:** Classification accuracy, routing correctness, response relevance
-- **Security scan:** `eval/promptfoo.yaml` — jailbreak and prompt injection tests
+### Python (Pydantic)
 
-```bash
-make test PROTOTYPE=customer-support-triage TRACK=python
-make eval PROTOTYPE=customer-support-triage TRACK=python
+```python
+from enum import Enum
+from pydantic import BaseModel, Field
+
+
+class Intent(str, Enum):
+    billing = "billing"
+    technical = "technical"
+    account = "account"
+    general = "general"
+
+
+class ClassificationResult(BaseModel):
+    intent: Intent
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    reasoning: str
+
+
+class TriageRequest(BaseModel):
+    message: str = Field(..., min_length=1)
+    user_id: str = Field(default="anonymous")
+
+
+class TriageResponse(BaseModel):
+    conversation_id: str
+    intent: str
+    specialist_response: str
+    escalated: bool
+    trace_id: str
 ```
+
+### TypeScript (Zod)
+
+```typescript
+import { z } from "zod";
+
+export const Intent = z.enum(["billing", "technical", "account", "general"]);
+export const ClassificationResult = z.object({
+  intent: Intent,
+  confidence: z.number().min(0).max(1),
+  reasoning: z.string(),
+});
+export const TriageRequest = z.object({
+  message: z.string().min(1),
+  user_id: z.string().min(1),
+});
+export const TriageResponse = z.object({
+  conversation_id: z.string(),
+  intent: z.string(),
+  specialist_response: z.string(),
+  escalated: z.boolean(),
+  trace_id: z.string(),
+});
+```
+
+## API Contract
+
+### `POST /triage`
+
+Classify a customer message and route to a specialist.
+
+**Request:**
+
+```json
+{
+  "message": "I was charged twice for my subscription last month",
+  "user_id": "user-456"
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "conversation_id": "c1d2e3f4-...",
+  "intent": "billing",
+  "specialist_response": "I understand you're concerned about a duplicate charge. Let me look into your billing history...",
+  "escalated": false,
+  "trace_id": "a1b2c3d4-..."
+}
+```
+
+**Escalation (200) — low confidence:**
+
+```json
+{
+  "conversation_id": "c1d2e3f4-...",
+  "intent": "general",
+  "specialist_response": "Escalated to human agent due to low classification confidence.",
+  "escalated": true,
+  "trace_id": "a1b2c3d4-..."
+}
+```
+
+**Errors:**
+
+| Status | Body | When |
+|--------|------|------|
+| 400 | `{"error": "Invalid request", "details": [...]}` | Empty message |
+| 500 | `{"error": "Internal error"}` | LLM or service failure |
+
+### `GET /health`
+
+Returns `{"status": "ok"}`.
+
+## Tool Specifications
+
+### `lookup_billing`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Look up billing information for a customer using Stripe. Returns subscription details, recent charges, and payment method info. |
+| **Parameter** | `query` (string, required) — Billing-related query (e.g., "duplicate charge", "refund", "subscription"). |
+| **Return type** | `string` — Formatted billing summary with customer info and relevant details. |
+
+### `search_knowledge_base`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Search the knowledge base for articles relevant to the customer's question. Used by technical and account specialists. |
+| **Parameter** | `query` (string, required) — The search query. |
+| **Return type** | `string` — Top matching KB articles formatted with titles and content, separated by dividers. |
+
+## Prompt Specifications
+
+### Classifier
+
+```
+You are a customer support intent classifier.
+Given a customer message, classify it into exactly one of these intents:
+- billing: payment issues, subscription changes, invoices, charges, refunds
+- technical: bugs, errors, API issues, integration problems, performance
+- account: password resets, profile updates, access issues, account settings
+- general: everything else, general questions, feedback, feature requests
+
+Return the intent, your confidence (0.0 to 1.0), and brief reasoning.
+```
+
+**Design rationale:** The classifier uses structured output (`result_type=ClassificationResult` / `generateObject`) to guarantee a valid intent enum. The confidence score enables downstream gating — below `ESCALATION_THRESHOLD` (default 0.7), the request is escalated to a human.
+
+### Specialist prompts
+
+Each specialist has a focused system prompt:
+
+- **Billing:** `"You are a billing support specialist. Help customers with payment issues, subscription changes, invoices, and charges. You have access to the Stripe tool to look up billing information."`
+- **Technical:** `"You are a technical support specialist. Help customers with bugs, errors, API issues, and integration problems. You have access to a knowledge base search tool."`
+- **Account:** `"You are an account support specialist. Help customers with password resets, profile updates, and account settings. You have access to a knowledge base search tool."`
+- **General:** `"You are a general support specialist. Help customers with general questions, feedback, and feature requests."`
+
+**Design rationale:** Each specialist only sees the tools relevant to its domain. The billing agent can call Stripe but not search the KB. This prevents tool misuse and keeps each specialist focused.
+
+## Implementation Roadmap
+
+| Step | Task | Key deliverables |
+|------|------|-----------------|
+| 1 | **Project scaffolding** | FastAPI/Hono app with `/health`, settings, structured logging |
+| 2 | **Data models** | Pydantic + Zod schemas for Intent, ClassificationResult, request/response |
+| 3 | **Database models** | Conversation and Message tables for logging |
+| 4 | **Classifier agent** | Pydantic AI agent with `result_type=ClassificationResult` |
+| 5 | **Tool implementations** | `lookup_billing` (mock Stripe), `search_knowledge_base` (mock KB) |
+| 6 | **Specialist agents** | 4 specialists, each with isolated tool set |
+| 7 | **Triage router** | Classify → check confidence → route to specialist or escalate |
+| 8 | **API endpoint** | `POST /triage` with conversation logging |
+| 9 | **Cross-cutting** | JWT auth, rate limiting, Langfuse tracing |
+| 10 | **Unit tests** | Classification schema, routing logic, tool mocks |
+| 11 | **Integration + eval** | End-to-end triage with real LLM, promptfoo security scan |
+
+## Environment & Deployment
+
+### Environment variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | — | Anthropic API key |
+| `CLASSIFIER_MODEL` | No | `claude-haiku-4-5-20251001` | Model for classification (cheaper) |
+| `SPECIALIST_MODEL` | No | `claude-sonnet-4-6-20250514` | Model for specialist responses |
+| `ESCALATION_THRESHOLD` | No | `0.7` | Min confidence to auto-route (below = escalate) |
+| `DATABASE_URL` | No | `postgresql+asyncpg://agent:agent@localhost:5432/agent_db` | Postgres connection |
+| `REDIS_URL` | No | `redis://localhost:6379` | Redis for rate limiting |
+| `QDRANT_URL` | No | `http://localhost:6333` | Qdrant for KB search |
+| `LANGFUSE_PUBLIC_KEY` | No | `pk-lf-local` | Langfuse public key |
+| `LANGFUSE_SECRET_KEY` | No | `sk-lf-local` | Langfuse secret key |
+| `LANGFUSE_HOST` | No | `http://localhost:3000` | Langfuse server URL |
+| `JWT_SECRET` | No | `change-me-in-production` | JWT signing secret |
+| `APP_ENV` | No | `development` | Environment name |
+| `LOG_LEVEL` | No | `INFO` | Log level |
+
+### Docker Compose
+
+See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, Qdrant, Langfuse.
+
+## Test Strategy
+
+### Unit tests
+
+```python
+def test_classification_returns_valid_intent(mock_llm_client):
+    """Classifier always returns a valid Intent enum value."""
+    result = await classify_intent("I need a refund")
+    assert result.intent in ["billing", "technical", "account", "general"]
+    assert 0 <= result.confidence <= 1
+
+def test_low_confidence_triggers_escalation():
+    """Below ESCALATION_THRESHOLD, request is escalated."""
+    # Mock classifier to return confidence=0.3
+    # Assert response.escalated == True
+
+def test_billing_specialist_uses_stripe_tool(mock_llm_client):
+    """Billing specialist calls lookup_billing, not search_knowledge_base."""
+    result = await run_specialist("billing", "I was charged twice")
+    tool_names = [tc.tool_name for tc in result.tool_calls]
+    assert "lookup_billing" in tool_names
+```
+
+### Eval assertions
+
+- Classification accuracy ≥ 90% on the 51-example dataset
+- Billing queries always trigger `lookup_billing` tool
+- Technical queries always trigger `search_knowledge_base` tool
+- No prompt injection bypasses the classifier (promptfoo red-team)
+
+## Eval Dataset
+
+See the inline `eval/dataset.jsonl` (51 examples) in the Reference Implementation section below. Covers all 4 intents with ~12 examples each.
 
 ## Design decisions
 
