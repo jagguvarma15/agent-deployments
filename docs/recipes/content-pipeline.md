@@ -10,6 +10,26 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
+## Load as Context
+
+Feed these files to your AI coding assistant to build this agent:
+
+**Core (always load):**
+- `docs/recipes/content-pipeline.md` — this blueprint
+- `docs/patterns/prompt-chaining.md` — the prompt chaining pattern
+- `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
+- `docs/stack/llm-claude.md` — LLM integration and model selection
+
+**Stack (load for Tier 2 — API-ready):**
+- `docs/stack/api-fastapi.md` or `docs/stack/api-hono.md` — API layer
+- `docs/stack/relational-postgres.md` — pipeline run persistence
+- `docs/stack/cache-redis.md` — rate limiting backend
+
+**Production concerns (load for Tier 3):**
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+
+**Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
+
 ## What it does
 
 A multi-stage content generation pipeline. Given a topic and content type (blog post, newsletter, technical doc), the agent runs a fixed sequence of stages: research → outline → draft → edit → publish-ready output. Each stage has a specialized prompt and produces structured output that feeds the next stage.
@@ -431,6 +451,15 @@ Return the final, publish-ready version.
 ### Docker Compose
 
 See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, Langfuse. No Qdrant required.
+
+### Infrastructure dependencies
+
+| Component | Required? | Why |
+|-----------|-----------|-----|
+| Postgres | Yes | Pipeline run and stage result persistence |
+| Redis | Yes | Rate limiting backend |
+| Qdrant | No | Not needed — this is a sequential prompt pipeline, not retrieval |
+| Langfuse | Recommended | Per-stage LLM call tracing (skip for local dev) |
 
 ## Test Strategy
 

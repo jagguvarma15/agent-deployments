@@ -23,6 +23,7 @@ For AI-assisted design: load the playbook + the relevant pattern + framework + s
 |-----|-------------|
 | [design-a-new-agent.md](playbook/design-a-new-agent.md) | Step-by-step workflow: pattern, framework, stack, compose |
 | [production-checklist.md](playbook/production-checklist.md) | The 11-point checklist every blueprint specifies |
+| [stack-swaps.md](playbook/stack-swaps.md) | How to swap any stack component for an alternative |
 
 ## Patterns
 
@@ -82,7 +83,7 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 
 ## Recipes
 
-Full-spec agent blueprints. Answers: "Give me everything I need to build this agent."
+Full-spec agent blueprints. Answers: "Give me everything I need to build this agent." Each recipe includes a **Load as Context** section listing exactly which files to feed your AI assistant, and an **Infrastructure Dependencies** table showing what's required vs optional.
 
 | Doc | Pattern | Status |
 |-----|---------|--------|

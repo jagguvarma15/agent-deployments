@@ -89,12 +89,14 @@ One opinionated pick per slot. See [`docs/stack/`](docs/stack/) for detailed rat
 ## Quick start
 
 1. **Pick a blueprint** from the table above
-2. **Load the docs** — feed the blueprint + relevant [cross-cutting](docs/cross-cutting/) and [stack](docs/stack/) docs as context to your AI coding assistant
-3. **Scaffold** — use the [reference templates](docs/reference/) (Dockerfile, docker-compose, CI) to set up your project
-4. **Build** — follow the Implementation Roadmap in the blueprint
-5. **Test** — use the Test Strategy and Eval Dataset sections
+2. **Check its "Load as Context" section** — it lists the exact files to feed your AI coding assistant, split by tier
+3. **Start at Tier 1** (working agent) — just the recipe + pattern + framework docs. No Docker, no infra.
+4. **Add Tier 2** (API-ready) when you need to serve it — API layer, DB, Docker
+5. **Add Tier 3** (production) when you're shipping — auth, rate limiting, observability, CI
 
-See [`docs/quickstart.md`](docs/quickstart.md) for the full walkthrough.
+Each recipe also has an **Infrastructure Dependencies** table showing what's required vs optional. See [`docs/quickstart.md`](docs/quickstart.md) for the full walkthrough with AI prompt templates.
+
+Want to swap a stack component? See [`docs/playbook/stack-swaps.md`](docs/playbook/stack-swaps.md).
 
 ---
 

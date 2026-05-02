@@ -10,6 +10,26 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
+## Load as Context
+
+Feed these files to your AI coding assistant to build this agent:
+
+**Core (always load):**
+- `docs/recipes/code-review-agent.md` — this blueprint
+- `docs/patterns/plan-execute-reflect.md` — the plan-execute-reflect pattern
+- `docs/frameworks/langgraph.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
+- `docs/stack/llm-claude.md` — LLM integration and model selection
+
+**Stack (load for Tier 2 — API-ready):**
+- `docs/stack/api-fastapi.md` or `docs/stack/api-hono.md` — API layer
+- `docs/stack/relational-postgres.md` — review result persistence
+- `docs/stack/cache-redis.md` — rate limiting backend
+
+**Production concerns (load for Tier 3):**
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+
+**Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
+
 ## What it does
 
 A code review agent that takes a diff or PR, plans what to review (security, correctness, style, performance), executes each review step with targeted analysis, then reflects on whether the review is complete or needs deeper investigation. Produces a structured review with findings, severity levels, and suggested fixes.
@@ -424,6 +444,15 @@ Be honest — it's better to flag a superficial finding than to let it pass.
 ### Docker Compose
 
 See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, Langfuse. No Qdrant required.
+
+### Infrastructure dependencies
+
+| Component | Required? | Why |
+|-----------|-----------|-----|
+| Postgres | Yes | Review results and finding persistence |
+| Redis | Yes | Rate limiting backend |
+| Qdrant | No | Not needed — this agent analyzes diffs, not documents |
+| Langfuse | Recommended | Plan/execute/reflect step tracing (skip for local dev) |
 
 ## Test Strategy
 

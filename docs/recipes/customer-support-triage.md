@@ -10,6 +10,27 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
+## Load as Context
+
+Feed these files to your AI coding assistant to build this agent:
+
+**Core (always load):**
+- `docs/recipes/customer-support-triage.md` — this blueprint
+- `docs/patterns/routing-tool-use.md` — the routing + tool use pattern
+- `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
+- `docs/stack/llm-claude.md` — LLM integration and model selection
+
+**Stack (load for Tier 2 — API-ready):**
+- `docs/stack/api-fastapi.md` or `docs/stack/api-hono.md` — API layer
+- `docs/stack/relational-postgres.md` — conversation logging
+- `docs/stack/cache-redis.md` — rate limiting backend
+- `docs/stack/vector-qdrant.md` — knowledge base search (if using vector retrieval)
+
+**Production concerns (load for Tier 3):**
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+
+**Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
+
 ## What it does
 
 A customer support triage agent. Users send a message, the agent classifies the intent (billing, technical, account, or general), then routes to a specialized agent with the right tools for that intent. The billing specialist can look up Stripe data; the technical and account specialists can search a knowledge base.
@@ -306,6 +327,15 @@ Each specialist has a focused system prompt:
 ### Docker Compose
 
 See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, Qdrant, Langfuse.
+
+### Infrastructure dependencies
+
+| Component | Required? | Why |
+|-----------|-----------|-----|
+| Postgres | Yes | Conversation logging and triage history |
+| Redis | Yes | Rate limiting backend |
+| Qdrant | Optional | Knowledge base vector search (can start with in-memory keyword search) |
+| Langfuse | Recommended | LLM + tool call tracing (skip for local dev) |
 
 ## Test Strategy
 
