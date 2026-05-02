@@ -10,6 +10,27 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Qdrant](../stack/vector-qdrant.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
+## Load as Context
+
+Feed these files to your AI coding assistant to build this agent:
+
+**Core (always load):**
+- `docs/recipes/memory-assistant.md` — this blueprint
+- `docs/patterns/memory.md` — the memory pattern
+- `docs/frameworks/langgraph.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
+- `docs/stack/llm-claude.md` — LLM integration and model selection
+- `docs/stack/vector-qdrant.md` — memory vector store (core to this pattern)
+
+**Stack (load for Tier 2 — API-ready):**
+- `docs/stack/api-fastapi.md` or `docs/stack/api-hono.md` — API layer
+- `docs/stack/relational-postgres.md` — conversation persistence
+- `docs/stack/cache-redis.md` — rate limiting backend
+
+**Production concerns (load for Tier 3):**
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+
+**Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
+
 ## What it does
 
 A conversational assistant that remembers facts, preferences, and context from previous interactions. Users can chat naturally, and the agent automatically extracts and stores noteworthy information. On subsequent conversations, relevant memories are retrieved and injected into the prompt, enabling personalized and contextually aware responses.
@@ -388,6 +409,15 @@ Return an empty list if there's nothing worth remembering.
 ### Docker Compose
 
 See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, **Qdrant**, Langfuse.
+
+### Infrastructure dependencies
+
+| Component | Required? | Why |
+|-----------|-----------|-----|
+| Postgres | Yes | Conversation history and user metadata |
+| Redis | Yes | Rate limiting backend |
+| Qdrant | Yes | Memory vector store — core to this pattern (semantic memory retrieval) |
+| Langfuse | Recommended | Memory retrieval + extraction tracing (skip for local dev) |
 
 ## Test Strategy
 

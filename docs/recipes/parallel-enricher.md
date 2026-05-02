@@ -10,6 +10,27 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
+## Load as Context
+
+Feed these files to your AI coding assistant to build this agent:
+
+**Core (always load):**
+- `docs/recipes/parallel-enricher.md` — this blueprint
+- `docs/patterns/parallel-calls.md` — the parallel calls pattern
+- `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
+- `docs/stack/llm-claude.md` — LLM integration and model selection
+
+**Stack (load for Tier 2 — API-ready):**
+- `docs/stack/api-fastapi.md` or `docs/stack/api-hono.md` — API layer
+- `docs/stack/cache-redis.md` — rate limiting backend
+
+**Production concerns (load for Tier 3):**
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+
+**Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
+
+> **Note:** This agent is stateless batch processing — Postgres is optional (only needed if you want to persist enrichment results).
+
 ## What it does
 
 A batch enrichment agent. Given a list of records (e.g., company names, contact emails, product URLs), the agent enriches each record in parallel — extracting structured data, classifying, scoring, and augmenting with external information. Results are aggregated into a structured output.
@@ -351,7 +372,16 @@ async function enrichBatch(records: InputRecord[]): Promise<(EnrichedRecord | Er
 
 ### Docker Compose
 
-See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Postgres, Redis, Langfuse. No Qdrant required.
+See [Docker Compose template](../reference/docker-compose-template.md) for base infrastructure. This agent needs: Redis, Langfuse. Postgres is optional.
+
+### Infrastructure dependencies
+
+| Component | Required? | Why |
+|-----------|-----------|-----|
+| Postgres | Optional | Only if persisting enrichment results (batch processing is stateless) |
+| Redis | Yes | Rate limiting backend |
+| Qdrant | No | Not needed — this agent enriches records, not retrieves documents |
+| Langfuse | Recommended | Per-record LLM call tracing (skip for local dev) |
 
 ## Test Strategy
 
