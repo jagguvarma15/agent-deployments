@@ -30,7 +30,18 @@ The pattern determines the *shape* of your agent's reasoning and data flow.
 | Coordinate peer agents | Multi-Agent (flat) | [patterns/multi-agent-flat.md](../patterns/multi-agent-flat.md) |
 | Have a supervisor delegate to sub-agents | Multi-Agent (hierarchical) | [patterns/multi-agent-hierarchical.md](../patterns/multi-agent-hierarchical.md) |
 
-**Composing patterns:** Many real agents combine patterns. A research assistant might use ReAct for its core loop but RAG for document retrieval within one of its tools. Pick the *primary* pattern, then layer in secondary ones as needed.
+**Composing patterns:** Many real agents combine patterns. Pick the *primary* pattern, then layer in secondary ones as needed.
+
+### Common compositions
+
+| Primary pattern | + Secondary | Example | What to load |
+|----------------|-------------|---------|--------------|
+| ReAct | + RAG | Research agent with document retrieval as a tool | `research-assistant` recipe + `patterns/rag.md` + `stack/vector-qdrant.md` |
+| Routing | + Memory | Support agent that remembers past conversations | `customer-support-triage` recipe + `patterns/memory.md` + `stack/vector-qdrant.md` |
+| Plan & Execute | + Parallel Calls | Code review that fans out file-level analysis | `code-review-agent` recipe + `patterns/parallel-calls.md` |
+| Prompt Chaining | + ReAct | Content pipeline where one stage uses tool-based research | `content-pipeline` recipe + `patterns/react.md` |
+
+When composing, load the primary recipe (it has the full spec) plus the secondary *pattern* doc (for the architecture concept). You rarely need to load a second recipe.
 
 ## Step 3: Pick a framework
 
@@ -63,7 +74,10 @@ Load the stack docs relevant to your agent. Every agent needs at least:
 
 ## Step 5: Apply cross-cutting concerns
 
-These are shared across all blueprints. Load all five:
+These are shared across all blueprints.
+
+**For production:** Load all five.
+**For a prototype:** Start with just [Testing strategy](../cross-cutting/testing-strategy.md) — add auth, rate limiting, logging, and observability when you're ready to serve real traffic. See the [tiered approach in the quickstart](../../docs/quickstart.md).
 
 - [Auth (JWT)](../cross-cutting/auth-jwt.md)
 - [Structured logging](../cross-cutting/logging-structured.md)
@@ -77,15 +91,15 @@ Find the recipe that most closely matches your design. Use it as a starting poin
 
 | Recipe | Pattern | Status | Doc |
 |--------|---------|--------|-----|
-| customer-support-triage | Routing + Tool Use | Implemented | [recipes/customer-support-triage.md](../recipes/customer-support-triage.md) |
-| docs-rag-qa | RAG | Implemented | [recipes/docs-rag-qa.md](../recipes/docs-rag-qa.md) |
-| research-assistant | ReAct | Implemented | [recipes/research-assistant.md](../recipes/research-assistant.md) |
-| content-pipeline | Prompt Chaining | Skeleton | [recipes/content-pipeline.md](../recipes/content-pipeline.md) |
-| code-review-agent | Plan & Execute | Skeleton | [recipes/code-review-agent.md](../recipes/code-review-agent.md) |
-| ops-crew | Multi-Agent (flat) | Skeleton | [recipes/ops-crew.md](../recipes/ops-crew.md) |
-| parallel-enricher | Parallel Calls | Skeleton | [recipes/parallel-enricher.md](../recipes/parallel-enricher.md) |
-| memory-assistant | Memory | Skeleton | [recipes/memory-assistant.md](../recipes/memory-assistant.md) |
-| hierarchical-agent | Multi-Agent (hierarchical) | Skeleton | [recipes/hierarchical-agent.md](../recipes/hierarchical-agent.md) |
+| customer-support-triage | Routing + Tool Use | Blueprint (validated) | [recipes/customer-support-triage.md](../recipes/customer-support-triage.md) |
+| docs-rag-qa | RAG | Blueprint (validated) | [recipes/docs-rag-qa.md](../recipes/docs-rag-qa.md) |
+| research-assistant | ReAct | Blueprint (validated) | [recipes/research-assistant.md](../recipes/research-assistant.md) |
+| content-pipeline | Prompt Chaining | Blueprint (design spec) | [recipes/content-pipeline.md](../recipes/content-pipeline.md) |
+| code-review-agent | Plan & Execute | Blueprint (design spec) | [recipes/code-review-agent.md](../recipes/code-review-agent.md) |
+| ops-crew | Multi-Agent (flat) | Blueprint (design spec) | [recipes/ops-crew.md](../recipes/ops-crew.md) |
+| parallel-enricher | Parallel Calls | Blueprint (design spec) | [recipes/parallel-enricher.md](../recipes/parallel-enricher.md) |
+| memory-assistant | Memory | Blueprint (design spec) | [recipes/memory-assistant.md](../recipes/memory-assistant.md) |
+| hierarchical-agent | Multi-Agent (hierarchical) | Blueprint (design spec) | [recipes/hierarchical-agent.md](../recipes/hierarchical-agent.md) |
 
 ---
 
