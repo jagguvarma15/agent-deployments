@@ -2,11 +2,25 @@
 
 Composable agent blueprints for production AI deployments. Everything you need to build, test, and deploy AI agents — as self-contained markdown specs.
 
-> **Companion to [`agent-blueprints`](https://github.com/jagguvarma15/agent-blueprints).**
-> Where `agent-blueprints` teaches you *how to think about* agent systems,
-> `agent-deployments` gives you **complete implementation specs** with **specific
-> stack picks** — load the relevant docs as AI context, and build a
-> production-shaped agent from the blueprint.
+---
+
+## The three-repo ecosystem
+
+This repo is one of three that work together as a single pipeline:
+
+```
+agent-blueprints     →     agent-deployments    →     agent-scaffold
+(architecture)             (specs)                    (generator)
+"how to think"             "what to build"            "build it for me"
+patterns + tradeoffs       9 production-shaped        reads spec, asks LLM,
+framework-agnostic         markdown blueprints        writes runnable project
+```
+
+- **[agent-blueprints](https://github.com/jagguvarma15/agent-blueprints)** — framework-agnostic patterns, tradeoffs, and design guidance. Start here if you want to design before you build.
+- **[agent-deployments](https://github.com/jagguvarma15/agent-deployments)** *(this repo)* — opinionated, production-shaped markdown specs for nine concrete agents (Python + TypeScript tracks).
+- **[agent-scaffold](https://github.com/jagguvarma15/agent-scaffold)** — a CLI that consumes a deployment spec, asks Claude to emit a complete project, and writes the files atomically to disk.
+
+If you want to skip the manual "load these docs into your AI assistant" step in the Quick Start below, point `agent-scaffold` at this repo and it'll do the assembly + generation for you.
 
 ---
 
