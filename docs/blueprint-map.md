@@ -19,6 +19,7 @@ Full mapping between `agent-deployments` recipes and `agent-blueprints` patterns
 | `parallel-enricher` | Parallel Calls | `workflows/parallel-calls/` |
 | `memory-assistant` | Memory | `patterns/memory/` |
 | `hierarchical-agent` | Multi-Agent (hierarchical) | `patterns/multi-agent/` (hierarchical variant) |
+| `restaurant-rebooking` | Event-Driven + Multi-Agent (flat) | `patterns/event-driven/` · `patterns/multi-agent/` (flat variant) |
 
 ## How to read this
 
@@ -53,8 +54,10 @@ patterns/react/                      ──►   research-assistant
 patterns/plan-and-execute/           ──►   code-review-agent
 patterns/reflection/                 ──►   code-review-agent
 
-patterns/multi-agent/  (flat)        ──►   ops-crew
+patterns/multi-agent/  (flat)        ──►   ops-crew, restaurant-rebooking
 patterns/multi-agent/  (hierarchical)──►   hierarchical-agent
+
+patterns/event-driven/               ──►   restaurant-rebooking
 
 patterns/memory/                     ──►   memory-assistant
 
