@@ -20,6 +20,7 @@ Full-spec agent blueprints showing how patterns, frameworks, and stack compose i
 | [Parallel Enricher](parallel-enricher.md) | Parallel Calls | Pydantic AI / Vercel AI SDK | Blueprint (design spec) |
 | [Memory Assistant](memory-assistant.md) | Memory | LangGraph / Vercel AI SDK | Blueprint (design spec) |
 | [Hierarchical Agent](hierarchical-agent.md) | Multi-Agent Hierarchical | LangGraph / Vercel AI SDK | Blueprint (design spec) |
+| [Restaurant Rebooking](restaurant-rebooking.md) | Event-Driven + Multi-Agent Flat | LangGraph / Mastra | Blueprint (design spec) |
 
 ## How to read a blueprint
 
