@@ -40,6 +40,7 @@ One file per architecture pattern. Answers: "What shape does my agent take?"
 | [memory.md](patterns/memory.md) | Long-term memory across sessions |
 | [multi-agent-flat.md](patterns/multi-agent-flat.md) | Peer agents collaborating |
 | [multi-agent-hierarchical.md](patterns/multi-agent-hierarchical.md) | Supervisor delegates to sub-agents |
+| [event-driven.md](patterns/event-driven.md) | Event-Driven Agents (queue/stream triggered) |
 
 ## Frameworks
 
@@ -96,6 +97,7 @@ Full-spec agent blueprints. Answers: "Give me everything I need to build this ag
 | [parallel-enricher.md](recipes/parallel-enricher.md) | Parallel batch enrichment | Blueprint (design spec) |
 | [memory-assistant.md](recipes/memory-assistant.md) | Memory-enabled assistant | Blueprint (design spec) |
 | [hierarchical-agent.md](recipes/hierarchical-agent.md) | Hierarchical multi-agent | Blueprint (design spec) |
+| [restaurant-rebooking.md](recipes/restaurant-rebooking.md) | Event-Driven + Multi-Agent Flat | Blueprint (design spec) |
 
 ## Reference
 

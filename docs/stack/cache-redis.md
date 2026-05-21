@@ -83,3 +83,106 @@ const value = await redis.get("session:user-1");
 - For multi-instance deployments, Redis is required for distributed rate limiting (the TS in-memory rate limiter won't work across instances).
 - Enable Redis persistence (`appendonly yes`) if using Redis for anything beyond ephemeral cache.
 - Consider Redis Sentinel or Redis Cluster for HA in production.
+
+## Redis Streams as event source
+
+Redis Streams (introduced in Redis 5) provides an append-only log with consumer groups — a lightweight alternative to Kafka for moderate-throughput event-driven systems. See the [Event-Driven Agents pattern](../patterns/event-driven.md) for the agent shape that consumes these streams.
+
+### When to pick Redis Streams over Kafka
+
+- You're already running Redis for cache/rate limiting (one less service).
+- Throughput is ≤10k events/sec per stream.
+- Retention of hours-to-days is sufficient (not weeks).
+- You don't need cross-region replication built in.
+
+### Stream operations
+
+| Operation | Purpose |
+|-----------|---------|
+| `XADD <stream> * field val ...` | Append an event |
+| `XGROUP CREATE <stream> <group> $` | Create a consumer group at the tail |
+| `XREADGROUP GROUP <group> <consumer> COUNT n BLOCK ms STREAMS <stream> >` | Read new events |
+| `XACK <stream> <group> <id>` | Acknowledge processed event |
+| `XPENDING <stream> <group>` | Inspect unacknowledged events |
+| `XCLAIM <stream> <group> <consumer> <min-idle-ms> <id>` | Reclaim stuck events from a dead consumer |
+
+### Python (redis-py async)
+
+```python
+import redis.asyncio as redis
+
+client = redis.from_url("redis://localhost:6379")
+
+# Producer
+await client.xadd("reservations.cancelled", {
+    "event_id": "evt-123",
+    "restaurant_id": "rest-99",
+    "reservation_id": "res-42",
+    "trace_id": "trace-abc",
+    "payload": '{"party_size": 4, "time": "2026-05-21T19:30:00Z"}'
+})
+
+# Consumer (run as a long-lived loop)
+await client.xgroup_create("reservations.cancelled", "rebooker", id="$", mkstream=True)
+while True:
+    msgs = await client.xreadgroup(
+        groupname="rebooker", consumername="worker-1",
+        streams={"reservations.cancelled": ">"},
+        count=10, block=5000,
+    )
+    for stream, entries in msgs:
+        for msg_id, fields in entries:
+            try:
+                await handle_event(fields)
+                await client.xack(stream, "rebooker", msg_id)
+            except RetryableError:
+                pass  # leave un-ACKed; XCLAIM will pick it up after timeout
+            except PermanentError:
+                await client.xadd("reservations.cancelled.dlq", fields)
+                await client.xack(stream, "rebooker", msg_id)
+```
+
+### TypeScript (ioredis)
+
+```typescript
+import Redis from "ioredis";
+const redis = new Redis("redis://localhost:6379");
+
+// Producer
+await redis.xadd("reservations.cancelled", "*",
+  "event_id", "evt-123",
+  "restaurant_id", "rest-99",
+  // ...
+);
+
+// Consumer
+try { await redis.xgroup("CREATE", "reservations.cancelled", "rebooker", "$", "MKSTREAM"); } catch {}
+while (true) {
+  const msgs = await redis.xreadgroup(
+    "GROUP", "rebooker", "worker-1",
+    "COUNT", 10, "BLOCK", 5000,
+    "STREAMS", "reservations.cancelled", ">",
+  );
+  // ... ACK / DLQ handling
+}
+```
+
+### Idempotency with Redis SET
+
+```python
+seen = await client.set(f"idemp:{event_id}", "1", ex=86400, nx=True)
+if not seen:
+    return  # duplicate, already processed
+```
+
+### DLQ pattern
+
+- Create a parallel stream `<topic>.dlq` for poison events.
+- On permanent failure, `XADD` the original event payload + error metadata to the DLQ.
+- Operationally: alert on DLQ depth; manually re-publish after fixes.
+
+### Limits
+
+- **Max length:** Use `MAXLEN ~ N` in `XADD` to cap stream size (approximate trimming is much faster).
+- **Persistence:** Enable AOF (`appendonly yes`) if you cannot tolerate event loss on Redis restart.
+- **Throughput:** Single-stream throughput is bounded by single-CPU performance. Shard across streams (by hash of partition key) for higher rates.
