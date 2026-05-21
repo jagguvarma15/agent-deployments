@@ -13,6 +13,7 @@ Architecture patterns for AI agents. Each file answers: **"What shape does my ag
 | [Memory](memory.md) | Persist context across conversations | LangGraph |
 | [Multi-Agent Flat](multi-agent-flat.md) | Peer agents collaborating | CrewAI |
 | [Multi-Agent Hierarchical](multi-agent-hierarchical.md) | Supervisor delegates to workers | LangGraph |
+| [Event-Driven](event-driven.md) | Queue/stream-triggered agents (subscribe → enrich → decide → act → ACK) | LangGraph, Mastra |
 
 ## How to pick a pattern
 
@@ -24,3 +25,4 @@ Architecture patterns for AI agents. Each file answers: **"What shape does my ag
 6. **N independent sub-tasks?** → [Parallel Calls](parallel-calls.md)
 7. **Need cross-session context?** → [Memory](memory.md)
 8. **Multiple specialists needed?** → [Multi-Agent Flat](multi-agent-flat.md) or [Hierarchical](multi-agent-hierarchical.md)
+9. **Triggered by an external event, not a user?** → [Event-Driven](event-driven.md)
