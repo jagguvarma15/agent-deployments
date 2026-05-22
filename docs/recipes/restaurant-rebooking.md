@@ -722,6 +722,62 @@ Generate the remaining ~15 examples at scaffold time covering: customer-cancelle
 - **Idempotency on `event_id` end-to-end:** The same key is used by the consumer-side Redis SET, the notification adapter, and the reservation adapter. One key, three checkpoints; redelivery is safe at any point in the flow.
 - **`trace_id` in event payload:** Producer assigns it. The consumer reads it into the Langfuse trace context so every tool call in this rebooking is linked to the originating cancellation across services.
 
+## Generation instructions
+
+These instructions apply to the LLM emitting the project, **not** to the runtime behavior of the generated agent.
+
+### Smoke check override (required)
+
+The default Python language-hint smoke check is `uv run python -c 'from {project_name}.main import agent; print("ok")'`. That shape assumes a request/response agent — wrong for an event-driven consumer. **Override `smoke_check` in your generation output to:**
+
+```
+uv run python -c 'from {project_name}.orchestrator.graph import build_graph; build_graph(); print("ok")'
+```
+
+For TypeScript, override to:
+
+```
+pnpm exec tsx -e "import { buildGraph } from './src/orchestrator/workflow'; buildGraph(); console.log('ok')"
+```
+
+These verify the orchestrator wires up without requiring Redis, Postgres, or any external service to be running.
+
+### Entry-point shape
+
+`main.py` (Python) and `src/index.ts` (TypeScript) should:
+
+- **Not** export an importable `agent` symbol.
+- Run the consumer loop under `if __name__ == "__main__":` (Python) or `import.meta.url === ...` (TS):
+
+```python
+# src/{project_name}/main.py
+import asyncio
+import structlog
+from {project_name}.consumer.redis_streams import run_consumer
+from {project_name}.settings import settings
+
+logger = structlog.get_logger()
+
+async def main() -> None:
+    logger.info("rebooker_starting", env=settings.app_env)
+    await run_consumer()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Dependency hygiene
+
+Every dependency in the project's manifest (`pyproject.toml` / `package.json`) must be present in either the language hints' `pinned_dependencies` or the recipe's `recipe_dependencies`. Do not invent additional packages.
+
+If you genuinely need a package that isn't listed, **stop and emit a `known_limitations` entry** rather than silently adding it — the maintainer will then add it to the recipe and re-scaffold.
+
+### Tests must be runnable without external services
+
+- `tests/unit/*` — use `monkeypatch` / `pytest-mock` to stub the LLM and Redis. No network, no Docker.
+- `tests/integration/*` — use `pytest` markers (e.g. `@pytest.mark.integration`) so they're opt-in. They may use `testcontainers` if listed in `recipe_dependencies`; otherwise document that they require `docker compose up` first.
+- `tests/eval/*` — use a `pytest.skip("set ANTHROPIC_API_KEY")` fixture-level guard so they don't fail in CI without a key. The golden dataset itself (`tests/fixtures/eval_dataset.json`) should be checked in.
+
 ## Reference Implementation
 
 Since this is a fresh "design spec" recipe (not "validated"), the snippets below are pseudocode for the load-bearing pieces — the consumer loop and the orchestrator state graph. Generate the rest of the project from the file-by-file table.
