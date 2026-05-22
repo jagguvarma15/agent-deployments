@@ -8,6 +8,31 @@ required_files:
   - tests/unit/test_orchestrator.py
   - tests/integration/test_event_loop.py
   - tests/eval/test_rebooking_decisions.py
+recipe_dependencies:
+  python:
+    redis: ">=5.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    alembic: ">=1.13.0"
+    pydantic-settings: ">=2.0.0"
+    fastapi: ">=0.110.0"
+    uvicorn: ">=0.30.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+    prometheus-client: ">=0.20.0"
+    pyjwt: ">=2.8.0"
+    httpx: ">=0.27.0"
+    pytest-asyncio: ">=0.23.0"
+  typescript:
+    ioredis: "^5.4.0"
+    drizzle-orm: "^0.36.0"
+    postgres: "^3.4.0"
+    hono: "^4.0.0"
+    pino: "^9.0.0"
+    langfuse: "^3.0.0"
+    zod: "^3.23.0"
+    jose: "^5.0.0"
+    vitest: "^2.0.0"
 ---
 
 # Recipe: Restaurant Rebooking
