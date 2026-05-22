@@ -531,7 +531,8 @@ Return a `RebookingDecision` object.
 | `DLQ_STREAM` | No | `reservations.cancelled.dlq` | Dead-letter stream |
 | `CONSUMER_GROUP` | No | `rebooker` | Redis consumer group |
 | `CONSUMER_NAME` | No | (auto, e.g. hostname) | Consumer ID within the group |
-| `IDEMPOTENCY_TTL_SECONDS` | No | `86400` | Dedup window (must exceed event-source retention) |
+| `IDEMPOTENCY_TTL_SECONDS` | No | `86400` | Full dedup window after successful completion; must exceed event-source retention |
+| `IDEMPOTENCY_CLAIM_TTL_SECONDS` | No | `300` | Short TTL while a worker is processing; expires if the worker crashes |
 | `MAX_RETRIES` | No | `3` | Retries before DLQ |
 | `CLAIM_MIN_IDLE_MS` | No | `60000` | `XCLAIM` minimum idle time before reclaiming a pending event |
 | `POSTGRES_URL` | No | `postgresql+asyncpg://agent:agent@localhost:5432/agent_db` | Outcomes + audit |
@@ -720,6 +721,7 @@ Generate the remaining ~15 examples at scaffold time covering: customer-cancelle
 - **Redis Streams over Kafka:** Throughput is well under 10k events/sec per restaurant chain; we're already running Redis for idempotency; one fewer service to operate.
 - **No separate sub-agents for v1:** The orchestrator has six tools but one decision. Splitting it into waitlist-matcher / host-notifier / alt-time-offerer agents would add agent-to-agent token cost without quality gain at this scale. Promote to peer agents only if a stage's prompt grows past ~500 tokens of guidance.
 - **Idempotency on `event_id` end-to-end:** The same key is used by the consumer-side Redis SET, the notification adapter, and the reservation adapter. One key, three checkpoints; redelivery is safe at any point in the flow.
+- **Two-phase idempotency:** A short-TTL "claimed" marker is set before the orchestrator runs; the marker is upgraded to "completed" (long TTL) on success or deleted on failure. This prevents the bug where a crashed worker between SETNX and XACK silently dedupes the event on the next delivery.
 - **`trace_id` in event payload:** Producer assigns it. The consumer reads it into the Langfuse trace context so every tool call in this rebooking is linked to the originating cancellation across services.
 
 ## Generation instructions
@@ -826,17 +828,26 @@ async def run_consumer() -> None:
 async def _handle_one(client, msg_id, fields) -> None:
     event_id = fields[b"event_id"].decode()
     log = logger.bind(event_id=event_id, msg_id=msg_id)
+    idem_key = f"idemp:{event_id}"
 
-    # Idempotency
-    first_time = await client.set(
-        f"idemp:{event_id}", "1", ex=settings.idempotency_ttl_seconds, nx=True
-    )
-    if not first_time:
-        log.info("duplicate_skipped")
-        await client.xack(settings.event_stream, settings.consumer_group, msg_id)
+    # Two-phase idempotency: claim with a short TTL; mark "completed" on success.
+    # A crashed worker's "claimed" key expires, allowing redelivery to retry.
+    claim_ttl_seconds = settings.idempotency_claim_ttl_seconds
+    final_ttl_seconds = settings.idempotency_ttl_seconds
+
+    claimed = await client.set(idem_key, "claimed", ex=claim_ttl_seconds, nx=True)
+    if not claimed:
+        status = await client.get(idem_key)
+        if status == b"completed":
+            log.info("duplicate_skipped")
+            await client.xack(settings.event_stream, settings.consumer_group, msg_id)
+            return
+        # Another worker holds the claim; let it finish. XCLAIM reaper will
+        # re-deliver to us if that worker dies before the claim expires.
+        log.info("claim_held_by_other_worker")
         return
 
-    # Retry budget
+    # Retry budget for this worker's delivery
     pending = await client.xpending_range(
         settings.event_stream, settings.consumer_group,
         min=msg_id, max=msg_id, count=1,
@@ -845,14 +856,21 @@ async def _handle_one(client, msg_id, fields) -> None:
 
     try:
         await run_orchestrator(fields)
+        # Mark completed and extend TTL to the full dedup window
+        await client.set(idem_key, "completed", ex=final_ttl_seconds)
         await client.xack(settings.event_stream, settings.consumer_group, msg_id)
     except Exception as exc:
         log.warning("handler_failed", attempts=attempts, error=str(exc))
+        # Release the claim so retry (this worker or XCLAIM'd) can re-enter
+        await client.delete(idem_key)
         if attempts >= settings.max_retries:
-            await client.xadd(settings.dlq_stream, {**fields, b"last_error": str(exc).encode()})
+            await client.xadd(
+                settings.dlq_stream,
+                {**fields, b"last_error": str(exc).encode()},
+            )
             await client.xack(settings.event_stream, settings.consumer_group, msg_id)
             log.error("event_dlqd")
-        # else: leave un-ACKed; XCLAIM reaper will re-deliver after CLAIM_MIN_IDLE_MS
+        # else: leave un-ACKed; XCLAIM reaper will redeliver after CLAIM_MIN_IDLE_MS
 ```
 
 </details>
