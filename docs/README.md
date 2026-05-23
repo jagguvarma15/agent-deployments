@@ -74,6 +74,8 @@ One file per infrastructure component. Answers: "What do I run it on?"
 | [prometheus-grafana.md](stack/prometheus-grafana.md) | Metrics scraping + dashboards + alerting + SLO tracking |
 | [log-aggregation.md](stack/log-aggregation.md) | Centralized log search (Loki + Promtail, or managed alternatives) |
 | [kafka.md](stack/kafka.md) | Kafka 3.x (KRaft) for >10k events/sec, durable replay, cross-team fan-out |
+| [kubernetes-helm.md](stack/kubernetes-helm.md) | Managed K8s + Helm chart structure; HPA / KEDA; ExternalSecret; NetworkPolicy |
+| [terraform.md](stack/terraform.md) | OpenTofu / Terraform; module structure; remote state with locking; plan/apply CI |
 
 ## Cross-cutting
 
