@@ -202,7 +202,7 @@ async def get_tenant_config(tenant_id: UUID) -> TenantConfig:
     return config
 ```
 
-A feature-flag service is often the cleanest home for the boolean toggles — see `feature-flags.md` (PR-L, pending).
+A feature-flag service is often the cleanest home for the boolean toggles — see [feature-flags.md](../stack/feature-flags.md).
 
 ## Tenant lifecycle
 
@@ -271,4 +271,4 @@ Return `404` on cross-tenant read, not `403`. `403` confirms the resource exists
 - [audit-logging.md](./audit-logging.md) — `tenant_id` field on every audit event.
 - [authorization-rbac.md](./authorization-rbac.md) — tenant-scoped permission checks (return 404 on cross-tenant).
 - [pii-gdpr.md](./pii-gdpr.md) — deletion fan-out per tenant.
-- `feature-flags.md` (PR-L, pending) — per-tenant feature toggles.
+- [feature-flags.md](../stack/feature-flags.md) — per-tenant feature toggles.
