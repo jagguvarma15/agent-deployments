@@ -233,3 +233,10 @@ export async function verifyToken(
 ```
 
 </details>
+
+## See also
+
+- [Authorization & RBAC](./authorization-rbac.md) — what a user can *do* once authenticated.
+- [Security hardening](./security-hardening.md) — broader production discipline (TLS, headers, container, deps).
+- [Audit logging](./audit-logging.md) — immutable trail of authn events, including failed attempts.
+- `secrets-management.md` (PR-F, pending) — where JWT signing keys actually live.

@@ -13,6 +13,10 @@ Shared production plumbing used by all agents. Each file answers: **"What produc
 | [Resilience](resilience.md) | tenacity + pybreaker / p-retry + opossum | Retries, timeouts, circuit breakers, bulkheads |
 | [Health & graceful shutdown](health-graceful-shutdown.md) | FastAPI lifespan + signal / Hono + process | Startup/liveness/readiness + SIGTERM drain |
 | [Distributed locking](distributed-locking.md) | Redis `SET NX EX` + Lua / Postgres advisory | Use sparingly — prefer idempotency |
+| [Security hardening](security-hardening.md) | stdlib + `pip-audit` / `npm audit` / Trivy | OWASP for agents, prompt injection, deps, TLS, containers |
+| [Authorization & RBAC](authorization-rbac.md) | stdlib enums + FastAPI / Hono; OPA optional | RBAC / ABAC / PBAC; per-intent tool allowlists; tenant scoping |
+| [Audit logging](audit-logging.md) | Postgres `audit_events` + triggers; S3 archive | Immutable trail with hash-chain tamper evidence |
+| [PII handling (GDPR)](pii-gdpr.md) | `pgcrypto` / KMS envelope + tokenization | Minimization, storage, erasure, LLM redaction, DLP |
 
 ## The 11-point production checklist
 

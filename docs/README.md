@@ -85,6 +85,10 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 | [resilience.md](cross-cutting/resilience.md) | Retries, timeouts, circuit breakers, bulkheads |
 | [health-graceful-shutdown.md](cross-cutting/health-graceful-shutdown.md) | Startup / liveness / readiness probes + SIGTERM drain sequence |
 | [distributed-locking.md](cross-cutting/distributed-locking.md) | Single-leader mutual exclusion (Redis + Lua, Postgres advisory) |
+| [security-hardening.md](cross-cutting/security-hardening.md) | OWASP for agents, prompt injection, deps, TLS / mTLS, container hardening |
+| [authorization-rbac.md](cross-cutting/authorization-rbac.md) | RBAC / ABAC / PBAC; per-intent tool allowlists; tenant-scoped checks |
+| [audit-logging.md](cross-cutting/audit-logging.md) | Immutable audit trail (Postgres + hash chain + S3 archive) |
+| [pii-gdpr.md](cross-cutting/pii-gdpr.md) | PII storage, right-to-erasure, LLM redaction, DLP screens |
 
 ## Recipes
 
