@@ -21,6 +21,78 @@
 - **Multi-Agent (hierarchical)** -- `langgraph-supervisor` package provides a supervisor node that delegates to sub-graphs. Each sub-agent is its own compiled graph.
 - **Memory** -- Checkpointer + state persistence means conversation history and memory are first-class.
 
+## Event-driven state machine
+
+LangGraph's explicit graph model maps cleanly onto event-driven agent lifecycles: each event flows through a fixed sequence of nodes (enrich → decide → act → persist → emit), with conditional branches for different decision types. The graph is built once and reused per event; per-event state is the dict passed to `ainvoke`.
+
+This is **not** what `create_react_agent` gives you — that's a request/response ReAct loop. For event-driven agents, build the graph yourself:
+
+```python
+from langgraph.graph import END, StateGraph
+
+async def enrich(state: dict) -> dict:
+    state["context"] = await fetch_world_state(state["event"])
+    return state
+
+async def decide(state: dict) -> dict:
+    # Structured-output LLM call bound to your decision schema
+    state["decision"] = await llm_decide(state["event"], state["context"])
+    return state
+
+async def act(state: dict) -> dict:
+    # Idempotent tool calls keyed on state["event"].event_id
+    await execute(state["decision"], idempotency_key=state["event"].event_id)
+    return state
+
+async def persist_and_emit(state: dict) -> dict:
+    await write_outcome(state)
+    await emit_outcome_event(state)
+    return state
+
+def build_graph():
+    g = StateGraph(dict)
+    g.add_node("enrich", enrich)
+    g.add_node("decide", decide)
+    g.add_node("act", act)
+    g.add_node("persist", persist_and_emit)
+    g.set_entry_point("enrich")
+    g.add_edge("enrich", "decide")
+    g.add_edge("decide", "act")
+    g.add_edge("act", "persist")
+    g.add_edge("persist", END)
+    return g.compile()
+```
+
+The consumer loop sits outside the graph: it pulls events from a stream/queue (Redis Streams, Kafka, SQS), invokes `compiled_graph.ainvoke({"event": event})` per event, and handles ACK / DLQ. See [Event-Driven Agents pattern](../patterns/event-driven.md) for the full lifecycle, and [restaurant-rebooking](../recipes/restaurant-rebooking.md) for a worked example.
+
+### Conditional branches per decision type
+
+When `act` should differ by decision type, replace the straight edge with a conditional router:
+
+```python
+def route_by_decision(state: dict) -> str:
+    return state["decision"].action.value  # e.g. "fill_from_waitlist", "no_action"
+
+g.add_conditional_edges(
+    "decide",
+    route_by_decision,
+    {
+        "fill_from_waitlist": "act_fill",
+        "offer_alternative_time": "act_offer",
+        "notify_host_only": "act_notify_host",
+        "no_action": "persist",  # skip act entirely
+    },
+)
+```
+
+### Why not just call the LLM directly without a graph?
+
+For a single event you could. The graph pays off when:
+
+- **Retries are per-node, not per-event.** A failure in `act` shouldn't re-run `enrich`. Build the retry boundary into the graph.
+- **Observability matters.** LangGraph's tracing logs each node entry/exit — easy to correlate with the event ID in your logger context.
+- **You want checkpointing.** Pausing mid-event for human-in-the-loop (e.g. high-stakes notifications requiring approval) is one line: add a `Checkpointer`.
+
 ## Patterns where it's awkward
 
 - **Simple tool use / routing** -- If your agent is just "classify intent, call one tool," LangGraph's graph abstraction is overkill. Use Pydantic AI instead.
