@@ -69,6 +69,7 @@ One file per infrastructure component. Answers: "What do I run it on?"
 | [tracing-langfuse.md](stack/tracing-langfuse.md) | Langfuse (observability) |
 | [eval-deepeval-ragas-promptfoo.md](stack/eval-deepeval-ragas-promptfoo.md) | DeepEval + RAGAS + Promptfoo (eval) |
 | [tool-protocol-mcp.md](stack/tool-protocol-mcp.md) | MCP (Model Context Protocol) |
+| [secrets-management.md](stack/secrets-management.md) | Secrets storage (dev `.env` → prod Vault / cloud secret manager) |
 
 ## Cross-cutting
 
