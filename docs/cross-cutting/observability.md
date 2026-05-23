@@ -257,3 +257,10 @@ export async function traced<T>(
 ```
 
 </details>
+
+## See also
+
+- [OpenTelemetry](../stack/opentelemetry.md) — general distributed tracing across services (HTTP, DB, Redis, queues).
+- [Prometheus + Grafana](../stack/prometheus-grafana.md) — metrics scraping, dashboards, alerting, SLO tracking.
+- [Log aggregation](../stack/log-aggregation.md) — centralized log search; correlate to traces via `trace_id`.
+- [Langfuse](../stack/tracing-langfuse.md) — LLM-specific tracing covered inline above.

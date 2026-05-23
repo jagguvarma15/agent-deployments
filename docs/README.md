@@ -70,6 +70,9 @@ One file per infrastructure component. Answers: "What do I run it on?"
 | [eval-deepeval-ragas-promptfoo.md](stack/eval-deepeval-ragas-promptfoo.md) | DeepEval + RAGAS + Promptfoo (eval) |
 | [tool-protocol-mcp.md](stack/tool-protocol-mcp.md) | MCP (Model Context Protocol) |
 | [secrets-management.md](stack/secrets-management.md) | Secrets storage (dev `.env` → prod Vault / cloud secret manager) |
+| [opentelemetry.md](stack/opentelemetry.md) | OTel SDK + Collector for distributed tracing across services |
+| [prometheus-grafana.md](stack/prometheus-grafana.md) | Metrics scraping + dashboards + alerting + SLO tracking |
+| [log-aggregation.md](stack/log-aggregation.md) | Centralized log search (Loki + Promtail, or managed alternatives) |
 
 ## Cross-cutting
 
