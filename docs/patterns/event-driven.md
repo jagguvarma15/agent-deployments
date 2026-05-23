@@ -72,7 +72,7 @@ Event source (Redis Streams / Kafka / SQS / NATS)
 
 ## Stack components needed
 
-- **Event source:** [Redis Streams](../stack/cache-redis.md#redis-streams-as-event-source) (in this repo), Kafka, or SQS.
+- **Event source:** [Redis Streams](../stack/cache-redis.md#redis-streams-as-event-source) (default ≤10k events/sec/stream), [Kafka](../stack/kafka.md) (10k–1M+ events/sec; migrate when a single stream exceeds ~5k events/sec sustained, or for cross-team fan-out), or SQS. Versioning: [schema-evolution](../cross-cutting/schema-evolution.md).
 - **Idempotency:** [Redis](../stack/cache-redis.md) or [Postgres](../stack/relational-postgres.md).
 - **State persistence:** [Postgres](../stack/relational-postgres.md) for outcomes; optional Redis for transient state.
 - **Tracing:** [Langfuse](../stack/tracing-langfuse.md) — propagate trace_id from event payload through tool calls.
