@@ -81,6 +81,10 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 | [observability.md](cross-cutting/observability.md) | Langfuse tracing integration |
 | [rate-limiting.md](cross-cutting/rate-limiting.md) | Per-user / per-IP rate limiting |
 | [testing-strategy.md](cross-cutting/testing-strategy.md) | 3-tier test strategy (unit / integration / eval) |
+| [idempotency.md](cross-cutting/idempotency.md) | At-least-once-safe action handlers (two-phase claim, SETNX, unique constraints, outbound keys) |
+| [resilience.md](cross-cutting/resilience.md) | Retries, timeouts, circuit breakers, bulkheads |
+| [health-graceful-shutdown.md](cross-cutting/health-graceful-shutdown.md) | Startup / liveness / readiness probes + SIGTERM drain sequence |
+| [distributed-locking.md](cross-cutting/distributed-locking.md) | Single-leader mutual exclusion (Redis + Lua, Postgres advisory) |
 
 ## Recipes
 
