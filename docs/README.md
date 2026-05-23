@@ -73,6 +73,7 @@ One file per infrastructure component. Answers: "What do I run it on?"
 | [opentelemetry.md](stack/opentelemetry.md) | OTel SDK + Collector for distributed tracing across services |
 | [prometheus-grafana.md](stack/prometheus-grafana.md) | Metrics scraping + dashboards + alerting + SLO tracking |
 | [log-aggregation.md](stack/log-aggregation.md) | Centralized log search (Loki + Promtail, or managed alternatives) |
+| [kafka.md](stack/kafka.md) | Kafka 3.x (KRaft) for >10k events/sec, durable replay, cross-team fan-out |
 
 ## Cross-cutting
 
@@ -85,6 +86,7 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 | [observability.md](cross-cutting/observability.md) | Langfuse tracing integration |
 | [rate-limiting.md](cross-cutting/rate-limiting.md) | Per-user / per-IP rate limiting |
 | [testing-strategy.md](cross-cutting/testing-strategy.md) | 3-tier test strategy (unit / integration / eval) |
+| [schema-evolution.md](cross-cutting/schema-evolution.md) | Versioning events without breaking consumers (`schema_version`, dual-publish) |
 | [idempotency.md](cross-cutting/idempotency.md) | At-least-once-safe action handlers (two-phase claim, SETNX, unique constraints, outbound keys) |
 | [resilience.md](cross-cutting/resilience.md) | Retries, timeouts, circuit breakers, bulkheads |
 | [health-graceful-shutdown.md](cross-cutting/health-graceful-shutdown.md) | Startup / liveness / readiness probes + SIGTERM drain sequence |
