@@ -268,7 +268,7 @@ Return `404` on cross-tenant read, not `403`. `403` confirms the resource exists
 
 - `rate-limiting.md` — per-tenant `key_func` for rate limiters.
 - `caching-strategies.md` — tenant-prefixed cache keys.
-- `audit-logging.md` (PR-E, pending) — `tenant_id` field on every audit event.
-- `authorization-rbac.md` (PR-E, pending) — tenant-scoped permission checks (return 404 on cross-tenant).
-- `pii-gdpr.md` (PR-E, pending) — deletion fan-out per tenant.
+- [audit-logging.md](./audit-logging.md) — `tenant_id` field on every audit event.
+- [authorization-rbac.md](./authorization-rbac.md) — tenant-scoped permission checks (return 404 on cross-tenant).
+- [pii-gdpr.md](./pii-gdpr.md) — deletion fan-out per tenant.
 - `feature-flags.md` (PR-L, pending) — per-tenant feature toggles.
