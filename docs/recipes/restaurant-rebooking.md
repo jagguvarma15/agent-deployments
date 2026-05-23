@@ -45,7 +45,7 @@ recipe_dependencies:
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (explicit state machine fits event-driven lifecycle)
 - Framework (TS): [Mastra](../frameworks/mastra.md) (event-triggered workflows)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md) (admin + health endpoints), [Redis](../stack/cache-redis.md) (event stream + idempotency), [Postgres](../stack/relational-postgres.md) (outcomes + state), [Langfuse](../stack/tracing-langfuse.md)
-- Cross-cutting: [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Testing strategy](../cross-cutting/testing-strategy.md)
+- Cross-cutting: [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Testing strategy](../cross-cutting/testing-strategy.md), [Security hardening](../cross-cutting/security-hardening.md), [Authorization & RBAC](../cross-cutting/authorization-rbac.md), [Audit logging](../cross-cutting/audit-logging.md), [PII handling](../cross-cutting/pii-gdpr.md)
 
 > **Auth/rate limiting:** the event-driven entry point doesn't need user auth (events come from trusted producers), but the admin/health HTTP layer does — see [auth-jwt.md](../cross-cutting/auth-jwt.md).
 
@@ -68,6 +68,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Production concerns (load for Tier 3):**
 - `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/auth-jwt.md` (admin endpoints)
+- `docs/cross-cutting/security-hardening.md` · `docs/cross-cutting/authorization-rbac.md` · `docs/cross-cutting/audit-logging.md` · `docs/cross-cutting/pii-gdpr.md`
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 

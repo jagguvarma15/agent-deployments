@@ -81,6 +81,10 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 | [observability.md](cross-cutting/observability.md) | Langfuse tracing integration |
 | [rate-limiting.md](cross-cutting/rate-limiting.md) | Per-user / per-IP rate limiting |
 | [testing-strategy.md](cross-cutting/testing-strategy.md) | 3-tier test strategy (unit / integration / eval) |
+| [security-hardening.md](cross-cutting/security-hardening.md) | OWASP for agents, prompt injection, deps, TLS / mTLS, container hardening |
+| [authorization-rbac.md](cross-cutting/authorization-rbac.md) | RBAC / ABAC / PBAC; per-intent tool allowlists; tenant-scoped checks |
+| [audit-logging.md](cross-cutting/audit-logging.md) | Immutable audit trail (Postgres + hash chain + S3 archive) |
+| [pii-gdpr.md](cross-cutting/pii-gdpr.md) | PII storage, right-to-erasure, LLM redaction, DLP screens |
 
 ## Recipes
 
