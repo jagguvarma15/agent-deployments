@@ -89,6 +89,7 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 | [schema-evolution.md](cross-cutting/schema-evolution.md) | Versioning events without breaking consumers (`schema_version`, dual-publish) |
 | [validation-strategy.md](cross-cutting/validation-strategy.md) | Boundary validation with Pydantic v2 / Zod; LLM output validation; error-response shape |
 | [caching-strategies.md](cross-cutting/caching-strategies.md) | Cache-aside, TTL + jitter, singleflight, LLM response caching, negative caching |
+| [multi-tenancy.md](cross-cutting/multi-tenancy.md) | Three isolation models, Postgres RLS, tenant propagation, per-tenant rate limits |
 | [idempotency.md](cross-cutting/idempotency.md) | At-least-once-safe action handlers (two-phase claim, SETNX, unique constraints, outbound keys) |
 | [resilience.md](cross-cutting/resilience.md) | Retries, timeouts, circuit breakers, bulkheads |
 | [health-graceful-shutdown.md](cross-cutting/health-graceful-shutdown.md) | Startup / liveness / readiness probes + SIGTERM drain sequence |
