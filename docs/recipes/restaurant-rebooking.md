@@ -45,7 +45,7 @@ recipe_dependencies:
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (explicit state machine fits event-driven lifecycle)
 - Framework (TS): [Mastra](../frameworks/mastra.md) (event-triggered workflows)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md) (admin + health endpoints), [Redis](../stack/cache-redis.md) (event stream + idempotency), [Postgres](../stack/relational-postgres.md) (outcomes + state), [Langfuse](../stack/tracing-langfuse.md), [Secrets management](../stack/secrets-management.md) (Resy / OpenTable / Toast credentials)
-- Cross-cutting: [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Testing strategy](../cross-cutting/testing-strategy.md), [Idempotency](../cross-cutting/idempotency.md), [Resilience](../cross-cutting/resilience.md), [Health & graceful shutdown](../cross-cutting/health-graceful-shutdown.md), [Security hardening](../cross-cutting/security-hardening.md), [Authorization & RBAC](../cross-cutting/authorization-rbac.md), [Audit logging](../cross-cutting/audit-logging.md), [PII handling](../cross-cutting/pii-gdpr.md)
+- Cross-cutting: [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Testing strategy](../cross-cutting/testing-strategy.md), [Multi-tenancy](../cross-cutting/multi-tenancy.md), [Idempotency](../cross-cutting/idempotency.md), [Resilience](../cross-cutting/resilience.md), [Health & graceful shutdown](../cross-cutting/health-graceful-shutdown.md), [Security hardening](../cross-cutting/security-hardening.md), [Authorization & RBAC](../cross-cutting/authorization-rbac.md), [Audit logging](../cross-cutting/audit-logging.md), [PII handling](../cross-cutting/pii-gdpr.md)
 
 > **Auth/rate limiting:** the event-driven entry point doesn't need user auth (events come from trusted producers), but the admin/health HTTP layer does — see [auth-jwt.md](../cross-cutting/auth-jwt.md).
 
@@ -726,6 +726,7 @@ Generate the remaining ~15 examples at scaffold time covering: customer-cancelle
 - **Idempotency on `event_id` end-to-end:** The same key is used by the consumer-side Redis SET, the notification adapter, and the reservation adapter. One key, three checkpoints; redelivery is safe at any point in the flow.
 - **Two-phase idempotency:** A short-TTL "claimed" marker is set before the orchestrator runs; the marker is upgraded to "completed" (long TTL) on success or deleted on failure. This prevents the bug where a crashed worker between SETNX and XACK silently dedupes the event on the next delivery.
 - **`trace_id` in event payload:** Producer assigns it. The consumer reads it into the Langfuse trace context so every tool call in this rebooking is linked to the originating cancellation across services.
+- **Multi-tenancy via `restaurant_id`:** Every record (outcomes, audit rows, idempotency keys) is keyed by `restaurant_id`. Shared schema with planned Postgres RLS adoption — see [multi-tenancy.md](../cross-cutting/multi-tenancy.md). Per-restaurant rate limits prevent one noisy chain from DoSing the rest; per-tenant log / trace fields keep incident investigation tractable.
 
 ## Generation instructions
 
