@@ -1,3 +1,28 @@
+---
+topology: multi-agent-hierarchical
+roles:
+  - name: classifier
+    description: "Read incoming user message, classify intent into {billing, technical, account, general} with confidence + reasoning."
+    model_hint: sonnet
+    role_kind: supervisor
+    tools: []
+  - name: billing-specialist
+    description: "Answer billing questions; look up customer subscription state in Stripe; refund/credit decisions."
+    model_hint: sonnet
+    role_kind: worker
+    tools: [stripe_lookup]
+  - name: technical-specialist
+    description: "Answer technical/product questions; search the knowledge base; surface diagnostic steps."
+    model_hint: sonnet
+    role_kind: worker
+    tools: [kb_search]
+  - name: account-specialist
+    description: "Account-management questions (password, profile, plan changes); look up account state."
+    model_hint: sonnet
+    role_kind: worker
+    tools: [account_lookup, kb_search]
+---
+
 # Recipe: Customer Support Triage
 
 **Status:** Blueprint (validated)
