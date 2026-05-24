@@ -33,6 +33,24 @@ recipe_dependencies:
     zod: "^3.23.0"
     jose: "^5.0.0"
     vitest: "^2.0.0"
+topology: multi-agent-flat
+roles:
+  - name: intake
+    description: "Consume reservation-change events from Redis Streams, classify (cancel / no-show / modify), build the case envelope."
+    model_hint: sonnet
+    tools: [event_bus_consumer]
+  - name: eligibility
+    description: "Apply auto-rebook policy rules (tier, time window, customer history) to decide whether to attempt rebooking."
+    model_hint: sonnet
+    tools: [policy_lookup, customer_lookup]
+  - name: search
+    description: "Query alternative slots across reservation platforms (Resy, OpenTable, Toast) and rank candidates."
+    model_hint: opus
+    tools: [resy_adapter, opentable_adapter, toast_adapter]
+  - name: notifier
+    description: "Compose and send rebooking offers via email/SMS; record customer acceptance back to the case."
+    model_hint: haiku
+    tools: [email_send, sms_send]
 ---
 
 # Recipe: Restaurant Rebooking
