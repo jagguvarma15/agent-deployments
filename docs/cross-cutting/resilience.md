@@ -132,6 +132,20 @@ Stop hammering a dependency that's clearly down. The breaker has three states:
 - **Open** -- calls fail fast for `reset_timeout` seconds. No requests reach the dependency.
 - **Half-open** -- one probe call is allowed; success → Closed, failure → Open.
 
+### When to use
+
+Reach for a breaker on every external networked call: third-party APIs, downstream microservices, LLM provider HTTPS, message brokers, distributed caches. Skip it for in-process pure functions and local SQLite — there's no recovery state to model. A breaker around a Python function is just an exception handler with extra steps.
+
+Rule of thumb: if the call leaves the network stack and the dependency has a non-trivial baseline failure rate, wrap it. If not, don't.
+
+Threshold examples, by call class:
+
+| Call class | Trip condition |
+|------------|----------------|
+| High-volume APIs (LLM provider, primary reservation platform) | `failure_rate > 50%` over a 30s window, OR 5 consecutive failures |
+| Low-volume APIs (admin endpoints, batch hooks) | 3 consecutive failures — not enough samples for rate-based detection |
+| Databases | Usually leave to the connection pool's reconnect logic; reach for a breaker only when DB issues cascade into worker-pool exhaustion |
+
 ```python
 import pybreaker
 import httpx
@@ -162,11 +176,88 @@ breaker.fallback(() => ({ status: "deferred" })); // optional
 
 When the breaker is open, the caller gets a typed exception (`CircuitBreakerError` / `breaker.opened` event). Route it to a fallback path, a DLQ, or surface a clear error — never silently swallow.
 
+### Per-service vs global
+
+Every external dependency gets its **own** breaker. Resy's breaker is independent of OpenTable's, which is independent of Toast's. Never wrap multiple distinct dependencies under one breaker — a Resy outage would also block calls to OpenTable, defeating the point of having multiple platforms.
+
+```python
+resy_breaker      = pybreaker.CircuitBreaker(fail_max=5, reset_timeout=60, name="resy")
+opentable_breaker = pybreaker.CircuitBreaker(fail_max=5, reset_timeout=60, name="opentable")
+toast_breaker     = pybreaker.CircuitBreaker(fail_max=5, reset_timeout=60, name="toast")
+```
+
+```typescript
+const resyBreaker      = new CircuitBreaker(resyCall,      { ...defaults, name: "resy" });
+const opentableBreaker = new CircuitBreaker(opentableCall, { ...defaults, name: "opentable" });
+const toastBreaker     = new CircuitBreaker(toastCall,     { ...defaults, name: "toast" });
+```
+
+If a single downstream has endpoints with materially different failure modes (e.g. `/search` is fragile but `/cancel` is solid), give them separate breakers so a `/search` outage doesn't suspend cancellations.
+
+### Fallback semantics
+
+When the breaker is open, the caller can't reach the dependency. Pick one of four responses based on what the call class actually needs:
+
+| Response | When to use | Rebooking example |
+|----------|-------------|-------------------|
+| **Return cached value** | Read-mostly endpoints with tolerable staleness | "Get current reservation status" — serve last-known status with a `stale=true` flag |
+| **Return degraded result** | The caller can act with less info | Search across 3 platforms; one is open → return results from the 2 healthy ones with a warning |
+| **Queue for retry-later** | Write that must eventually land, no rush | Confirmation SMS — enqueue to a retry job that drains when the breaker closes |
+| **Fail fast** | The operation can't safely proceed without this dependency | Modify a reservation on the specific platform that's down — surface a clear typed error to the caller |
+
+```python
+@platform_breaker
+async def modify_reservation(payload: dict) -> dict:
+    return await call_platform_api(payload)
+
+async def safe_modify(payload: dict) -> dict:
+    try:
+        return await modify_reservation(payload)
+    except pybreaker.CircuitBreakerError:
+        await enqueue_retry(payload, reason="platform_breaker_open")
+        return {"status": "deferred", "retry_after": 60}
+```
+
+Never silently swallow `CircuitBreakerError`. Either map it to a typed business response (`{"status": "deferred"}`) or re-raise — the call must look different from a normal success.
+
 ### Tuning
 
 - `fail_max` too low → flaps on transient blips. Start at 5, raise if noisy.
 - `reset_timeout` too short → re-opens immediately. Start at 60s, tune to recovery shape.
 - Exclude business 4xx from counting as failures — they're application logic, not dependency health.
+
+### Observability
+
+Treat breaker state changes as **first-class events**. Emit `circuit_breaker_state_change` (or the project's equivalent) on every transition with at minimum:
+
+```json
+{
+  "event": "circuit_breaker_state_change",
+  "breaker": "resy",
+  "from": "closed",
+  "to": "open",
+  "trigger": "consecutive_failures",
+  "consecutive_failures": 5,
+  "timestamp": "2026-05-24T18:32:17Z"
+}
+```
+
+Pin two alert thresholds:
+
+- **Page** when any breaker stays Open for > 5 minutes — at that point user impact is non-trivial.
+- **Notify (chat channel)** on every Open transition — for trend visibility, even when it recovers in 60s.
+
+`pybreaker` exposes listeners via `add_listener(MyListener())`; `opossum` emits `open` / `close` / `halfOpen` events. Wire both to the project's structured logger and metrics exporter so time-in-Open per breaker shows up on dashboards — that's the signal that distinguishes "a brief outage" from "a hard down."
+
+### Anti-patterns
+
+- **Breakers around in-process pure functions.** The breaker exists to model recovery on a remote dependency. A local function has no "recovering" state — handle the exception directly.
+- **Breakers with no timeout on the wrapped call.** A hung call never returns, never increments the failure counter, and the breaker never opens. Always pair with a per-call timeout (`timeout=10.0`).
+- **Single global breaker across multiple services.** Resy's outage blocks healthy OpenTable traffic. One breaker per dependency, always.
+- **Resetting to Closed without a Half-Open probe.** Causes oscillation: failure → Open → time-elapses → Closed → failure → Open. The Half-Open single-probe model is what gives the dependency space to recover. Don't disable it.
+- **Counting business 4xx as failures.** A `404 Not Found` on a lookup is application logic, not dependency health. Use `exclude=[httpx.HTTPStatusError]` (Python) or filter via `errorFilter` (opossum). Otherwise normal user behaviour can open the breaker.
+- **Tripping on the first failure (`fail_max=1`).** Networks are flaky; a single 502 happens. Start at 5 and tune from real data.
+- **Catching `CircuitBreakerError` and retrying.** Defeats the breaker. If you want to retry-on-recover, queue the work; don't busy-loop the breaker.
 
 ## Bulkheads
 
