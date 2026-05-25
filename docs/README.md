@@ -17,6 +17,23 @@ For AI-assisted design: load the playbook + the relevant pattern + framework + s
 
 ---
 
+## Getting started
+
+First-run remediation docs — one screen per service, signup link at the top, env vars at the bottom, commands in the middle. Opened by `agent-scaffold doctor --explain <topic>`.
+
+| Doc | Service |
+|-----|---------|
+| [README.md](getting-started/README.md) | Index — when to open which guide |
+| [anthropic.md](getting-started/anthropic.md) | Anthropic API key + workspace setup |
+| [redis.md](getting-started/redis.md) | Redis 7 (local Docker or hosted) |
+| [postgres.md](getting-started/postgres.md) | Postgres 16 (local Docker or hosted) |
+| [langfuse.md](getting-started/langfuse.md) | Langfuse (cloud or self-host) |
+| [kafka.md](getting-started/kafka.md) | Kafka / Redpanda (local Docker or hosted) |
+| [docker.md](getting-started/docker.md) | Docker Desktop / Colima / Linux |
+| [uv.md](getting-started/uv.md) | uv (Python deps + venv) |
+| [keyring.md](getting-started/keyring.md) | OS keyring backends and headless fallbacks |
+| [resy.md](getting-started/resy.md) / [opentable.md](getting-started/opentable.md) / [toast.md](getting-started/toast.md) | Mock-only restaurant adapters |
+
 ## Playbook
 
 | Doc | Description |

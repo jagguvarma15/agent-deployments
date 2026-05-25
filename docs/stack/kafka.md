@@ -1,5 +1,7 @@
 # Stack pick: Kafka
 
+> Standing Kafka or Redpanda up for the first time? Start with [`getting-started/kafka.md`](../getting-started/kafka.md) for the one-screen quickstart. This doc is the deep reference.
+
 **Choice:** Apache Kafka 3.x in KRaft mode (no ZooKeeper)
 **Image:** `bitnami/kafka` or `confluentinc/cp-kafka` for Kafka; `redpanda/redpanda` as a Kafka-API-compatible single-binary alternative
 **Used for:** High-throughput event source (>10k events/sec per topic), durable replay (days-to-weeks retention), multi-consumer fan-out across teams

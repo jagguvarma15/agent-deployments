@@ -1,5 +1,7 @@
 # Stack pick: Langfuse
 
+> Standing Langfuse up for the first time? Start with [`getting-started/langfuse.md`](../getting-started/langfuse.md) for the one-screen quickstart. This doc is the deep reference.
+
 **Choice:** Langfuse 2.95, self-hosted via Docker (MIT-licensed)
 **Used for:** LLM observability -- tracing agent steps, tool calls, LLM invocations, latency, cost
 
