@@ -1,6 +1,8 @@
 # Stack pick: Kafka
 
 > Standing Kafka or Redpanda up for the first time? Start with [`getting-started/kafka.md`](../getting-started/kafka.md) for the one-screen quickstart. This doc is the deep reference.
+>
+> **Capability:** [`queue.kafka`](../capabilities/queue/kafka.md) (provisioning contract for `agent-scaffold up`). Lighter alternative: [`queue.redis-streams`](../capabilities/queue/redis-streams.md).
 
 **Choice:** Apache Kafka 3.x in KRaft mode (no ZooKeeper)
 **Image:** `bitnami/kafka` or `confluentinc/cp-kafka` for Kafka; `redpanda/redpanda` as a Kafka-API-compatible single-binary alternative
