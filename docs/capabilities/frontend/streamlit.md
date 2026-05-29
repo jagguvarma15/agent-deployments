@@ -12,12 +12,13 @@ emit_files:
 docs: |
   Streamlit chat template for Python-only stacks. Single-file UI with
   `st.chat_message` rendering and SSE streaming. Copied verbatim into
-  frontend/ during generation; templates live in Phase 3a.
+  frontend/ during generation; template tree lives next to this file under
+  templates/streamlit/.
 ---
 
 # Capability: frontend.streamlit
 
-> Template tree: `templates/streamlit/` (shipped by Phase 3a). Vendor docs: https://docs.streamlit.io.
+> Template tree: `templates/streamlit/` (sits next to this file). Vendor docs: https://docs.streamlit.io.
 
 **Used for:** prototype chat UI for Python agents, when the goal is "I want a UI in one file with no Node."
 
@@ -37,7 +38,7 @@ streamlit run streamlit_app.py        # http://localhost:8501
 
 ## Template contract
 
-Phase 3a ships `templates/streamlit/streamlit_app.py` with `st.chat_message` rendering and `httpx` SSE consumption. The LLM (Phase 5 prompt) wires the backend endpoint and optionally adds domain-specific message renderers in `components/`.
+`templates/streamlit/streamlit_app.py` ships with `st.chat_message` rendering and `httpx` SSE consumption. The generator wires the backend endpoint and optionally adds domain-specific message renderers in `components/`.
 
 ## Env vars
 
@@ -58,5 +59,5 @@ Not paired with `host.vercel` (Vercel doesn't host Python apps natively). Use `h
 
 ## See also
 
-- `templates/streamlit/README.md` (Phase 3a) — template internals
+- `templates/streamlit/README.md` — template internals
 - `capabilities/host/fly.md` — natural deploy target for Streamlit

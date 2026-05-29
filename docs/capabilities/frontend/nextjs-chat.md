@@ -12,12 +12,13 @@ emit_files:
 docs: |
   Next.js 14 (App Router) chat template wired to consume Vercel AI SDK
   responses from the backend's /api/agent endpoint. Copied verbatim into
-  frontend/ during generation; templates live in a sibling PR (Phase 3a).
+  frontend/ during generation; template tree lives next to this file under
+  templates/nextjs-chat/.
 ---
 
 # Capability: frontend.nextjs-chat
 
-> Template tree: `templates/nextjs-chat/` (shipped by Phase 3a). Vendor docs: https://sdk.vercel.ai/docs.
+> Template tree: `templates/nextjs-chat/` (sits next to this file). Vendor docs: https://sdk.vercel.ai/docs.
 
 **Used for:** a runnable chat UI on `http://localhost:3000` that streams agent responses.
 
@@ -35,11 +36,11 @@ pnpm install
 pnpm dev          # http://localhost:3000
 ```
 
-The scaffold's dual-language formatter (Phase 3b) runs `pnpm exec prettier --write frontend/` after copy.
+The scaffold's dual-language formatter runs `pnpm exec prettier --write frontend/` after copy when prettier is available on PATH.
 
 ## Template contract
 
-The scaffold copies the entire `templates/nextjs-chat/` subtree (Phase 3a) under `frontend/`. The LLM (taught by Phase 5 prompt updates) must NOT re-emit any path matching this glob — the copier SKIPs with a warning if collision occurs.
+The scaffold copies the entire `templates/nextjs-chat/` subtree under `frontend/`. The generator must NOT re-emit any path matching this glob — the copier SKIPs with a warning if collision occurs.
 
 The LLM's responsibility for a frontend capability:
 1. Wire backend endpoints the template expects (default: `POST /api/agent` returning a Vercel AI SDK stream).
@@ -63,5 +64,5 @@ Pair with `host.vercel`. The emitted `vercel.json` (from `emit_deploy_configs` s
 
 ## See also
 
-- `templates/nextjs-chat/README.md` (Phase 3a) — template internals
+- `templates/nextjs-chat/README.md` — template internals
 - `capabilities/host/vercel.md` — natural deploy target
