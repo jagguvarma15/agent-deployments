@@ -1,5 +1,7 @@
 # Stack pick: Qdrant
 
+> **Capability:** [`vector_db.qdrant`](../capabilities/vector_db/qdrant.md) (provisioning contract for `agent-scaffold up`). Alternatives: [`vector_db.chroma`](../capabilities/vector_db/chroma.md), [`vector_db.pgvector`](../capabilities/vector_db/pgvector.md).
+
 **Choice:** Qdrant 1.12, self-hosted via Docker
 **Used for:** Vector similarity search for RAG retrieval, semantic memory
 
