@@ -1,6 +1,8 @@
 # Stack pick: Redis
 
 > Standing Redis up for the first time? Start with [`getting-started/redis.md`](../getting-started/redis.md) for the one-screen quickstart. This doc is the deep reference.
+>
+> **Capability:** [`cache.redis`](../capabilities/cache/redis.md) (provisioning contract for `agent-scaffold up`). Optionally pair with [`queue.redis-streams`](../capabilities/queue/redis-streams.md) for an event source.
 
 **Choice:** Redis 7-alpine (or Valkey), self-hosted via Docker
 **Used for:** Rate limiting backend, session cache, transient state
