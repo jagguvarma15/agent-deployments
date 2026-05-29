@@ -123,6 +123,7 @@ agent-deployments/
 │   ├── patterns/          # 9 agent design patterns
 │   ├── frameworks/        # Framework-specific guides (LangGraph, Pydantic AI, etc.)
 │   ├── stack/             # Stack choice docs (Postgres, Redis, Qdrant, etc.)
+│   ├── capabilities/      # Provisioning contracts consumed by agent-scaffold up
 │   ├── cross-cutting/     # Auth, logging, observability, rate limiting, testing
 │   ├── reference/         # Dockerfile, docker-compose, CI, Makefile templates
 │   └── playbook/          # Design guides and production checklist
@@ -131,6 +132,28 @@ agent-deployments/
 ├── SECURITY.md
 └── LICENSE
 ```
+
+---
+
+## Capabilities
+
+`agent-scaffold` (≥ v0.3) doesn't just generate code anymore — it provisions the local stack and emits cloud-deploy configs. The unit of provisioning is a **capability**: a high-level infra need with everything needed to stand it up.
+
+```yaml
+# In a recipe's frontmatter:
+capabilities:
+  - cache.redis
+  - relational.postgres
+  - vector_db.qdrant
+  - queue.kafka
+  - obs.langsmith
+  - frontend.nextjs-chat
+  - host.vercel
+```
+
+`agent-scaffold` resolves each id against [`docs/capabilities/`](docs/capabilities/), feeds the capability bodies to the LLM during generation, then runs per-capability bootstrap steps after `docker compose up` (create vector collections, create Kafka topics, create LangSmith project, provision Grafana datasources, write `vercel.json`, etc.).
+
+See [`docs/capabilities/README.md`](docs/capabilities/README.md) for the catalog, frontmatter schema, and authoring guide. Older `agent-scaffold` versions ignore the `capabilities:` field — recipes stay backwards-compatible.
 
 ---
 
