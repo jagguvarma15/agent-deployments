@@ -1,6 +1,8 @@
 # Stack pick: Postgres
 
 > Standing Postgres up for the first time? Start with [`getting-started/postgres.md`](../getting-started/postgres.md) for the one-screen quickstart. This doc is the deep reference.
+>
+> **Capability:** [`relational.postgres`](../capabilities/relational/postgres.md) (provisioning contract for `agent-scaffold up`).
 
 **Choice:** Postgres 16-alpine, self-hosted via Docker
 **Used for:** Conversation state, document metadata, Langfuse backend, LangGraph checkpointing

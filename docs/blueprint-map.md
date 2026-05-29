@@ -69,6 +69,23 @@ composition/                         ──►   content-pipeline (headline exam
                                            hierarchical-agent
 ```
 
+## Capabilities layer
+
+Layered orthogonally on top of the recipe → pattern mapping, [`docs/capabilities/`](capabilities/) describes the **provisioning contracts** consumed by `agent-scaffold up` (≥ v0.3):
+
+```
+docs/capabilities/
+  vector_db/{qdrant, chroma, pgvector}
+  cache/{redis}
+  relational/{postgres}
+  queue/{kafka, redis-streams}
+  obs/{langsmith, langfuse, grafana-stack}
+  frontend/{nextjs-chat, streamlit}
+  host/{vercel, railway, fly}
+```
+
+A recipe opts in by declaring `capabilities: [...]` in its frontmatter. The scaffold's resolver matches each id against the catalog and threads the resolved bodies through context assembly + orchestrator bootstrap steps. See [`docs/capabilities/README.md`](capabilities/README.md) for the schema and authoring guide.
+
 ## Contributing
 
 When adding a new blueprint, you must:
@@ -77,3 +94,4 @@ When adding a new blueprint, you must:
 2. Add the Composes section to the recipe linking back to the pattern
 3. Update this file with the new mapping
 4. Coordinate a PR to `agent-blueprints` adding a cross-link back to this recipe
+5. If the recipe needs new infra not in [`docs/capabilities/`](capabilities/), add the capability file alongside the recipe PR (or in a sibling PR)
