@@ -21,3 +21,14 @@ Shared production plumbing used by all agents. Each file answers: **"What produc
 ## The 11-point production checklist
 
 Every blueprint specifies these concerns. See [playbook/production-checklist.md](../playbook/production-checklist.md) for the full checklist.
+
+## See also: cognitive-pattern lineage
+
+These cross-cutting concerns are the operational layer that wraps the cognitive
+patterns documented in the sister `agent-blueprints` repo. For the lineage map
+between classical distributed-systems patterns and the agent patterns they
+specialize — and for which classical patterns are explicitly scoped here rather
+than there — see
+[`agent-blueprints/foundations/system-design-heritage.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/foundations/system-design-heritage.md).
+That doc links back into the files above for Circuit Breaker, Retry+Backoff,
+Idempotency, and Distributed Tracing.
