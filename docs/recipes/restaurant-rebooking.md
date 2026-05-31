@@ -33,6 +33,16 @@ recipe_dependencies:
     zod: "^3.23.0"
     jose: "^5.0.0"
     vitest: "^2.0.0"
+capabilities:
+  - cache.redis
+  - relational.postgres
+  - vector_db.qdrant
+  - queue.redis-streams
+  - obs.langfuse
+  - obs.grafana-stack
+  - frontend.nextjs-chat
+  - host.vercel
+  - eval.promptfoo
 topology: multi-agent-flat
 roles:
   - name: intake
@@ -577,6 +587,27 @@ See [Docker Compose template](../reference/docker-compose-template.md) for base 
 | Postgres | Yes | Outcomes + audit log; needed by `/admin/replay` |
 | Langfuse | Recommended | LLM + tool call tracing (skip for local dev) |
 | Real reservation platform | No (v1) | Mock adapter ships with the recipe; Resy/OpenTable/Toast are stubs |
+
+## Seed data
+
+The LLM should emit `scripts/seed.py` so that a freshly-generated project boots into a working demo state on the first `agent-scaffold up`. The script populates each declared capability's local store:
+
+- **Postgres (`relational.postgres`)** — insert ~50 sample restaurants (`id`, `name`, `city`, `cuisine`, `party_capacity`) and ~80 reservations spread across them (most `active`, ~20% `cancelled`). Use `INSERT ... ON CONFLICT (id) DO NOTHING` so re-runs are safe.
+- **Qdrant (`vector_db.qdrant`)** — create a `docs` collection (1536 dims, cosine distance) and upsert one point per restaurant whose payload is the description and whose vector is the embedded description. Skip recreation if the collection already exists; upserts are idempotent on point `id`.
+- **Redis Streams (`queue.redis-streams`)** — publish 3 sample `reservation.cancelled` events onto the `reservations.cancelled` stream using `XADD ... MAXLEN ~ 100 *` so the agent has something to react to immediately and the stream stays bounded on repeated seeds.
+
+Each block should log "skipped (already seeded)" vs. "seeded N rows / points / events" so a re-run is visibly idempotent. The script is invoked as the last step of `agent-scaffold up` (after `bootstrap_*` steps complete) and is safe to run by hand at any point.
+
+## Lifecycle
+
+After generation, four `agent-scaffold` commands cover the full local-demo lifecycle. Surface these verbatim in the generated project's `README.md`:
+
+1. `agent-scaffold up` — start the compose stack, run all `bootstrap_*` steps (datasources, dashboards, collections, consumer groups), then run `scripts/seed.py`.
+2. `agent-scaffold status` — show the health of every capability service (Redis, Postgres, Qdrant, Langfuse, Grafana) and the last consumer offset.
+3. `agent-scaffold deploy --target vercel --dry-run` — render the `host.vercel` deploy plan (env-var diff, build command, project link) without pushing.
+4. `agent-scaffold down` — stop the compose stack and (optionally) prune volumes.
+
+The new generation system prompt requires this list to appear in the recipe; the scaffolded README inherits it so users have a single canonical sequence.
 
 ## Test Strategy
 
