@@ -33,6 +33,8 @@ docs/capabilities/
     langsmith.md
     langfuse.md
     grafana-stack.md
+  eval/                     # kind = eval (may carry templates/)
+    promptfoo.md
   frontend/                 # kind = frontend (may carry templates/)
     nextjs-chat.md
     streamlit.md
@@ -49,7 +51,7 @@ The dotted capability id always matches the path: `vector_db.qdrant` ⇄ `vector
 ```yaml
 ---
 id: vector_db.qdrant                 # required — dotted: <kind>.<name>; must match file path
-kind: vector_db                      # required — one of: vector_db | cache | relational | queue | obs | frontend | host
+kind: vector_db                      # required — one of: vector_db | cache | relational | queue | obs | eval | frontend | host
 provides: [embeddings_store]         # optional — free-form capability tags used for substitution / dedup
 env_vars: [QDRANT_URL, QDRANT_API_KEY]   # canonical env var names the generated app must reference
 docker:                              # optional — omit for managed-only services
@@ -78,7 +80,7 @@ docs: |                              # short markdown block injected into the LL
 | Field | Notes |
 |-------|-------|
 | `id` | Dotted `<kind>.<name>`. Lowercase, `_` separator inside each part allowed (`vector_db.pgvector`). Must equal the file path under `capabilities/`. |
-| `kind` | One of the 7 enumerated kinds. Adding a new kind needs an `agent-scaffold` change too (Phase 1b enum) — coordinate before introducing. |
+| `kind` | One of the 8 enumerated kinds. Adding a new kind needs an `agent-scaffold` change too (Phase 1b enum) — coordinate before introducing. |
 | `env_vars` | List of canonical environment variable names. The generated app and `.env.example` must use exactly these names. |
 
 ### Optional fields
@@ -145,7 +147,7 @@ The catalog has no schema version field today. The Phase 1b loader treats unknow
 When adding or updating a capability:
 
 - [ ] `id` exactly matches the file path under `capabilities/`
-- [ ] `kind` is one of the 7 enumerated kinds
+- [ ] `kind` is one of the 8 enumerated kinds
 - [ ] `env_vars` are CANONICAL (no project-specific prefixes) — the generated app uses these names verbatim
 - [ ] If `docker:` is set, image tag is pinned (no `:latest`)
 - [ ] If a sibling exists under `stack/<x>.md`, cross-link both directions (one-line `Capability:` header on the stack doc; "See also: stack/x.md" line in the capability body)
