@@ -1,0 +1,27 @@
+# Promptfoo eval config — emitted by capability `eval.promptfoo`.
+# Run from the project root with: `cd evals && npx promptfoo eval`.
+description: "Default eval suite for the generated agent."
+
+providers:
+  - id: anthropic:messages:claude-sonnet-4-6
+    config:
+      apiKey: ${ANTHROPIC_API_KEY}
+      max_tokens: 1024
+      temperature: 0
+
+# Generic starter cases ship with the capability; recipe-specific cases
+# live in cases.recipe.yaml (LLM-emitted from the recipe's golden dataset).
+tests:
+  - file://cases.yaml
+  - file://cases.recipe.yaml
+
+outputPath: last-run.json
+
+# Retry transient provider errors before failing the case.
+defaultTest:
+  options:
+    retries: 3
+
+# Fail the suite if the pass-rate drops below the baseline stored in the manifest.
+# The bootstrap_evals step seeds this on first `agent-scaffold up`.
+sharing: false
