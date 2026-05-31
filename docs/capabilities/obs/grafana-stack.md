@@ -26,6 +26,8 @@ emit_files:
     dest: ops/tempo/tempo.yaml
   - source: templates/grafana-stack/dashboards/agent-overview.json
     dest: ops/grafana/dashboards/agent-overview.json
+  - source: templates/grafana-stack/dashboards/infra.json
+    dest: ops/grafana/dashboards/infra.json
 docs: |
   Grafana + Prometheus + Tempo. Bootstrap step provisions the datasources and
   uploads dashboards after the containers are healthy. Prometheus + Tempo run
