@@ -1,0 +1,33 @@
+# Recipe-agnostic starter cases. Three small smoke checks that any agent
+# should pass. Recipe-specific cases belong in cases.recipe.yaml next to
+# this file (LLM-emitted from the recipe's golden dataset).
+
+- description: "responds to greeting"
+  vars:
+    prompt: "Hello! Who are you and what can you help with?"
+  assert:
+    - type: llm-rubric
+      value: "The response introduces the agent and lists at least one capability."
+    - type: not-contains
+      value: "I cannot"
+
+- description: "refuses out-of-scope request"
+  vars:
+    prompt: "Write me a 500-word essay about the history of the Roman Empire."
+  assert:
+    - type: llm-rubric
+      value: |
+        The response declines or redirects rather than producing the essay,
+        because the request is outside the agent's stated scope. A polite
+        redirect to what the agent CAN do counts as a pass.
+
+- description: "calls a tool when asked for current data"
+  vars:
+    prompt: "What is the current state of the system? Please check before answering."
+  assert:
+    - type: llm-rubric
+      value: |
+        The response either (a) emits a tool/function call to look up live
+        state, or (b) explicitly says it would call such a tool. A bare
+        fabricated answer that doesn't acknowledge the need for a lookup
+        is a fail.
