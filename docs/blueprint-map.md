@@ -19,7 +19,7 @@ Full mapping between `agent-deployments` recipes and `agent-blueprints` patterns
 | `parallel-enricher` | Parallel Calls | `workflows/parallel-calls/` |
 | `memory-assistant` | Memory | `patterns/memory/` |
 | `hierarchical-agent` | Multi-Agent (hierarchical) | `patterns/multi-agent/` (hierarchical variant) |
-| `restaurant-rebooking` | Event-Driven + Multi-Agent (flat) | `patterns/event-driven/` · `patterns/multi-agent/` (flat variant) |
+| `restaurant-rebooking` | Event-Driven + Multi-Agent (flat) | `patterns/event-driven/` · `patterns/multi-agent/` (flat variant) — first recipe to declare `capabilities:` end-to-end |
 
 ## How to read this
 
@@ -80,6 +80,7 @@ docs/capabilities/
   relational/{postgres}
   queue/{kafka, redis-streams}
   obs/{langsmith, langfuse, grafana-stack}
+  eval/{promptfoo}
   frontend/{nextjs-chat, streamlit}
   host/{vercel, railway, fly}
 ```
