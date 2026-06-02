@@ -37,6 +37,7 @@ If you want to skip the manual "load these docs into your AI assistant" step in 
 | Batch enrichment at scale | [`parallel-enricher`](docs/recipes/parallel-enricher.md) | Parallel Calls |
 | A personal assistant with memory | [`memory-assistant`](docs/recipes/memory-assistant.md) | Memory |
 | A hierarchical multi-agent system | [`hierarchical-agent`](docs/recipes/hierarchical-agent.md) | Multi-Agent (hierarchical) |
+| An event-driven rebooking agent | [`restaurant-rebooking`](docs/recipes/restaurant-rebooking.md) | Event-Driven + Multi-Agent (flat) |
 
 Every blueprint includes **Python** (FastAPI + Pydantic AI) and **TypeScript** (Hono + Vercel AI SDK) specifications side by side.
 
@@ -119,12 +120,13 @@ Want to swap a stack component? See [`docs/playbook/stack-swaps.md`](docs/playbo
 ```
 agent-deployments/
 ├── docs/
-│   ├── recipes/           # 9 agent blueprints (the main content)
-│   ├── patterns/          # 9 agent design patterns
+│   ├── recipes/           # 10 agent blueprints (the main content)
+│   ├── patterns/          # 10 agent design patterns
 │   ├── frameworks/        # Framework-specific guides (LangGraph, Pydantic AI, etc.)
 │   ├── stack/             # Stack choice docs (Postgres, Redis, Qdrant, etc.)
 │   ├── capabilities/      # Provisioning contracts consumed by agent-scaffold up
 │   ├── cross-cutting/     # Auth, logging, observability, rate limiting, testing
+│   ├── getting-started/   # First-run remediation docs (one screen per service)
 │   ├── reference/         # Dockerfile, docker-compose, CI, Makefile templates
 │   └── playbook/          # Design guides and production checklist
 ├── CONTRIBUTING.md
