@@ -1,6 +1,8 @@
 # Stack pick: Langfuse
 
 > Standing Langfuse up for the first time? Start with [`getting-started/langfuse.md`](../getting-started/langfuse.md) for the one-screen quickstart. This doc is the deep reference.
+>
+> **Capability:** [`obs.langfuse`](../capabilities/obs/langfuse.md) (provisioning contract for `agent-scaffold up`). Alternatives: [`obs.langsmith`](../capabilities/obs/langsmith.md) (hosted LangChain telemetry), [`obs.grafana-stack`](../capabilities/obs/grafana-stack.md) (metrics + traces via OTel).
 
 **Choice:** Langfuse 2.95, self-hosted via Docker (MIT-licensed)
 **Used for:** LLM observability -- tracing agent steps, tool calls, LLM invocations, latency, cost
