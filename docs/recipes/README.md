@@ -22,19 +22,40 @@ Full-spec agent blueprints showing how patterns, frameworks, and stack compose i
 | [Hierarchical Agent](hierarchical-agent.md) | Multi-Agent Hierarchical | LangGraph / Vercel AI SDK | Blueprint (design spec) |
 | [Restaurant Rebooking](restaurant-rebooking.md) | Event-Driven + Multi-Agent Flat | LangGraph / Mastra | Blueprint (design spec) |
 
+## Frontmatter
+
+Every recipe opens with a YAML frontmatter block conformant to [`SCHEMA.md`](SCHEMA.md). That document is the canonical contract — every field, type, requiredness, and which `agent-scaffold` version consumes it. Open it before adding a new recipe or modifying an existing one.
+
+Minimum required frontmatter:
+
+```yaml
+---
+status: Blueprint (validated) | Blueprint (design spec)
+languages: [python, typescript]
+external_services: [...]         # v0.2.x consumer
+capabilities: [...]              # v0.3+ consumer
+---
+```
+
+See [`SCHEMA.md`](SCHEMA.md) for the full field set including `recipe_dependencies`, `required_files`, `bootstrap_config`, `topology`, and `roles`.
+
 ## How to read a blueprint
 
-Each blueprint includes 13 sections:
-1. **What it composes** — links to the pattern, framework, stack, and cross-cutting docs
-2. **Architecture** — diagram of the agent's structure
-3. **Data Models** — full Pydantic + Zod schemas
-4. **API Contract** — every endpoint with request/response JSON
-5. **Tool Specifications** — each tool with parameters and examples
-6. **Prompt Specifications** — actual system prompts with design rationale
-7. **Key files** — file-by-file implementation spec (Python + TypeScript)
-8. **Implementation Roadmap** — ordered build steps
-9. **Environment & Deployment** — env vars table, Docker reference
-10. **Test Strategy** — example tests per tier
-11. **Eval Dataset** — inline golden examples
-12. **Design Decisions** — trade-offs and rationale
-13. **Reference Implementation** — full source code (validated blueprints only)
+Each blueprint follows a canonical section order:
+
+1. **Composes** — links to the pattern, framework, stack, and cross-cutting docs. Opens with `## Composes` H2; the load list (files to feed an AI assistant) is the first H3 underneath.
+2. **What it does** — problem statement and approach
+3. **Architecture** — diagram of the agent's structure
+4. **Data Models** — full Pydantic + Zod schemas
+5. **API Contract** — every endpoint with request/response JSON
+6. **Tool Specifications** — each tool with parameters and examples
+7. **Prompt Specifications** — actual system prompts with design rationale
+8. **Key files** — file-by-file implementation spec (Python + TypeScript)
+9. **Implementation Roadmap** — ordered build steps
+10. **Environment & Deployment** — env vars table, Docker reference
+11. **Test Strategy** — example tests per tier
+12. **Eval Dataset** — inline golden examples (required everywhere; design-spec gets 3–5 inline cases)
+13. **Design Decisions** — trade-offs and rationale
+14. **Reference Implementation** — full source code for validated blueprints; pseudocode-labeled for design-spec
+
+Optional tail sections allowed where present (not required): `## Seed data`, `## Lifecycle`, `## Generation instructions`.
