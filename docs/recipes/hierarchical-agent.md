@@ -1,8 +1,74 @@
+---
+status: Blueprint (design spec)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/graph/supervisor.py
+  - app/agents/researcher.py
+  - app/agents/writer.py
+  - app/agents/reviewer.py
+  - tests/unit/test_agents.py
+  - tests/integration/test_supervisor.py
+  - tests/eval/test_handoff.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    langgraph: ">=0.2.0"
+    langgraph-supervisor: ">=0.0.6"
+    pydantic-settings: ">=2.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - postgres
+  - redis
+  - langfuse
+capabilities:
+  - relational.postgres
+  - cache.redis
+  - obs.langfuse
+  - eval.promptfoo
+topology: multi-agent-hierarchical
+roles:
+  - name: supervisor
+    description: "Coordinate the team by routing tasks to specialists and synthesizing their outputs."
+    role_kind: supervisor
+    model_hint: sonnet
+    tools: []
+  - name: researcher
+    description: "Find information, extract facts, gather source material."
+    role_kind: worker
+    model_hint: sonnet
+    tools: [search_web, extract_facts]
+  - name: writer
+    description: "Draft and revise content based on the research and any feedback."
+    role_kind: worker
+    model_hint: sonnet
+    tools: [draft_content, revise_content]
+  - name: reviewer
+    description: "Evaluate content for accuracy, completeness, clarity, and style."
+    role_kind: worker
+    model_hint: sonnet
+    tools: [evaluate_quality]
+---
+
 # Recipe: Hierarchical Agent
 
 **Status:** Blueprint (design spec)
 
-**Composes:**
+## Composes
 
 - Pattern: [Multi-Agent Hierarchical](../patterns/multi-agent-hierarchical.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (`langgraph-supervisor` for supervisor + sub-agent graphs)
@@ -10,7 +76,7 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -544,7 +610,7 @@ async def test_full_task_e2e():
 {"input": {"task": "Draft release notes for a new version of our API"}, "expected_min_delegations": 2, "expected_workers": ["writer", "reviewer"]}
 ```
 
-## Design decisions
+## Design Decisions
 
 - **`langgraph-supervisor` for orchestration:** Purpose-built for the supervisor pattern. Each worker is a compiled sub-graph that the supervisor invokes as a tool. Clean separation of concerns.
 - **Workers as sub-graphs:** Each worker is an independent `create_react_agent` with its own tools. Workers don't know about each other — the supervisor manages all coordination.
