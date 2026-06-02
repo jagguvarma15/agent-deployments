@@ -42,7 +42,7 @@ The KRaft fragment above runs Kafka without ZooKeeper. Single broker, single por
 
 ## Bootstrap (post docker_up)
 
-`bootstrap_kafka` reads the recipe frontmatter `kafka_topics:` block (or per-capability defaults) and idempotently creates each topic:
+`bootstrap_kafka` reads the recipe's [`bootstrap_config.kafka_topics`](../../recipes/SCHEMA.md#bootstrap_configkafka_topics) block (or per-capability defaults) and idempotently creates each topic:
 
 ```python
 from kafka.admin import KafkaAdminClient, NewTopic
