@@ -1,8 +1,50 @@
+---
+status: Blueprint (validated)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/agent/researcher.py
+  - app/tools/web_search.py
+  - tests/unit/test_schemas.py
+  - tests/integration/test_research.py
+  - tests/eval/test_react_behavior.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    pydantic-ai: ">=0.0.13"
+    pydantic-settings: ">=2.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - postgres
+  - redis
+  - langfuse
+capabilities:
+  - relational.postgres
+  - cache.redis
+  - obs.langfuse
+  - eval.promptfoo
+topology: single
+---
+
 # Recipe: Research Assistant
 
 **Status:** Blueprint (validated)
 
-**Composes:**
+## Composes
 
 - Pattern: [ReAct](../patterns/react.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (agent with tool-based ReAct loop)
@@ -10,7 +52,7 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -73,57 +115,6 @@ This implements **vanilla ReAct** — a single agent with multiple tools in a re
    - **Act:** Calls one of its tools (web search, extract facts, summarize, cite sources).
    - **Observe:** Incorporates tool results into its context.
 4. Agent produces a final answer with structured citations.
-
-## Key files
-
-### Python track
-
-| File | Role |
-|------|------|
-| `app/main.py` | FastAPI app with lifespan |
-| `app/settings.py` | Config (research model, max steps) |
-| `app/agent/researcher.py` | Pydantic AI agent with `search_web` tool, `run_research()` function |
-| `app/api/research.py` | `/research` endpoint — runs agent, returns answer + steps |
-| `app/tools/web_search.py` | Web search tool |
-| `app/tools/extract_facts.py` | Fact extraction from search results |
-| `app/tools/summarize.py` | Text summarization tool |
-| `app/tools/cite_sources.py` | Source citation formatter |
-| `app/models/schemas.py` | Pydantic request/response schemas |
-| `app/db/models.py` | SQLAlchemy models for research session logging |
-
-### TypeScript track
-
-| File | Role |
-|------|------|
-| `src/index.ts` | Hono app entry point |
-| `src/config.ts` | Zod-validated config from env |
-| `src/agent/researcher.ts` | Vercel AI SDK agent with tools + `maxSteps` |
-| `src/api/research.ts` | `/research` route handler |
-| `src/tools/web-search.ts` | Web search tool |
-| `src/tools/extract-facts.ts` | Fact extraction tool |
-| `src/tools/summarize.ts` | Summarization tool |
-| `src/tools/cite-sources.ts` | Citation formatter tool |
-| `src/schemas/index.ts` | Zod request/response schemas |
-
-## Example interaction
-
-```bash
-curl -X POST http://localhost:8000/research \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What are the key differences between RAG and fine-tuning for LLM customization?"}'
-```
-
-Response:
-
-```json
-{
-  "answer": "RAG and fine-tuning serve different purposes for LLM customization...",
-  "steps": [
-    {"step": 1, "action": "search", "content": "Researched: RAG vs fine-tuning differences"}
-  ],
-  "trace_id": "abc123-..."
-}
-```
 
 ## Data Models
 
@@ -287,6 +278,37 @@ If you cannot find relevant information, say so rather than guessing.
 - **"Be thorough but efficient"** — Balances quality vs. cost. Without this, the agent tends to either stop after one search or exhaust all steps.
 - **"Say so rather than guessing"** — Prevents fabrication when the web search returns no relevant results.
 
+## Key files
+
+### Python track
+
+| File | Role |
+|------|------|
+| `app/main.py` | FastAPI app with lifespan |
+| `app/settings.py` | Config (research model, max steps) |
+| `app/agent/researcher.py` | Pydantic AI agent with `search_web` tool, `run_research()` function |
+| `app/api/research.py` | `/research` endpoint — runs agent, returns answer + steps |
+| `app/tools/web_search.py` | Web search tool |
+| `app/tools/extract_facts.py` | Fact extraction from search results |
+| `app/tools/summarize.py` | Text summarization tool |
+| `app/tools/cite_sources.py` | Source citation formatter |
+| `app/models/schemas.py` | Pydantic request/response schemas |
+| `app/db/models.py` | SQLAlchemy models for research session logging |
+
+### TypeScript track
+
+| File | Role |
+|------|------|
+| `src/index.ts` | Hono app entry point |
+| `src/config.ts` | Zod-validated config from env |
+| `src/agent/researcher.ts` | Vercel AI SDK agent with tools + `maxSteps` |
+| `src/api/research.ts` | `/research` route handler |
+| `src/tools/web-search.ts` | Web search tool |
+| `src/tools/extract-facts.ts` | Fact extraction tool |
+| `src/tools/summarize.ts` | Summarization tool |
+| `src/tools/cite-sources.ts` | Citation formatter tool |
+| `src/schemas/index.ts` | Zod request/response schemas |
+
 ## Implementation Roadmap
 
 | Step | Task | Key deliverables |
@@ -356,7 +378,80 @@ def test_research_endpoint_returns_steps(mock_llm_client):
 - Step count stays within `max_steps` limit
 - "I don't know" for unanswerable questions (no fabrication)
 
-## Design decisions
+## Eval Dataset
+
+Inline golden cases for the ReAct loop. Each case posts `question` to `/research` and inspects the response. Assertions are stated against the response structure: `min_steps`/`max_steps` constrain the number of `steps[]` returned; `expected_tool_calls` is a multiset of `action` values that must appear; `expected_answer_contains` are case-insensitive substrings.
+
+### Case 1 — Multi-step research with tool sequencing
+
+```json
+{
+  "id": "research-001",
+  "category": "tool-sequencing",
+  "question": "What are the main differences between supervised and unsupervised learning?",
+  "min_steps": 2,
+  "max_steps": 5,
+  "expected_tool_calls": ["search"],
+  "expected_answer_contains": ["supervised", "unsupervised", "label"]
+}
+```
+
+### Case 2 — Multi-source synthesis (≥2 sources)
+
+```json
+{
+  "id": "research-002",
+  "category": "multi-source-synthesis",
+  "question": "Compare RAG and fine-tuning as LLM customization strategies.",
+  "min_steps": 2,
+  "max_steps": 5,
+  "expected_tool_calls": ["search"],
+  "expected_answer_contains": ["RAG", "fine-tuning"],
+  "expected_min_sources": 2
+}
+```
+
+### Case 3 — Clarifying-follow-up case (model should not guess)
+
+```json
+{
+  "id": "research-003",
+  "category": "clarification",
+  "question": "How does the system work?",
+  "min_steps": 0,
+  "max_steps": 2,
+  "expected_answer_contains": ["which system", "more context", "clarify"]
+}
+```
+
+### Case 4 — Grounded factual question with known-correct answer
+
+```json
+{
+  "id": "research-004",
+  "category": "grounding",
+  "question": "What year was the Transformer architecture published?",
+  "min_steps": 1,
+  "max_steps": 4,
+  "expected_tool_calls": ["search"],
+  "expected_answer_contains": ["2017", "Transformer"]
+}
+```
+
+### Case 5 — Unanswerable question, graceful refusal
+
+```json
+{
+  "id": "research-005",
+  "category": "refusal",
+  "question": "What will the next major Anthropic model release contain?",
+  "min_steps": 1,
+  "max_steps": 5,
+  "expected_answer_contains": ["don't know", "cannot determine", "not available"]
+}
+```
+
+## Design Decisions
 
 - **Pydantic AI over LangGraph (Python):** The built-in ReAct loop in `agent.run()` is sufficient for a single-agent research flow. LangGraph's `create_react_agent()` would add state management value only if we needed checkpointing for long-running research sessions.
 - **Multiple specialized tools over one generic tool:** Having separate `web_search`, `extract_facts`, `summarize`, and `cite_sources` tools guides the agent toward a structured research process. A single `search_and_answer` tool would produce lower-quality research.
@@ -1094,3 +1189,23 @@ redteam:
 ```
 
 </details>
+
+## Example interaction
+
+```bash
+curl -X POST http://localhost:8000/research \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What are the key differences between RAG and fine-tuning for LLM customization?"}'
+```
+
+Response:
+
+```json
+{
+  "answer": "RAG and fine-tuning serve different purposes for LLM customization...",
+  "steps": [
+    {"step": 1, "action": "search", "content": "Researched: RAG vs fine-tuning differences"}
+  ],
+  "trace_id": "abc123-..."
+}
+```
