@@ -8,3 +8,15 @@
 *.swp
 *.swo
 .DS_Store
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Node / TypeScript build artifacts
+node_modules/
+.next/
+dist/
+build/
+*.tsbuildinfo
