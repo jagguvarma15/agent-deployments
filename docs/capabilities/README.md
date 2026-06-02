@@ -181,4 +181,3 @@ The scaffold's context assembler injects each capability's body under a `## Capa
 
 - `docs/stack/` — long-form stack picks. Most capabilities have a sibling here.
 - `docs/blueprint-map.md` — recipe → pattern mapping (capabilities are layered on top, orthogonally).
-- agent-scaffold plan: `/Users/marchingsquirrel/.claude/plans/encapsulated-popping-pony.md` — full Track C architecture.
