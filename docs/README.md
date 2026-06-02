@@ -120,6 +120,10 @@ One file per shared concern. Answers: "What production plumbing do I need?"
 | [authorization-rbac.md](cross-cutting/authorization-rbac.md) | RBAC / ABAC / PBAC; per-intent tool allowlists; tenant-scoped checks |
 | [audit-logging.md](cross-cutting/audit-logging.md) | Immutable audit trail (Postgres + hash chain + S3 archive) |
 | [pii-gdpr.md](cross-cutting/pii-gdpr.md) | PII storage, right-to-erasure, LLM redaction, DLP screens |
+| [backpressure.md](cross-cutting/backpressure.md) | Bounded queues, shedding, and flow control under load |
+| [cost-tracking.md](cross-cutting/cost-tracking.md) | Per-tenant LLM cost attribution, budgets, and alerts |
+| [dlq-operations.md](cross-cutting/dlq-operations.md) | Dead-letter queue inspection, replay, and reconciliation |
+| [model-routing.md](cross-cutting/model-routing.md) | Routing requests across models by cost / latency / capability |
 
 ## Recipes
 
