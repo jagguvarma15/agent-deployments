@@ -1,5 +1,7 @@
 # Stack pick: Prometheus + Grafana
 
+> **Capability:** [`obs.grafana-stack`](../capabilities/obs/grafana-stack.md) (provisioning contract for `agent-scaffold up` — bundles Prometheus, Grafana, Tempo, and Loki via docker-compose).
+
 **Choice:** Prometheus for metrics scraping; Grafana for dashboards + alerting
 **Used for:** Service metrics (latency, throughput, error rates), business metrics (events processed by action, decisions per minute), SLO tracking
 
