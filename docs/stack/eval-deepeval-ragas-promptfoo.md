@@ -1,5 +1,7 @@
 # Stack pick: Eval Toolchain (DeepEval + RAGAS + Promptfoo)
 
+> Capabilities: [`eval.promptfoo`](../capabilities/eval/promptfoo.md) · [`eval.deepeval`](../capabilities/eval/deepeval.md) · [`eval.ragas`](../capabilities/eval/ragas.md)
+
 **Choice:** Three complementary tools, each covering a different eval surface
 **Used for:** Agent quality metrics, RAG-specific metrics, and security/red-team scanning
 
