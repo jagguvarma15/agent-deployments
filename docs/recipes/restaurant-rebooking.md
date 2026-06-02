@@ -33,6 +33,12 @@ recipe_dependencies:
     zod: "^3.23.0"
     jose: "^5.0.0"
     vitest: "^2.0.0"
+external_services:
+  - postgres
+  - redis
+  - qdrant
+  - langfuse
+  - grafana
 capabilities:
   - cache.redis
   - relational.postgres
@@ -43,6 +49,13 @@ capabilities:
   - frontend.nextjs-chat
   - host.vercel
   - eval.promptfoo
+bootstrap_config:
+  vector_collections:
+    - { name: docs, vector_size: 1536, distance: cosine }
+  redis_streams:
+    - { name: reservations.cancelled, maxlen: 10000, consumer_group: rebooker }
+    - { name: reservations.rebooked, maxlen: 10000 }
+    - { name: reservations.cancelled.dlq, maxlen: 10000 }
 topology: multi-agent-flat
 roles:
   - name: intake
@@ -67,7 +80,7 @@ roles:
 
 **Status:** Blueprint (design spec)
 
-**Composes:**
+## Composes
 
 - Pattern: [Event-Driven Agents](../patterns/event-driven.md) + [Multi-Agent Flat](../patterns/multi-agent-flat.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (explicit state machine fits event-driven lifecycle)
@@ -77,7 +90,7 @@ roles:
 
 > **Auth/rate limiting:** the event-driven entry point doesn't need user auth (events come from trusted producers), but the admin/health HTTP layer does — see [auth-jwt.md](../cross-cutting/auth-jwt.md).
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -171,83 +184,6 @@ This implements **event-driven multi-agent (flat)** — one orchestrator agent r
 4. The LangGraph orchestrator runs: enrich → decide → act → persist → emit.
 5. On success: `XACK` the source event, `XADD` the outcome to `reservations.rebooked`, insert a row into `rebooking_outcomes`.
 6. On retryable failure: do not `XACK`; the event becomes pending and `XCLAIM` picks it up after `idle-ms`. After `MAX_RETRIES` deliveries, the event is `XADD`ed to `reservations.cancelled.dlq` and `XACK`ed from the source.
-
-## Key files
-
-### Python track
-
-| File | Role |
-|------|------|
-| `src/{project_name}/main.py` | Entrypoint: configure logging, build adapters, start consumer loop. Exports `agent` for smoke-check import. |
-| `src/{project_name}/settings.py` | pydantic-settings: env-var-backed config (Redis URL, Postgres URL, stream + group names, retry knobs). |
-| `src/{project_name}/consumer/redis_streams.py` | Consumer loop: `XREADGROUP`, idempotency check, dispatch to orchestrator, ACK/DLQ. |
-| `src/{project_name}/orchestrator/graph.py` | LangGraph state machine: enrich → decide → act → persist → emit. |
-| `src/{project_name}/orchestrator/prompts.py` | System prompt (see Prompt Specifications). |
-| `src/{project_name}/tools/enrichment.py` | `get_waitlist`, `get_customer_preferences`, `check_availability`. |
-| `src/{project_name}/tools/actions.py` | `notify_customer`, `modify_reservation`, `emit_outcome_event`. |
-| `src/{project_name}/adapters/reservation_platform.py` | `ReservationPlatform` ABC + `MockReservationPlatform` (v1). Resy/OpenTable/Toast subclasses are stubs for v2. |
-| `src/{project_name}/adapters/notification.py` | `NotificationChannel` ABC + Mock implementation (SMS/email stubs that log only). |
-| `src/{project_name}/models/events.py` | Pydantic models (see Data Models). |
-| `src/{project_name}/db/models.py` | SQLAlchemy: `RebookingOutcome` table. |
-| `src/{project_name}/db/migrations/` | Alembic migrations. |
-| `src/{project_name}/api/admin.py` | FastAPI router: `/health`, `/metrics`, `/admin/replay`, `/admin/dlq`. |
-| `src/{project_name}/observability/tracing.py` | Langfuse integration; `trace_id` propagation from event payload through tool calls. |
-| `tests/unit/test_orchestrator.py` | Mock the LLM; assert state-machine transitions for each action. |
-| `tests/integration/test_event_loop.py` | Spin up real Redis (via testcontainers or docker-compose); publish events; assert outcomes. |
-| `tests/eval/test_rebooking_decisions.py` | Golden dataset: 20+ cancellation scenarios with expected decisions; eval via DeepEval or Promptfoo. |
-| `tests/fixtures/cancellation_events.json` | Sample events for tests. |
-| `Dockerfile` | Multi-stage; final image <200MB. |
-| `docker-compose.yml` | Redis 7, Postgres 16, Langfuse, the app. |
-| `.github/workflows/ci.yml` | Lint (ruff), type-check (mypy), tests (pytest). |
-| `.env.example` | All env vars with comments. |
-| `README.md` | Prereqs, install, env setup, run, test, architecture overview. |
-| `pyproject.toml` | Manifest. |
-
-### TypeScript track
-
-| File | Role |
-|------|------|
-| `src/index.ts` | Entrypoint: configure logging, build adapters, start consumer loop. |
-| `src/config.ts` | Zod-validated config from env. |
-| `src/consumer/redisStreams.ts` | `xreadgroup` loop, idempotency, dispatch, ACK/DLQ. |
-| `src/orchestrator/workflow.ts` | Mastra workflow with enrich/decide/act/persist/emit steps. |
-| `src/orchestrator/prompts.ts` | System prompt. |
-| `src/tools/enrichment.ts` | `getWaitlist`, `getCustomerPreferences`, `checkAvailability`. |
-| `src/tools/actions.ts` | `notifyCustomer`, `modifyReservation`, `emitOutcomeEvent`. |
-| `src/adapters/reservationPlatform.ts` | `ReservationPlatform` interface + `MockReservationPlatform`. |
-| `src/adapters/notification.ts` | `NotificationChannel` interface + Mock implementation. |
-| `src/schemas/events.ts` | Zod schemas. |
-| `src/db/schema.ts` | Drizzle schema: `rebooking_outcomes`. |
-| `src/api/admin.ts` | Hono router with `/health`, `/metrics`, `/admin/replay`, `/admin/dlq`. |
-| `tests/unit/orchestrator.test.ts` · `tests/integration/eventLoop.test.ts` · `tests/eval/rebookingDecisions.test.ts` | Three-tier test suite (vitest). |
-
-## Example interaction
-
-Publish a cancellation event:
-
-```bash
-redis-cli XADD reservations.cancelled '*' \
-  event_id evt-abc123 \
-  schema_version 1 \
-  restaurant_id rest-99 \
-  reservation_id res-42 \
-  party_size 4 \
-  reservation_time 2026-05-21T19:30:00Z \
-  cancelled_at 2026-05-21T18:00:00Z \
-  reason customer_cancelled \
-  trace_id trace-xyz \
-  payload '{}'
-```
-
-Within ~60 seconds, observe:
-
-```bash
-redis-cli XRANGE reservations.rebooked - +
-# 1747850412-0  event_id evt-abc123  action fill_from_waitlist  notified_customer_id c1 ...
-
-psql -c "SELECT event_id, action, notification_status FROM rebooking_outcomes WHERE event_id = 'evt-abc123';"
-# evt-abc123 | fill_from_waitlist | sent
-```
 
 ## Data Models
 
@@ -532,6 +468,55 @@ Return a `RebookingDecision` object.
 
 **Design rationale:** The prompt is load-bearing — preserve it verbatim. It encodes the action enum, the precedence between actions, and a small set of policy rules (no-action window, don't re-contact a customer who cancelled). The LLM's freedom is bounded to selecting one of four enum values plus a target customer; everything else is structured output. The `rationale` field is required so audit logs and the eval suite can inspect reasoning.
 
+## Key files
+
+### Python track
+
+| File | Role |
+|------|------|
+| `src/{project_name}/main.py` | Entrypoint: configure logging, build adapters, start consumer loop. Exports `agent` for smoke-check import. |
+| `src/{project_name}/settings.py` | pydantic-settings: env-var-backed config (Redis URL, Postgres URL, stream + group names, retry knobs). |
+| `src/{project_name}/consumer/redis_streams.py` | Consumer loop: `XREADGROUP`, idempotency check, dispatch to orchestrator, ACK/DLQ. |
+| `src/{project_name}/orchestrator/graph.py` | LangGraph state machine: enrich → decide → act → persist → emit. |
+| `src/{project_name}/orchestrator/prompts.py` | System prompt (see Prompt Specifications). |
+| `src/{project_name}/tools/enrichment.py` | `get_waitlist`, `get_customer_preferences`, `check_availability`. |
+| `src/{project_name}/tools/actions.py` | `notify_customer`, `modify_reservation`, `emit_outcome_event`. |
+| `src/{project_name}/adapters/reservation_platform.py` | `ReservationPlatform` ABC + `MockReservationPlatform` (v1). Resy/OpenTable/Toast subclasses are stubs for v2. |
+| `src/{project_name}/adapters/notification.py` | `NotificationChannel` ABC + Mock implementation (SMS/email stubs that log only). |
+| `src/{project_name}/models/events.py` | Pydantic models (see Data Models). |
+| `src/{project_name}/db/models.py` | SQLAlchemy: `RebookingOutcome` table. |
+| `src/{project_name}/db/migrations/` | Alembic migrations. |
+| `src/{project_name}/api/admin.py` | FastAPI router: `/health`, `/metrics`, `/admin/replay`, `/admin/dlq`. |
+| `src/{project_name}/observability/tracing.py` | Langfuse integration; `trace_id` propagation from event payload through tool calls. |
+| `tests/unit/test_orchestrator.py` | Mock the LLM; assert state-machine transitions for each action. |
+| `tests/integration/test_event_loop.py` | Spin up real Redis (via testcontainers or docker-compose); publish events; assert outcomes. |
+| `tests/eval/test_rebooking_decisions.py` | Golden dataset: 20+ cancellation scenarios with expected decisions; eval via DeepEval or Promptfoo. |
+| `tests/fixtures/cancellation_events.json` | Sample events for tests. |
+| `Dockerfile` | Multi-stage; final image <200MB. |
+| `docker-compose.yml` | Redis 7, Postgres 16, Langfuse, the app. |
+| `.github/workflows/ci.yml` | Lint (ruff), type-check (mypy), tests (pytest). |
+| `.env.example` | All env vars with comments. |
+| `README.md` | Prereqs, install, env setup, run, test, architecture overview. |
+| `pyproject.toml` | Manifest. |
+
+### TypeScript track
+
+| File | Role |
+|------|------|
+| `src/index.ts` | Entrypoint: configure logging, build adapters, start consumer loop. |
+| `src/config.ts` | Zod-validated config from env. |
+| `src/consumer/redisStreams.ts` | `xreadgroup` loop, idempotency, dispatch, ACK/DLQ. |
+| `src/orchestrator/workflow.ts` | Mastra workflow with enrich/decide/act/persist/emit steps. |
+| `src/orchestrator/prompts.ts` | System prompt. |
+| `src/tools/enrichment.ts` | `getWaitlist`, `getCustomerPreferences`, `checkAvailability`. |
+| `src/tools/actions.ts` | `notifyCustomer`, `modifyReservation`, `emitOutcomeEvent`. |
+| `src/adapters/reservationPlatform.ts` | `ReservationPlatform` interface + `MockReservationPlatform`. |
+| `src/adapters/notification.ts` | `NotificationChannel` interface + Mock implementation. |
+| `src/schemas/events.ts` | Zod schemas. |
+| `src/db/schema.ts` | Drizzle schema: `rebooking_outcomes`. |
+| `src/api/admin.ts` | Hono router with `/health`, `/metrics`, `/admin/replay`, `/admin/dlq`. |
+| `tests/unit/orchestrator.test.ts` · `tests/integration/eventLoop.test.ts` · `tests/eval/rebookingDecisions.test.ts` | Three-tier test suite (vitest). |
+
 ## Implementation Roadmap
 
 | Step | Task | Key deliverables |
@@ -765,7 +750,7 @@ Five seed examples are inline below. The scaffold step should generate ~15 more 
 
 Generate the remaining ~15 examples at scaffold time covering: customer-cancelled with both waitlist and preferences (waitlist wins), weather cancellations with multiple waitlist priorities, party-size partial overlap (4 → 3 acceptable?), time-window edge cases, multiple-language notification channels, anonymous booking (no `customer_id`), bookings outside operating hours.
 
-## Design decisions
+## Design Decisions
 
 - **Event-driven over polling:** Cancellations happen at a few-per-minute rate per restaurant; the SLO is 60 seconds. A polling cron at <60s intervals would either waste calls or miss the SLO. Streams give push-shaped delivery with durable replay.
 - **LangGraph over CrewAI:** Each rebooking is a deterministic state machine (enrich → decide → act → persist → emit) with explicit retry boundaries between steps. LangGraph models this directly; CrewAI's collaborative-agents abstraction adds inter-agent chatter that this single-decision flow doesn't need.
@@ -833,7 +818,7 @@ If you genuinely need a package that isn't listed, **stop and emit a `known_limi
 - `tests/integration/*` — use `pytest` markers (e.g. `@pytest.mark.integration`) so they're opt-in. They may use `testcontainers` if listed in `recipe_dependencies`; otherwise document that they require `docker compose up` first.
 - `tests/eval/*` — use a `pytest.skip("set ANTHROPIC_API_KEY")` fixture-level guard so they don't fail in CI without a key. The golden dataset itself (`tests/fixtures/eval_dataset.json`) should be checked in.
 
-## Reference Implementation
+## Reference Implementation (pseudocode)
 
 Since this is a fresh "design spec" recipe (not "validated"), the snippets below are pseudocode for the load-bearing pieces — the consumer loop and the orchestrator state graph. Generate the rest of the project from the file-by-file table.
 
@@ -1085,3 +1070,32 @@ class ToastReservationPlatform(ReservationPlatform):
 ```
 
 </details>
+
+
+## Example interaction
+
+Publish a cancellation event:
+
+```bash
+redis-cli XADD reservations.cancelled '*' \
+  event_id evt-abc123 \
+  schema_version 1 \
+  restaurant_id rest-99 \
+  reservation_id res-42 \
+  party_size 4 \
+  reservation_time 2026-05-21T19:30:00Z \
+  cancelled_at 2026-05-21T18:00:00Z \
+  reason customer_cancelled \
+  trace_id trace-xyz \
+  payload '{}'
+```
+
+Within ~60 seconds, observe:
+
+```bash
+redis-cli XRANGE reservations.rebooked - +
+# 1747850412-0  event_id evt-abc123  action fill_from_waitlist  notified_customer_id c1 ...
+
+psql -c "SELECT event_id, action, notification_status FROM rebooking_outcomes WHERE event_id = 'evt-abc123';"
+# evt-abc123 | fill_from_waitlist | sent
+```
