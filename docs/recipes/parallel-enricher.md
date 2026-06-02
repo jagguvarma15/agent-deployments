@@ -1,8 +1,46 @@
+---
+status: Blueprint (design spec)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/agent/enricher.py
+  - tests/unit/test_enricher.py
+  - tests/integration/test_batch.py
+  - tests/eval/test_enrichment_quality.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    pydantic-ai: ">=0.0.13"
+    pydantic-settings: ">=2.0.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - redis
+  - langfuse
+# relational.postgres is OPTIONAL — add when enrichment results are persisted.
+capabilities:
+  - cache.redis
+  - obs.langfuse
+  - eval.promptfoo
+topology: parallel
+---
+
 # Recipe: Parallel Enricher
 
 **Status:** Blueprint (design spec)
 
-**Composes:**
+## Composes
 
 - Pattern: [Parallel Calls](../patterns/parallel-calls.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (`asyncio.gather()` with multiple `agent.run()` calls)
@@ -10,7 +48,7 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -448,7 +486,7 @@ async def test_batch_enrichment_e2e():
 {"input": {"records": [{"name": "a"}, {"name": "b"}, {"name": "c"}]}, "expected_total": 3}
 ```
 
-## Design decisions
+## Design Decisions
 
 - **Semaphore-based concurrency:** `asyncio.Semaphore(10)` limits parallel LLM calls to 10. Prevents rate-limit exhaustion while maximizing throughput.
 - **`return_exceptions=True`:** Individual record failures don't kill the batch. Failed records are reported separately in the `errors` list.
