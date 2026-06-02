@@ -62,8 +62,8 @@ Promptfoo is a dev/CI tool — there is no "production" deployment. In CI, run `
 
 ## When to swap it
 
-- **→ `eval.deepeval`** for RAG-specific metrics (faithfulness, answer relevancy, contextual precision).
-- **→ `eval.ragas`** for academic RAG benchmarking with Python-native composition.
+- **→ [`eval.deepeval`](deepeval.md)** for RAG-specific metrics (faithfulness, answer relevancy, contextual precision).
+- **→ [`eval.ragas`](ragas.md)** for academic RAG benchmarking with Python-native composition.
 
 ## See also
 
