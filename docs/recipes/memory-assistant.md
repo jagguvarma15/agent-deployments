@@ -1,8 +1,56 @@
+---
+status: Blueprint (design spec)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/agent/assistant.py
+  - app/memory/store.py
+  - tests/unit/test_memory_store.py
+  - tests/integration/test_assistant.py
+  - tests/eval/test_recall.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    langgraph: ">=0.2.0"
+    pydantic-settings: ">=2.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    qdrant-client: ">=1.12.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - postgres
+  - redis
+  - qdrant
+  - langfuse
+capabilities:
+  - relational.postgres
+  - cache.redis
+  - vector_db.qdrant
+  - obs.langfuse
+  - eval.promptfoo
+bootstrap_config:
+  vector_collections:
+    - { name: memories, vector_size: 1536, distance: cosine }
+topology: single
+---
+
 # Recipe: Memory Assistant
 
 **Status:** Blueprint (design spec)
 
-**Composes:**
+## Composes
 
 - Pattern: [Memory](../patterns/memory.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (checkpointer + external memory store)
@@ -10,7 +58,7 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Qdrant](../stack/vector-qdrant.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -489,7 +537,7 @@ async def test_memory_persists_across_turns():
 {"turns": [{"message": "I used to work with Java but now I use Rust", "expect_memory_update": true}]}
 ```
 
-## Design decisions
+## Design Decisions
 
 - **LangGraph for stateful memory flow:** The retrieve → augment → generate → extract → store cycle is a natural graph. LangGraph's checkpointer preserves conversation state across API calls.
 - **Qdrant for semantic memory search:** Memories are embedded and stored in Qdrant, enabling similarity-based retrieval. "What languages does this user know?" retrieves the Go/Python memory even if the query wording differs.
