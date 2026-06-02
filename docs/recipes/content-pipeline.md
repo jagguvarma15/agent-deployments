@@ -1,8 +1,49 @@
+---
+status: Blueprint (design spec)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/pipeline/chain.py
+  - tests/unit/test_stages.py
+  - tests/integration/test_pipeline.py
+  - tests/eval/test_quality.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    pydantic-ai: ">=0.0.13"
+    pydantic-settings: ">=2.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - postgres
+  - redis
+  - langfuse
+capabilities:
+  - relational.postgres
+  - cache.redis
+  - obs.langfuse
+  - eval.promptfoo
+topology: chain
+---
+
 # Recipe: Content Pipeline
 
 **Status:** Blueprint (design spec)
 
-**Composes:**
+## Composes
 
 - Pattern: [Prompt Chaining](../patterns/prompt-chaining.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (sequential `agent.run()` with typed `result_type` per stage)
@@ -10,7 +51,7 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -516,7 +557,7 @@ async def test_full_pipeline_e2e():
 {"input": {"topic": "new hire onboarding process", "content_type": "newsletter"}, "expected_stages": 4, "min_word_count": 400}
 ```
 
-## Design decisions
+## Design Decisions
 
 - **Typed schemas between stages:** Each stage produces a Pydantic model (Py) or Zod schema (TS). The pipeline validates output before passing it forward. This catches bad outputs early instead of letting them cascade.
 - **Independent stage prompts:** Each stage has a focused system prompt. The research stage is told to be thorough; the edit stage is told to be concise. Specialization per stage beats one monolithic prompt.
