@@ -156,26 +156,21 @@ When adding or updating a capability:
 
 ## Recipe usage
 
-A recipe opts into capabilities via frontmatter:
+A recipe opts into capabilities via the `capabilities:` field in its frontmatter:
 
 ```yaml
 # docs/recipes/restaurant-rebooking.md
 ---
-status: Blueprint
-languages: [python, typescript]
-external_services: [...]        # existing — still supported
-capabilities:                    # NEW (Phase 1b)
+capabilities:
   - cache.redis
   - relational.postgres
   - vector_db.qdrant
-  - queue.kafka
-  - obs.langsmith
-  - frontend.nextjs-chat
-  - host.vercel
 ---
 ```
 
 The scaffold's context assembler injects each capability's body under a `## Capability: <id>` header so the LLM sees consistent infra context regardless of which recipe pulls it in.
+
+The full recipe-frontmatter schema (every field, type, requiredness, consumer version) is documented in [`../recipes/SCHEMA.md`](../recipes/SCHEMA.md). The `capabilities:` field is one of several — see SCHEMA.md for the rest, including `bootstrap_config:` inputs that this catalog's bootstrap steps read at provisioning time.
 
 ## See also
 
