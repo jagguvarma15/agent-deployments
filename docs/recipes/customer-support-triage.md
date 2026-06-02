@@ -1,4 +1,42 @@
 ---
+status: Blueprint (validated)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/agent/triage.py
+  - app/agent/specialists.py
+  - tests/unit/test_classifier.py
+  - tests/integration/test_triage_route.py
+  - tests/eval/test_specialist_handoff.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    pydantic-ai: ">=0.0.13"
+    pydantic-settings: ">=2.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - postgres
+  - redis
+  - langfuse
+capabilities:
+  - relational.postgres
+  - cache.redis
+  - obs.langfuse
+  - eval.promptfoo
 topology: multi-agent-hierarchical
 roles:
   - name: classifier
@@ -27,7 +65,7 @@ roles:
 
 **Status:** Blueprint (validated)
 
-**Composes:**
+## Composes
 
 - Pattern: [Routing + Tool Use](../patterns/routing-tool-use.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (structured classification + specialist agents)
@@ -35,7 +73,7 @@ roles:
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -103,60 +141,6 @@ This implements **single-hop routing** — classify once, route once. The classi
 3. Router dispatches to the specialist agent for that intent.
 4. Specialist processes the message using its tools (Stripe lookup, KB search, or none).
 5. Response includes the specialist's answer, the classification, and tool calls made.
-
-## Key files
-
-### Python track
-
-| File | Role |
-|------|------|
-| `app/main.py` | FastAPI app with lifespan (DB init, logging config) |
-| `app/settings.py` | Pydantic-settings config (classifier model, specialist model) |
-| `app/agent/classifier.py` | Pydantic AI agent with `result_type=ClassificationResult` |
-| `app/agent/specialists.py` | Factory for specialist agents — one per intent, each with its own tools |
-| `app/api/triage.py` | `/triage` endpoint — classify, route, respond |
-| `app/tools/stripe.py` | Stripe billing lookup tool |
-| `app/tools/kb.py` | Knowledge base search tool |
-| `app/models/schemas.py` | Pydantic schemas: `ClassificationResult`, `Intent` enum, request/response |
-| `app/db/models.py` | SQLAlchemy models for conversation logging |
-
-### TypeScript track
-
-| File | Role |
-|------|------|
-| `src/index.ts` | Hono app entry point |
-| `src/config.ts` | Zod-validated config from env |
-| `src/agent/classifier.ts` | Vercel AI SDK `generateObject()` for intent classification |
-| `src/agent/specialists.ts` | Specialist agents per intent with `generateText()` + tools |
-| `src/api/triage.ts` | `/triage` route handler |
-| `src/tools/stripe.ts` | Stripe billing lookup tool |
-| `src/tools/kb.ts` | Knowledge base search tool |
-| `src/schemas/index.ts` | Zod schemas for classification and request/response |
-
-## Example interaction
-
-```bash
-curl -X POST http://localhost:8000/triage \
-  -H "Content-Type: application/json" \
-  -d '{"message": "I was charged twice for my subscription last month"}'
-```
-
-Response:
-
-```json
-{
-  "classification": {
-    "intent": "billing",
-    "confidence": 0.95,
-    "reasoning": "Customer is reporting a duplicate charge on their subscription"
-  },
-  "response": "I understand you're concerned about a duplicate charge. Let me look into your billing history...",
-  "specialist": "billing",
-  "tool_calls": [
-    {"tool_name": "lookup_billing", "args": {"query": "duplicate charge subscription"}}
-  ]
-}
-```
 
 ## Data Models
 
@@ -313,6 +297,35 @@ Each specialist has a focused system prompt:
 
 **Design rationale:** Each specialist only sees the tools relevant to its domain. The billing agent can call Stripe but not search the KB. This prevents tool misuse and keeps each specialist focused.
 
+## Key files
+
+### Python track
+
+| File | Role |
+|------|------|
+| `app/main.py` | FastAPI app with lifespan (DB init, logging config) |
+| `app/settings.py` | Pydantic-settings config (classifier model, specialist model) |
+| `app/agent/classifier.py` | Pydantic AI agent with `result_type=ClassificationResult` |
+| `app/agent/specialists.py` | Factory for specialist agents — one per intent, each with its own tools |
+| `app/api/triage.py` | `/triage` endpoint — classify, route, respond |
+| `app/tools/stripe.py` | Stripe billing lookup tool |
+| `app/tools/kb.py` | Knowledge base search tool |
+| `app/models/schemas.py` | Pydantic schemas: `ClassificationResult`, `Intent` enum, request/response |
+| `app/db/models.py` | SQLAlchemy models for conversation logging |
+
+### TypeScript track
+
+| File | Role |
+|------|------|
+| `src/index.ts` | Hono app entry point |
+| `src/config.ts` | Zod-validated config from env |
+| `src/agent/classifier.ts` | Vercel AI SDK `generateObject()` for intent classification |
+| `src/agent/specialists.ts` | Specialist agents per intent with `generateText()` + tools |
+| `src/api/triage.ts` | `/triage` route handler |
+| `src/tools/stripe.ts` | Stripe billing lookup tool |
+| `src/tools/kb.ts` | Knowledge base search tool |
+| `src/schemas/index.ts` | Zod schemas for classification and request/response |
+
 ## Implementation Roadmap
 
 | Step | Task | Key deliverables |
@@ -396,7 +409,7 @@ def test_billing_specialist_uses_stripe_tool(mock_llm_client):
 
 See the inline `eval/dataset.jsonl` (51 examples) in the Reference Implementation section below. Covers all 4 intents with ~12 examples each.
 
-## Design decisions
+## Design Decisions
 
 - **Separate classifier and specialist models:** The classifier can use a cheaper/faster model since it only needs to produce structured classification. Specialists use the full model for nuanced responses.
 - **Pydantic AI `result_type` for classification:** Structured output validation ensures the classifier always returns a valid intent enum, not a free-text guess.
@@ -1702,3 +1715,29 @@ redteam:
 ```
 
 </details>
+
+
+## Example interaction
+
+```bash
+curl -X POST http://localhost:8000/triage \
+  -H "Content-Type: application/json" \
+  -d '{"message": "I was charged twice for my subscription last month"}'
+```
+
+Response:
+
+```json
+{
+  "classification": {
+    "intent": "billing",
+    "confidence": 0.95,
+    "reasoning": "Customer is reporting a duplicate charge on their subscription"
+  },
+  "response": "I understand you're concerned about a duplicate charge. Let me look into your billing history...",
+  "specialist": "billing",
+  "tool_calls": [
+    {"tool_name": "lookup_billing", "args": {"query": "duplicate charge subscription"}}
+  ]
+}
+```

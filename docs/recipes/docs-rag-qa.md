@@ -1,8 +1,57 @@
+---
+status: Blueprint (validated)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/agent/qa.py
+  - app/tools/chunker.py
+  - app/tools/retriever.py
+  - tests/unit/test_chunker.py
+  - tests/integration/test_query.py
+  - tests/eval/test_rag_grounding.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    pydantic-ai: ">=0.0.13"
+    pydantic-settings: ">=2.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    qdrant-client: ">=1.12.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - postgres
+  - redis
+  - qdrant
+  - langfuse
+capabilities:
+  - relational.postgres
+  - cache.redis
+  - vector_db.qdrant
+  - obs.langfuse
+  - eval.promptfoo
+bootstrap_config:
+  vector_collections:
+    - { name: docs_rag, vector_size: 1536, distance: cosine }
+topology: single
+---
+
 # Recipe: docs-rag-qa
 
 **Status:** Blueprint (validated)
 
-**Composes:**
+## Composes
 
 - Pattern: [RAG](../patterns/rag.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (agentic RAG with tool-based retrieval)
@@ -10,7 +59,7 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Qdrant](../stack/vector-qdrant.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -81,79 +130,6 @@ This implements **agentic RAG** -- the LLM decides when and what to retrieve, ra
 4. Retriever returns top-K matching chunks with scores.
 5. Agent synthesizes an answer grounded in the retrieved chunks.
 6. Response includes the answer, citations, and a trace ID.
-
-## Key files
-
-### Python track
-
-| File | Role |
-|------|------|
-| `app/main.py` | FastAPI app with lifespan (DB init, logging config) |
-| `app/settings.py` | Pydantic-settings config (model, DB, Qdrant, Langfuse) |
-| `app/agent/qa.py` | Pydantic AI agent with `search_knowledge_base` tool |
-| `app/api/query.py` | `/query` endpoint -- runs agent, returns answer + citations |
-| `app/api/documents.py` | `/documents` endpoint -- ingest, chunk, store |
-| `app/tools/chunker.py` | Sentence-boundary chunking with configurable size/overlap |
-| `app/tools/retriever.py` | In-memory keyword search (swap point for Qdrant) |
-| `app/db/models.py` | SQLAlchemy models: `Document`, `Chunk` |
-| `app/models/schemas.py` | Pydantic request/response schemas |
-| `docker-compose.yml` | Extends base: Postgres + Redis + Langfuse + app |
-| `eval/dataset.jsonl` | Golden Q&A pairs for eval |
-| `eval/promptfoo.yaml` | Promptfoo red-team config |
-
-### TypeScript track
-
-| File | Role |
-|------|------|
-| `src/index.ts` | Hono app entry point |
-| `src/config.ts` | Zod-validated config from env |
-| `src/agent/qa.ts` | Vercel AI SDK agent with `search_knowledge_base` tool |
-| `src/api/query.ts` | `/query` route handler |
-| `src/api/documents.ts` | `/documents` route handler |
-| `src/tools/chunker.ts` | Sentence-boundary chunking |
-| `src/tools/retriever.ts` | In-memory keyword search (swap point for Qdrant) |
-| `src/schemas/index.ts` | Zod request/response schemas |
-
-## Example interaction
-
-### Ingest a document
-
-```bash
-curl -X POST http://localhost:8000/documents \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "MCP Overview",
-    "content": "The Model Context Protocol (MCP) is an open standard for connecting AI models to external data sources and tools. It provides a unified interface that works across different AI frameworks and model providers."
-  }'
-```
-
-Response:
-
-```json
-{
-  "document_id": "a1b2c3d4-...",
-  "chunk_count": 1,
-  "status": "ingested"
-}
-```
-
-### Ask a question
-
-```bash
-curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What is MCP?", "top_k": 5}'
-```
-
-Response:
-
-```json
-{
-  "answer": "MCP (Model Context Protocol) is an open standard for connecting AI models to external data sources and tools...",
-  "citations": [],
-  "trace_id": "e5f6g7h8-..."
-}
-```
 
 ## Data Models
 
@@ -314,6 +290,38 @@ Always provide accurate, concise answers with proper citations.
 - **"Include citations"** — Makes answers auditable. Users can trace claims to specific documents.
 - **"If no relevant information is found, say so clearly"** — Prevents fabrication when the KB lacks coverage.
 
+## Key files
+
+### Python track
+
+| File | Role |
+|------|------|
+| `app/main.py` | FastAPI app with lifespan (DB init, logging config) |
+| `app/settings.py` | Pydantic-settings config (model, DB, Qdrant, Langfuse) |
+| `app/agent/qa.py` | Pydantic AI agent with `search_knowledge_base` tool |
+| `app/api/query.py` | `/query` endpoint -- runs agent, returns answer + citations |
+| `app/api/documents.py` | `/documents` endpoint -- ingest, chunk, store |
+| `app/tools/chunker.py` | Sentence-boundary chunking with configurable size/overlap |
+| `app/tools/retriever.py` | In-memory keyword search (swap point for Qdrant) |
+| `app/db/models.py` | SQLAlchemy models: `Document`, `Chunk` |
+| `app/models/schemas.py` | Pydantic request/response schemas |
+| `docker-compose.yml` | Extends base: Postgres + Redis + Langfuse + app |
+| `eval/dataset.jsonl` | Golden Q&A pairs for eval |
+| `eval/promptfoo.yaml` | Promptfoo red-team config |
+
+### TypeScript track
+
+| File | Role |
+|------|------|
+| `src/index.ts` | Hono app entry point |
+| `src/config.ts` | Zod-validated config from env |
+| `src/agent/qa.ts` | Vercel AI SDK agent with `search_knowledge_base` tool |
+| `src/api/query.ts` | `/query` route handler |
+| `src/api/documents.ts` | `/documents` route handler |
+| `src/tools/chunker.ts` | Sentence-boundary chunking |
+| `src/tools/retriever.ts` | In-memory keyword search (swap point for Qdrant) |
+| `src/schemas/index.ts` | Zod request/response schemas |
+
 ## Implementation Roadmap
 
 | Step | Task | Key deliverables |
@@ -392,7 +400,88 @@ def test_query_returns_citations(mock_llm_client):
 - "I don't know" for questions outside KB coverage (no hallucination)
 - Chunker produces correct boundary splits
 
-## Design decisions
+## Eval Dataset
+
+Inline golden cases for the RAG pipeline. Each case names the seed documents the test harness ingests before posting `question` to `/query`; assertions check the response against `expected_documents` (retrieved chunks include these doc titles) and `expected_answer_contains` (the answer body contains each string, case-insensitive).
+
+### Case 1 — High-confidence single-document match
+
+```json
+{
+  "id": "rag-001",
+  "category": "happy-path",
+  "seed_documents": [
+    {"title": "MCP Overview", "content": "The Model Context Protocol (MCP) is an open standard for connecting AI models to external data sources and tools. It provides a unified interface that works across different AI frameworks and model providers."}
+  ],
+  "question": "What is MCP?",
+  "expected_documents": ["MCP Overview"],
+  "expected_answer_contains": ["Model Context Protocol", "open standard"]
+}
+```
+
+### Case 2 — Out-of-corpus question, graceful refusal
+
+```json
+{
+  "id": "rag-002",
+  "category": "refusal",
+  "seed_documents": [
+    {"title": "MCP Overview", "content": "The Model Context Protocol (MCP) is an open standard for connecting AI models to external data sources."}
+  ],
+  "question": "What is the capital of France?",
+  "expected_documents": [],
+  "expected_answer_contains": ["don't know", "not in", "no relevant"]
+}
+```
+
+### Case 3 — Ambiguous question requiring hybrid filter
+
+```json
+{
+  "id": "rag-003",
+  "category": "ambiguous",
+  "seed_documents": [
+    {"title": "Python Threading", "content": "Python's GIL serializes bytecode execution across threads, limiting CPU-bound parallelism."},
+    {"title": "Java Threading", "content": "Java threads run on top of OS threads with no GIL. CPU-bound workloads can parallelize across cores."}
+  ],
+  "question": "How do threads work?",
+  "expected_documents": ["Python Threading", "Java Threading"],
+  "expected_answer_contains": ["GIL", "OS threads"]
+}
+```
+
+### Case 4 — Multi-doc synthesis
+
+```json
+{
+  "id": "rag-004",
+  "category": "synthesis",
+  "seed_documents": [
+    {"title": "Postgres Indexes", "content": "B-tree indexes are the default in Postgres. They support equality and range queries on ordered data."},
+    {"title": "Qdrant Index", "content": "Qdrant uses HNSW (Hierarchical Navigable Small World) graphs for approximate nearest-neighbor vector search."}
+  ],
+  "question": "Compare how Postgres and Qdrant index their data.",
+  "expected_documents": ["Postgres Indexes", "Qdrant Index"],
+  "expected_answer_contains": ["B-tree", "HNSW", "nearest-neighbor"]
+}
+```
+
+### Case 5 — Query that should produce zero matches in a populated KB
+
+```json
+{
+  "id": "rag-005",
+  "category": "no-match",
+  "seed_documents": [
+    {"title": "MCP Overview", "content": "The Model Context Protocol is an open standard."}
+  ],
+  "question": "Explain how WebRTC handles NAT traversal.",
+  "expected_documents": [],
+  "expected_answer_contains": ["don't know", "not in", "no relevant"]
+}
+```
+
+## Design Decisions
 
 - **Agentic RAG over naive RAG:** The LLM decides when to retrieve, enabling multi-turn refinement. Trade-off: slightly higher latency from the tool-call round trip.
 - **In-memory retriever as default:** Keeps `make up` instant with no embedding model dependency. Production swap: point `QDRANT_URL` at a real Qdrant instance and replace `retriever.py` with Qdrant client calls.
@@ -1252,3 +1341,44 @@ redteam:
 ```
 
 </details>
+
+## Example interaction
+
+### Ingest a document
+
+```bash
+curl -X POST http://localhost:8000/documents \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "MCP Overview",
+    "content": "The Model Context Protocol (MCP) is an open standard for connecting AI models to external data sources and tools. It provides a unified interface that works across different AI frameworks and model providers."
+  }'
+```
+
+Response:
+
+```json
+{
+  "document_id": "a1b2c3d4-...",
+  "chunk_count": 1,
+  "status": "ingested"
+}
+```
+
+### Ask a question
+
+```bash
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is MCP?", "top_k": 5}'
+```
+
+Response:
+
+```json
+{
+  "answer": "MCP (Model Context Protocol) is an open standard for connecting AI models to external data sources and tools...",
+  "citations": [],
+  "trace_id": "e5f6g7h8-..."
+}
+```
