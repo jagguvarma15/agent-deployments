@@ -1,8 +1,67 @@
+---
+status: Blueprint (design spec)
+languages: [python, typescript]
+required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/crew/devops.py
+  - app/crew/security.py
+  - app/crew/database.py
+  - tests/unit/test_agents.py
+  - tests/integration/test_crew.py
+  - tests/eval/test_report_quality.py
+recipe_dependencies:
+  python:
+    fastapi: ">=0.110.0"
+    crewai: ">=0.80.0"
+    pydantic-settings: ">=2.0.0"
+    sqlalchemy: ">=2.0.0"
+    asyncpg: ">=0.29.0"
+    redis: ">=5.0.0"
+    structlog: ">=24.1.0"
+    langfuse: ">=2.0.0"
+  typescript:
+    hono: "^4.0.0"
+    "@ai-sdk/anthropic": "^1.0.0"
+    ai: "^4.0.0"
+    zod: "^3.23.0"
+    ioredis: "^5.4.0"
+    langfuse: "^3.0.0"
+external_services:
+  - postgres
+  - redis
+  - langfuse
+capabilities:
+  - relational.postgres
+  - cache.redis
+  - obs.langfuse
+  - eval.promptfoo
+topology: multi-agent-flat
+roles:
+  - name: devops
+    description: "Diagnose infrastructure issues and recommend operational fixes."
+    role_kind: worker
+    model_hint: sonnet
+    tools: [check_k8s_status, query_logs]
+  - name: security
+    description: "Assess security posture; identify vulnerabilities and suspicious activity."
+    role_kind: worker
+    model_hint: sonnet
+    tools: [scan_vulnerabilities, check_audit_log]
+  - name: database
+    description: "Analyze database performance and schema health."
+    role_kind: worker
+    model_hint: sonnet
+    tools: [check_query_performance, check_schema_health]
+---
+
 # Recipe: Ops Crew
 
 **Status:** Blueprint (design spec)
 
-**Composes:**
+## Composes
 
 - Pattern: [Multi-Agent Flat](../patterns/multi-agent-flat.md)
 - Framework (Py): [CrewAI](../frameworks/crewai.md) (Crew + Agent + Task)
@@ -10,7 +69,7 @@
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
 - Cross-cutting: [Auth](../cross-cutting/auth-jwt.md), [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Rate limiting](../cross-cutting/rate-limiting.md)
 
-## Load as Context
+### Load list
 
 Feed these files to your AI coding assistant to build this agent:
 
@@ -448,7 +507,7 @@ async def test_crew_produces_three_findings():
 {"input": {"description": "SSL certificate expiring in 3 days for api.example.com"}, "expected_priority": "high", "expected_agents": ["devops", "security", "database"]}
 ```
 
-## Design decisions
+## Design Decisions
 
 - **CrewAI for flat collaboration:** The Crew/Agent/Task model is purpose-built for this. Three agents with distinct roles working on the same input is CrewAI's sweet spot.
 - **Parallel execution:** Agents analyze independently — no need for one to wait on another. CrewAI supports parallel task execution.
