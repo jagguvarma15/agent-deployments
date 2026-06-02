@@ -1,5 +1,5 @@
 ---
-status: blueprint
+status: Blueprint (design spec)
 languages: [python, typescript]
 required_files:
   - Dockerfile
