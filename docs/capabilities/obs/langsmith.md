@@ -29,12 +29,16 @@ The lowest-friction tracing for LangGraph projects — `LANGCHAIN_TRACING_V2=tru
 
 ## Bootstrap (post wire_credentials)
 
-`bootstrap_langsmith` requires `LANGCHAIN_API_KEY` to be present (the `wire_credentials` step prompts for it if missing and stores via the existing keyring layer). Then:
+`bootstrap_langsmith` requires `LANGCHAIN_API_KEY` to be present (the `wire_credentials` step prompts for it if missing and stores via the existing keyring layer). It then resolves the project name from the recipe's [`bootstrap_config.langsmith`](../../recipes/SCHEMA.md#bootstrap_configlangsmith) block, falling back to `manifest.project_name`, then `default`:
 
 ```python
 from langsmith import Client
 client = Client(api_key=os.environ["LANGCHAIN_API_KEY"])
-project_name = manifest.project_name or "default"
+project_name = (
+    recipe.bootstrap_config.get("langsmith", {}).get("project_name")
+    or manifest.project_name
+    or "default"
+)
 try:
     client.read_project(project_name=project_name)         # exists → DONE
 except langsmith.utils.LangSmithNotFoundError:
