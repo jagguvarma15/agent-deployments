@@ -38,7 +38,7 @@ The docker fragment above is merged into the project's `docker-compose.yml` by `
 
 ## Bootstrap (post docker_up)
 
-`bootstrap_vector_db` reads the recipe's `vector_collections:` block (or per-capability defaults) and idempotently creates each collection via `qdrant-client`:
+`bootstrap_vector_db` reads the recipe's [`bootstrap_config.vector_collections`](../../recipes/SCHEMA.md#bootstrap_configvector_collections) block (or per-capability defaults) and idempotently creates each collection via `qdrant-client`:
 
 ```python
 client = QdrantClient(url=os.environ["QDRANT_URL"])
