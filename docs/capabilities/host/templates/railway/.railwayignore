@@ -1,0 +1,10 @@
+.env
+.env.local
+.env.*.local
+node_modules
+.git
+.github
+docker-compose.yml
+docker-compose.*.yml
+tests
+ops

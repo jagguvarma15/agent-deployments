@@ -18,6 +18,7 @@ Most stack picks should have a sibling capability so `agent-scaffold up` can sta
 ```
 docs/capabilities/
   README.md                 # this file
+  TEMPLATES.md              # template-tree convention (see below)
   vector_db/                # kind = vector_db
     qdrant.md
     chroma.md
@@ -33,18 +34,29 @@ docs/capabilities/
     langsmith.md
     langfuse.md
     grafana-stack.md
+    templates/
+      grafana-stack/        # prometheus.yml, tempo.yaml, dashboards/
   eval/                     # kind = eval (may carry templates/)
     promptfoo.md
+    templates/
+      promptfoo/            # promptfooconfig.yaml, cases.yaml
   frontend/                 # kind = frontend (may carry templates/)
     nextjs-chat.md
     streamlit.md
+    templates/
+      nextjs-chat/          # full Next.js scaffold
+      streamlit/            # Streamlit app
   host/                     # kind = host (cloud target; deploy_configs)
     vercel.md
     railway.md
     fly.md
+    templates/
+      vercel/               # vercel.json, .vercelignore
+      railway/              # railway.json, .railwayignore
+      fly/                  # fly.toml, .dockerignore
 ```
 
-The dotted capability id always matches the path: `vector_db.qdrant` ⇄ `vector_db/qdrant.md`.
+The dotted capability id always matches the path: `vector_db.qdrant` ⇄ `vector_db/qdrant.md`. Template trees, when present, sit as `<kind>/templates/<name>/` siblings — see [`TEMPLATES.md`](TEMPLATES.md) for the contract.
 
 ## Frontmatter schema
 

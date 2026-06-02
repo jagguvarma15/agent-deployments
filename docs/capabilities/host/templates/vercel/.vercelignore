@@ -1,0 +1,11 @@
+.env
+.env.local
+.env.*.local
+node_modules
+.next/cache
+docker-compose.yml
+docker-compose.*.yml
+.git
+.github
+ops
+tests
