@@ -1,8 +1,16 @@
+---
+id: crewai
+language: python
+package: crewai
+versions:
+  minimum: ">=0.70.0"
+---
+
 # Framework: CrewAI
 
 **Language:** Python
 **Install:** `uv add crewai`
-**Version pinned:** >=0.28.0
+**Version pinned:** >=0.70.0
 
 ## Core abstractions
 
