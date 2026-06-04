@@ -114,6 +114,31 @@ A recipe that supports only one track lists only that one.
 
 ### Generation contract
 
+#### `load_list`
+
+Structured, machine-readable companion to the prose `### Load list` H3 section every recipe carries. Tells the scaffold's context assembler exactly which docs to load, with optional per-language / per-capability predicates.
+
+- **Type:** list of `LoadListEntry` mappings (see shape below).
+- **Consumer:** v0.3+ (the structured form). v0.2.x ignores the key as unknown frontmatter, so this field is additive and safe to add to any recipe today. While the loader is rolling out, the prose `### Load list` remains the human-readable canonical view.
+- **Entry shape:**
+  - `path` *(required)*: relative path from the recipe to the doc. Use `../patterns/<name>.md`, `../frameworks/<id>.md`, `../cross-cutting/<topic>.md`, `../stack/<id>.md`.
+  - `required` *(required, bool)*: `true` for docs the scaffold must include regardless of context budget (pattern, framework, project-layout, llm). `false` for docs that may be dropped first when the budget tightens.
+  - `when` *(optional, string)*: Python-like predicate over the resolver scope `{language, framework, capabilities, topology}`. Examples: `"language == 'python'"`, `"framework == 'pydantic_ai'"`, `"capabilities contains 'obs.langfuse'"`. Absent / empty predicate means "always applicable".
+- **Example:**
+
+  ```yaml
+  load_list:
+    - {path: ../patterns/react.md, required: true}
+    - {path: ../frameworks/pydantic-ai.md, required: true, when: "language == 'python'"}
+    - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
+    - {path: ../cross-cutting/project-layout.md, required: true}
+    - {path: ../stack/llm-claude.md, required: true}
+    - {path: ../stack/api-fastapi.md, required: false, when: "language == 'python'"}
+    - {path: ../cross-cutting/observability.md, required: false, when: "capabilities contains 'obs.langfuse'"}
+  ```
+
+- **Conformance:** recipes without a `load_list` block fall back to the legacy prose `### Load list` section — the loader treats both as authoritative for one release. New recipes should declare `load_list` from day one. The prose section becomes a human-readable mirror; conflicts are bugs.
+
 #### `required_files`
 
 Paths the LLM must emit into the generated project.
@@ -337,6 +362,7 @@ Referenced by [`../cross-cutting/cost-tracking.md`](../cross-cutting/cost-tracki
 |-------|-----------|----------|------|
 | `status` | Yes | v0.2.x | |
 | `languages` | Yes | v0.2.x | |
+| `load_list` | Recommended | v0.3+ | Falls back to prose `### Load list` when absent |
 | `required_files` | Recommended | v0.2.x | Advisory in v0.2; possibly enforced in v0.3 |
 | `recipe_dependencies` | Recommended | v0.2.x | |
 | `external_services` | Recommended (transition) | v0.2.x | Mirror of `capabilities` until v0.3 ships |
