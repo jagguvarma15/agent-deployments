@@ -1,3 +1,11 @@
+---
+id: langgraph
+language: python
+package: langgraph
+versions:
+  minimum: "0.3.21"
+---
+
 # Framework: LangGraph
 
 **Language:** Python
