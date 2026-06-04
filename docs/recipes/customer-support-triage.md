@@ -299,6 +299,8 @@ Each specialist has a focused system prompt:
 
 ## Key files
 
+> Follows the canonical [project layout](../cross-cutting/project-layout.md) — `app/` package for Python, `src/` for TypeScript, `tests/{unit,integration,eval}/` for both.
+
 ### Python track
 
 | File | Role |

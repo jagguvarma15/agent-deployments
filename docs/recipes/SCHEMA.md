@@ -133,6 +133,8 @@ Paths the LLM must emit into the generated project.
 
 Use placeholder names (`test_<x>.py`) only if every track shares the same naming; otherwise list concrete paths.
 
+Paths must conform to the canonical [project layout](../cross-cutting/project-layout.md) — Python recipes use `app/...` and `tests/{unit,integration,eval}/...`; TypeScript recipes use `src/...` and the same `tests/` subtree. New recipes adding paths outside that layout should justify it in their "Key files" section.
+
 #### `recipe_dependencies`
 
 Per-language pinned package versions the generated `pyproject.toml` / `package.json` must include.
