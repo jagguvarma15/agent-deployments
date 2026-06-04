@@ -74,6 +74,34 @@ roles:
     description: "Compose and send rebooking offers via email/SMS; record customer acceptance back to the case."
     model_hint: haiku
     tools: [email_send, sms_send]
+load_list:
+  - {path: ../patterns/event-driven.md, required: true}
+  - {path: ../patterns/multi-agent-flat.md, required: true}
+  - {path: ../frameworks/langgraph.md, required: true, when: "language == 'python'"}
+  - {path: ../frameworks/mastra.md, required: true, when: "language == 'typescript'"}
+  - {path: ../cross-cutting/project-layout.md, required: true}
+  - {path: ../stack/llm-claude.md, required: true}
+  - {path: ../stack/api-fastapi.md, required: false, when: "language == 'python'"}
+  - {path: ../stack/api-hono.md, required: false, when: "language == 'typescript'"}
+  - {path: ../stack/relational-postgres.md, required: false, when: "capabilities contains 'relational.postgres'"}
+  - {path: ../stack/cache-redis.md, required: false, when: "capabilities contains 'cache.redis'"}
+  - {path: ../stack/tracing-langfuse.md, required: false, when: "capabilities contains 'obs.langfuse'"}
+  - {path: ../stack/secrets-management.md, required: true}
+  - {path: ../cross-cutting/idempotency.md, required: true}
+  - {path: ../cross-cutting/resilience.md, required: true}
+  - {path: ../cross-cutting/backpressure.md, required: true}
+  - {path: ../cross-cutting/dlq-operations.md, required: true}
+  - {path: ../cross-cutting/logging-structured.md, required: false}
+  - {path: ../cross-cutting/observability.md, required: false}
+  - {path: ../cross-cutting/testing-strategy.md, required: false}
+  - {path: ../cross-cutting/multi-tenancy.md, required: false}
+  - {path: ../cross-cutting/cost-tracking.md, required: false}
+  - {path: ../cross-cutting/model-routing.md, required: false}
+  - {path: ../cross-cutting/health-graceful-shutdown.md, required: false}
+  - {path: ../cross-cutting/security-hardening.md, required: false}
+  - {path: ../cross-cutting/authorization-rbac.md, required: false}
+  - {path: ../cross-cutting/audit-logging.md, required: false}
+  - {path: ../cross-cutting/pii-gdpr.md, required: false}
 ---
 
 # Recipe: Restaurant Rebooking

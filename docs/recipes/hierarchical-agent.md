@@ -62,6 +62,21 @@ roles:
     role_kind: worker
     model_hint: sonnet
     tools: [evaluate_quality]
+load_list:
+  - {path: ../patterns/multi-agent-hierarchical.md, required: true}
+  - {path: ../frameworks/langgraph.md, required: true, when: "language == 'python'"}
+  - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
+  - {path: ../cross-cutting/project-layout.md, required: true}
+  - {path: ../stack/llm-claude.md, required: true}
+  - {path: ../stack/api-fastapi.md, required: false, when: "language == 'python'"}
+  - {path: ../stack/api-hono.md, required: false, when: "language == 'typescript'"}
+  - {path: ../stack/relational-postgres.md, required: false, when: "capabilities contains 'relational.postgres'"}
+  - {path: ../stack/cache-redis.md, required: false, when: "capabilities contains 'cache.redis'"}
+  - {path: ../stack/tracing-langfuse.md, required: false, when: "capabilities contains 'obs.langfuse'"}
+  - {path: ../cross-cutting/auth-jwt.md, required: false}
+  - {path: ../cross-cutting/logging-structured.md, required: false}
+  - {path: ../cross-cutting/observability.md, required: false}
+  - {path: ../cross-cutting/rate-limiting.md, required: false}
 ---
 
 # Recipe: Hierarchical Agent
