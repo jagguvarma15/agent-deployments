@@ -1,8 +1,16 @@
+---
+id: mastra
+language: typescript
+package: "@mastra/core"
+versions:
+  minimum: "^0.1.0"
+---
+
 # Framework: Mastra
 
 **Language:** TypeScript
 **Install:** `npm install mastra @mastra/core`
-**Version pinned:** >=0.1.0
+**Version pinned:** ^0.1.0
 
 ## Core abstractions
 
