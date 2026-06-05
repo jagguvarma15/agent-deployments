@@ -627,6 +627,8 @@ async def test_full_task_e2e():
 {"input": {"task": "Draft release notes for a new version of our API"}, "expected_min_delegations": 2, "expected_workers": ["writer", "reviewer"]}
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **`langgraph-supervisor` for orchestration:** Purpose-built for the supervisor pattern. Each worker is a compiled sub-graph that the supervisor invokes as a tool. Clean separation of concerns.

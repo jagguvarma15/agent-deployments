@@ -503,6 +503,8 @@ async def test_batch_enrichment_e2e():
 {"input": {"records": [{"name": "a"}, {"name": "b"}, {"name": "c"}]}, "expected_total": 3}
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **Semaphore-based concurrency:** `asyncio.Semaphore(10)` limits parallel LLM calls to 10. Prevents rate-limit exhaustion while maximizing throughput.
