@@ -132,7 +132,7 @@ def main() -> None:
 
     deduped = dedupe(rows)
     args.out.write_text("\n".join(json.dumps(r) for r in deduped) + "\n")
-    print(f"kept {len(deduped)}/{len(rows)} after dedupe → {args.out}")
+    print(f"kept {len(deduped)}/{len(rows)} after dedupe -> {args.out}")
 
 
 if __name__ == "__main__":
