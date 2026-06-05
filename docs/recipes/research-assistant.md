@@ -468,6 +468,8 @@ Inline golden cases for the ReAct loop. Each case posts `question` to `/research
 }
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **Pydantic AI over LangGraph (Python):** The built-in ReAct loop in `agent.run()` is sufficient for a single-agent research flow. LangGraph's `create_react_agent()` would add state management value only if we needed checkpointing for long-running research sessions.

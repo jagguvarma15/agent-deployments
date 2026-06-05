@@ -780,6 +780,8 @@ Five seed examples are inline below. The scaffold step should generate ~15 more 
 
 Generate the remaining ~15 examples at scaffold time covering: customer-cancelled with both waitlist and preferences (waitlist wins), weather cancellations with multiple waitlist priorities, party-size partial overlap (4 → 3 acceptable?), time-window edge cases, multiple-language notification channels, anonymous booking (no `customer_id`), bookings outside operating hours.
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **Event-driven over polling:** Cancellations happen at a few-per-minute rate per restaurant; the SLO is 60 seconds. A polling cron at <60s intervals would either waste calls or miss the SLO. Streams give push-shaped delivery with durable replay.

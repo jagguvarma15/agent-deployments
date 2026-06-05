@@ -109,11 +109,13 @@ Defined in `.github/workflows/ci.yml`:
 
 ## Eval datasets
 
-Each prototype includes `eval/dataset.jsonl` with golden input/output pairs:
+Each prototype ships a seed `eval/dataset.jsonl` with golden input/output pairs:
 
 ```jsonl
 {"input": "What is MCP?", "expected_output": "MCP is the Model Context Protocol...", "metadata": {}}
 ```
+
+Growing that seed into a real harness — synthetic generation, golden-set curation, drift detection, evaluator choice, LLM-as-judge templates, cost guardrails — is covered in [`eval-data.md`](eval-data.md). Recipes link there from their `## Eval Dataset` sections.
 
 ## Security testing (Promptfoo)
 

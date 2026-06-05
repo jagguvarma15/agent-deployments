@@ -524,6 +524,8 @@ async def test_crew_produces_three_findings():
 {"input": {"description": "SSL certificate expiring in 3 days for api.example.com"}, "expected_priority": "high", "expected_agents": ["devops", "security", "database"]}
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **CrewAI for flat collaboration:** The Crew/Agent/Task model is purpose-built for this. Three agents with distinct roles working on the same input is CrewAI's sweet spot.

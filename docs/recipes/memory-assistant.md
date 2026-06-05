@@ -555,6 +555,8 @@ async def test_memory_persists_across_turns():
 {"turns": [{"message": "I used to work with Java but now I use Rust", "expect_memory_update": true}]}
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **LangGraph for stateful memory flow:** The retrieve → augment → generate → extract → store cycle is a natural graph. LangGraph's checkpointer preserves conversation state across API calls.

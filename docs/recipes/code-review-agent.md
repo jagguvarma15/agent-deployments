@@ -567,6 +567,8 @@ async def test_review_detects_sql_injection():
 {"input": {"diff": "--- a/handler.py\n+++ b/handler.py\n@@ -20,6 +20,8 @@\n+    try:\n+        result = process(data)\n+    except:\n+        pass"}, "expected_severity": "warning", "expected_category": "correctness"}
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **LangGraph for state management:** The plan evolves during execution (reflection may trigger re-planning). LangGraph's TypedDict state and conditional edges handle this naturally. Checkpointing enables resuming long reviews.

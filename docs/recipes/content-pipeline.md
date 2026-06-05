@@ -574,6 +574,8 @@ async def test_full_pipeline_e2e():
 {"input": {"topic": "new hire onboarding process", "content_type": "newsletter"}, "expected_stages": 4, "min_word_count": 400}
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **Typed schemas between stages:** Each stage produces a Pydantic model (Py) or Zod schema (TS). The pipeline validates output before passing it forward. This catches bad outputs early instead of letting them cascade.

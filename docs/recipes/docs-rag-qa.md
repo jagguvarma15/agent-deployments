@@ -499,6 +499,8 @@ Inline golden cases for the RAG pipeline. Each case names the seed documents the
 }
 ```
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **Agentic RAG over naive RAG:** The LLM decides when to retrieve, enabling multi-turn refinement. Trade-off: slightly higher latency from the tool-call round trip.

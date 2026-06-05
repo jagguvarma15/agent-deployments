@@ -115,7 +115,7 @@ Three subtrees, three contracts:
 
 - **`tests/unit/`** — mirrors the source tree. Pure-function tests; no network, no DB, no LLM. `test_<module>.py` (Python) or `<module>.test.ts` (TypeScript). Must run in under 5 seconds for the suite.
 - **`tests/integration/`** — exercises real-or-mocked external services. Requires the recipe's `external_services` to be up (or replaced with the canonical mock fixture). Typically uses `docker-compose up` services from the project root.
-- **`tests/eval/`** — agent quality. Holds `dataset.jsonl` (input/expected pairs) plus the runner that walks the dataset. See [`testing-strategy.md`](testing-strategy.md) for evaluator selection and [the upcoming eval-data guide](eval-data.md) for dataset curation.
+- **`tests/eval/`** — agent quality. Holds `dataset.jsonl` (input/expected pairs) plus the runner that walks the dataset. See [`testing-strategy.md`](testing-strategy.md) for evaluator selection and [`eval-data.md`](eval-data.md) for dataset generation, curation, and drift detection.
 
 Recipes declare smoke-tier tests as `required_files` and own the dataset shape.
 

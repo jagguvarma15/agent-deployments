@@ -426,6 +426,8 @@ def test_billing_specialist_uses_stripe_tool(mock_llm_client):
 
 See the inline `eval/dataset.jsonl` (51 examples) in the Reference Implementation section below. Covers all 4 intents with ~12 examples each.
 
+See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation patterns.
+
 ## Design Decisions
 
 - **Separate classifier and specialist models:** The classifier can use a cheaper/faster model since it only needs to produce structured classification. Specialists use the full model for nuanced responses.
