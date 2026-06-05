@@ -39,6 +39,7 @@ capabilities: [...]              # v0.3+ consumer
 
 See [`SCHEMA.md`](SCHEMA.md) for the full field set including `recipe_dependencies`, `required_files`, `bootstrap_config`, `topology`, and `roles`.
 
+`claude_agent_sdk_python` and `claude_agent_sdk_typescript` are accepted `framework:` values; the per-language guide is at [`../frameworks/claude-agent-sdk.md`](../frameworks/claude-agent-sdk.md).
 Accepted Python `framework:` values for new recipes: `pydantic_ai`, `langgraph`, `langchain`, `crewai`. TypeScript: `vercel_ai_sdk`, `mastra`. The full per-framework guide lives at [`../frameworks/README.md`](../frameworks/README.md).
 
 ## How to read a blueprint
