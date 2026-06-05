@@ -5,6 +5,7 @@ Agent frameworks used in this repo. Each file answers: **"How do I implement the
 | Framework | Language | Best for | Used in |
 |-----------|----------|----------|---------|
 | [LangGraph](langgraph.md) | Python | Stateful graphs, multi-step, multi-agent | research-assistant, code-review, memory, hierarchical |
+| [LangChain](langchain.md) | Python | Tool-rich agents without a state graph; LCEL chains; ecosystem (retrievers, history backends) | Documented as Python option |
 | [Pydantic AI](pydantic-ai.md) | Python | Single agents, typed tools, simple ReAct | customer-support, docs-rag-qa, research-assistant |
 | [CrewAI](crewai.md) | Python | Multi-agent crews | ops-crew |
 | [Claude Agent SDK](claude-agent-sdk.md) | Python | Claude Code-style subagent flows, MCP hosting, hook-gated tools | Documented as Python option |
@@ -16,6 +17,7 @@ Agent frameworks used in this repo. Each file answers: **"How do I implement the
 
 **Python track:**
 - Simple agent with tools → **Pydantic AI** (least boilerplate)
+- Tool-rich agent, no state machine needed → **LangChain** (`AgentExecutor` + ecosystem)
 - Complex state, multi-step, checkpointing → **LangGraph** (best state management)
 - Team of collaborating agents → **CrewAI** (purpose-built for crews)
 - Claude Code-style subagents, MCP hosting, hook-gated tool use → **Claude Agent SDK**
