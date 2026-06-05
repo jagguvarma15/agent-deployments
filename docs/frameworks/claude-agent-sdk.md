@@ -27,7 +27,7 @@ The two language packages mirror each other. They publish on separate semver tra
 |----------|------|
 | Claude Code-style agent (subagents, MCP, hooks) in your own process | **Claude Agent SDK** |
 | One-shot completion or single structured-output call | [`anthropic` SDK](../stack/llm-claude.md) — the agent loop is overkill |
-| Tool-use loop with a Python ecosystem (retrievers, history backends) | [LangChain](langchain.md) |
+| Tool-use loop with a Python ecosystem (retrievers, history backends) | LangChain |
 | Stateful multi-step graph, checkpointing, multi-agent supervisor | [LangGraph](langgraph.md) |
 | Typed single-agent with `result_type` | [Pydantic AI](pydantic-ai.md) |
 | Lightweight TypeScript agent, especially in serverless | [Vercel AI SDK](vercel-ai-sdk.md) |
@@ -327,7 +327,7 @@ The companion TS framework id for SR1b is `claude_agent_sdk_typescript`; see [`c
 | [ReAct](../patterns/react.md) | **Fits** — this is the SDK's default loop | `query()` + tools, done |
 | [Routing / tool use](../patterns/routing-tool-use.md) | **Fits** | Single agent with a routing tool, or pre-hook intent gate |
 | [RAG](../patterns/rag.md) | Awkward — overkill for one retrieval call | Use raw `anthropic` SDK + retriever |
-| [Prompt chaining](../patterns/prompt-chaining.md) | Awkward — no chain primitive | Use [LangChain](langchain.md) LCEL or raw SDK |
+| [Prompt chaining](../patterns/prompt-chaining.md) | Awkward — no chain primitive | Use LangChain LCEL or raw SDK |
 | [Parallel calls](../patterns/parallel-calls.md) | Awkward — agent loop is sequential | `asyncio.gather` over raw SDK calls |
 | [Plan-execute-reflect](../patterns/plan-execute-reflect.md) | Borderline — works via subagents | `LangGraph` is more idiomatic |
 | [Multi-agent (flat)](../patterns/multi-agent-flat.md) | **Fits via subagents** | Each peer is a subagent; parent coordinates |
