@@ -39,6 +39,8 @@ capabilities: [...]              # v0.3+ consumer
 
 See [`SCHEMA.md`](SCHEMA.md) for the full field set including `recipe_dependencies`, `required_files`, `bootstrap_config`, `topology`, and `roles`.
 
+Accepted Python `framework:` values for new recipes: `pydantic_ai`, `langgraph`, `langchain`, `crewai`. TypeScript: `vercel_ai_sdk`, `mastra`. The full per-framework guide lives at [`../frameworks/README.md`](../frameworks/README.md).
+
 ## How to read a blueprint
 
 Each blueprint follows a canonical section order:
