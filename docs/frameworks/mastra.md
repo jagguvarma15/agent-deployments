@@ -80,3 +80,23 @@ console.log(result.text);
 ## Reference implementations
 
 - No direct recipes yet. See [frameworks/vercel-ai-sdk.md](vercel-ai-sdk.md) for the TS framework currently used in prototypes.
+
+## Version notes
+
+One-line summary: pre-1.0 line; the `^0.1.0` floor unlocks the agents + workflows + memory triad recipes assume, but the surface still moves between minors. Pin tight.
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 0.1.0` | Unsupported | Pre-stable agents API; workflow surface was experimental. No recipe expects this line. |
+| `^0.1.0` | Recommended | Current pin in the frontmatter. The `Agent`, `Workflow`, and memory APIs are stable enough for greenfield TS work. |
+| `0.2+` | Untested | Mastra publishes frequently; CI does not track. Treat any minor bump as a re-verify event against the canonical [`agent → tool → memory`] flow above. |
+
+### Upgrade gotchas
+
+- **Sub-package alignment.** `@mastra/core` ships independently from `@mastra/memory` and `@mastra/mcp`. Mixing minors across the sub-packages is the most common silent-break source — when you bump, bump them as a set.
+- **Workflow step return shape.** Mid-0.1.x the step return type evolved to include `runtimeContext`. Steps that destructure only `inputData` will still work but pass-through context is the future-proof shape.
+- **Memory backends.** The memory module's `Storage` adapter contract changed when the package split out. Recipes that wire a custom Postgres backend should follow the post-split adapter shape from the Mastra docs, not the inlined pre-split one.
+
+### Why these bounds
+
+The `^0.1.0` floor exists because that release cut over to the stable `Agent` + `Workflow` + `Memory` shape that any greenfield Mastra-based recipe would adopt. Pre-0.1 the agent surface was still moving fast enough that a pinned minor would break within weeks. No recorded upper bound — Mastra is pre-1.0 and the team is shipping fast — so the practical guidance is "pin the exact minor in `package.json`, bump deliberately, and re-test the `@mastra/memory` integration against the recipe before promoting."

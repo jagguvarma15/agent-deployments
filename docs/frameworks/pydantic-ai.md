@@ -83,3 +83,23 @@ print(result.data)
 - [recipes/customer-support-triage.md](../recipes/customer-support-triage.md) — Routing + Tool Use
 - [recipes/docs-rag-qa.md](../recipes/docs-rag-qa.md) — Agentic RAG
 - [recipes/research-assistant.md](../recipes/research-assistant.md) — ReAct research agent
+
+## Version notes
+
+One-line summary: the `>=0.1.0` floor is what stabilizes the agent + `output_type` (renamed from `result_type`) surface the recipes rely on; treat the 0.0.x line as legacy.
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 0.1.0` | Unsupported | Pre-`output_type` rename; the `result_type` keyword recipes used in early drafts is gone. `@agent.tool` decorator semantics also moved during the 0.0.x line. |
+| `>=0.1.0` | Recommended | Current pin in the frontmatter. Validated against [`../recipes/customer-support-triage.md`](../recipes/customer-support-triage.md), [`../recipes/docs-rag-qa.md`](../recipes/docs-rag-qa.md), [`../recipes/research-assistant.md`](../recipes/research-assistant.md). |
+| `0.2+` | Untested | Likely fine; the 0.1 → 0.2 cycle has been additive. Re-verify `result_type` / `output_type` aliases before bumping. |
+
+### Upgrade gotchas
+
+- **`result_type` → `output_type` rename.** Pydantic AI renamed the agent's structured-output keyword during the 0.0.x → 0.1.0 transition. Both spellings still parse on the 0.1.x line but `output_type` is canonical; older recipe drafts that used `result_type` should be migrated when the doc is touched.
+- **`message_history` shape.** The history-passing parameter takes a typed list, not raw `{"role": ..., "content": ...}` dicts. Mixing in OpenAI-shaped messages results in a silent validation failure where the agent forgets prior turns.
+- **Tool decorators.** `@agent.tool_plain` (no dependency injection) vs `@agent.tool` (typed deps via `RunContext`) are not interchangeable. Recipes that need a DB connection or HTTP client should use `@agent.tool` with `RunContext[Deps]`.
+
+### Why these bounds
+
+The `>=0.1.0` floor exists because that release cut over to the stable `Agent(...)` surface (typed deps via `RunContext`, the renamed `output_type` keyword, the structured-output validation path the recipes assume). Pre-0.1 the API was still moving fast enough that pinned recipes broke between minor bumps. No recorded upper bound: the post-0.1 line has stayed source-compatible so far, but verify the structured-output contract against `customer-support-triage` before adopting a new minor.

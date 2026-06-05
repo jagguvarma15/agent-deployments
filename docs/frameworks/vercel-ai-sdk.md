@@ -91,3 +91,23 @@ console.log(result.text);
 - [recipes/customer-support-triage.md](../recipes/customer-support-triage.md) — Routing + Tool Use (TS track)
 - [recipes/docs-rag-qa.md](../recipes/docs-rag-qa.md) — Agentic RAG (TS track)
 - [recipes/research-assistant.md](../recipes/research-assistant.md) — ReAct agent (TS track)
+
+## Version notes
+
+One-line summary: the `^4.0.0` major rewrote `streamText` / `generateText` / `generateObject` and is the recipe-validated line; 3.x is incompatible, 5.x untested.
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 4.0.0` | Known incompatible | The 3.x → 4.x rewrite changed the `streamText` / `generateText` / `generateObject` signatures. Recipes assume the 4.x shape; 3.x code will fail at type-check before runtime. |
+| `^4.0.0` | Recommended | Current pin. Validated against [`../recipes/customer-support-triage.md`](../recipes/customer-support-triage.md), [`../recipes/docs-rag-qa.md`](../recipes/docs-rag-qa.md), [`../recipes/research-assistant.md`](../recipes/research-assistant.md). |
+| `^5.0.0+` | Untested | CI does not validate. Re-verify the tool-call streaming shape and `generateObject` schema enforcement before adopting. |
+
+### Upgrade gotchas
+
+- **Provider-package alignment.** `@ai-sdk/anthropic ^1.0.0` is the matched Anthropic provider for SDK 4.x. Bumping `ai` without bumping `@ai-sdk/anthropic` in lockstep yields tool-result schema mismatches that surface as silent "model ignored the tool" behavior, not as type errors.
+- **`generateObject` schema enforcement.** The 4.x line enforces the Zod schema strictly; 3.x silently fell through on partial matches. Recipes that depend on `output_strategy: 'object'` and assume "model will improvise" should re-test under 4.x.
+- **`streamText` tool-call protocol.** The 4.x stream yields typed `text-delta` / `tool-call` / `tool-result` parts. UI code that pattern-matched on the older string-prefix protocol will break.
+
+### Why these bounds
+
+The `^4.0.0` floor exists because that major aligned the SDK's surface around the typed `generateObject` + `streamText` shape every TS-track recipe in this repo uses, and added strict Zod enforcement on structured output. Pre-4.x the API was less strict and the tool-call stream protocol was different enough that adapting was a rewrite, not a tweak. No recorded upper bound — pin to the 4.x major in `package.json` and re-verify the `customer-support-triage` triage flow when promoting to a new minor.

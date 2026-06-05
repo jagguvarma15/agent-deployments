@@ -97,3 +97,23 @@ result = crew.kickoff(inputs={"topic": "AI agents"})
 ## Reference implementations
 
 - [recipes/ops-crew.md](../recipes/ops-crew.md) — Multi-agent ops crew (skeleton)
+
+## Version notes
+
+One-line summary: `>=0.70.0` is the floor at which the kwargs-only `Crew()` constructor + the split-out memory module are stable; older drops break in unobvious ways.
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 0.70.0` | Unsupported | Pre-kwargs-only `Crew()` constructor; positional args silently bind to the wrong fields. Memory was inlined rather than a separate module — recipes that import `crewai.memory.*` will fail. |
+| `>=0.70.0` | Recommended | Current pin in the frontmatter. Validated against [`../recipes/ops-crew.md`](../recipes/ops-crew.md). |
+| `0.80+` | Untested | May work; CI does not validate. Re-verify `Process.hierarchical` and the memory module's import paths before bumping. |
+
+### Upgrade gotchas
+
+- **`Process` enum names.** `Process.sequential` vs `Process.hierarchical` is the documented split. Older drafts used `"sequential"` / `"hierarchical"` strings; these are coerced loosely but the enum path is the durable one.
+- **Memory module split.** The memory feature moved to `crewai.memory` as its own module mid-0.6x. Recipes that import from the old inlined location need to be migrated when the doc is touched.
+- **Task callback signature.** Per-task callbacks receive a typed result object (not the raw string) in the post-0.70 line. Adapting a callback that does `str.startswith(...)` on the result is a common silent-break source.
+
+### Why these bounds
+
+The `>=0.70.0` floor is the version at which the kwargs-only `Crew()` constructor, the split-out memory module, and the typed task-result callback surface stabilized. Pre-0.70 the API was still moving fast enough that the [`ops-crew`](../recipes/ops-crew.md) recipe pinned a different minor every release. No recorded upper bound — CrewAI's release cadence is moderate and post-0.70 has stayed additive — but treat any minor bump as a re-verify event against the ops-crew skeleton's role definitions.

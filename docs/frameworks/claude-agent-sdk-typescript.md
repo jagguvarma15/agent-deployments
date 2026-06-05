@@ -18,3 +18,7 @@ This is the TypeScript companion to the Python Claude Agent SDK. The two package
 The full guide — agent loop, tools, MCP, subagents, hooks, anti-patterns — is in [`claude-agent-sdk.md`](claude-agent-sdk.md), with a dedicated **TypeScript variant** section that mirrors every Python example in TS. Read that doc; this file exists so the framework registry has a distinct id for the TypeScript variant.
 
 See [`claude-agent-sdk.md#typescript-variant`](claude-agent-sdk.md#typescript-variant).
+
+## Version notes
+
+See [`claude-agent-sdk.md#version-notes`](claude-agent-sdk.md#version-notes) — the canonical doc carries one table for the Python package and one for the TypeScript package side by side, since the two publish on independent semver tracks. `last_known_good: 0.3.163` for the TypeScript line.

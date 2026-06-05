@@ -378,3 +378,38 @@ async def post_tool_use(ctx: HookContext) -> None:
 OpenTelemetry — start an OTel span in PreToolUse, end it in PostToolUse, link by `session_id`. The exporter side is identical to any other OTel-instrumented service; see [`../stack/opentelemetry.md`](../stack/opentelemetry.md) for the canonical setup. For correlated cross-session traces (parent invokes subagent), propagate the trace context through the subagent invocation as a tool argument or via a baggage header.
 
 For self-hosted trace UI, see [`../stack/tracing-langfuse.md`](../stack/tracing-langfuse.md); the hook payload shape above drops into Langfuse's generic event ingestion.
+
+## Version notes
+
+One-line summary: API surface still evolving on both language tracks; pin tight and re-verify on every minor bump. (Matches frontmatter `versions.notes` on both files.)
+
+The Python (`claude-agent-sdk`) and TypeScript (`@anthropic-ai/claude-agent-sdk`) packages publish on independent semver tracks. Read each table for the language you ship.
+
+**Python** — `claude-agent-sdk`:
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 0.2.0` | Unsupported | The 0.1.x line had a different `ClaudeAgentOptions` field set and a different hook context shape. Recipes targeting the 0.2.x surface won't import. |
+| `0.2.0 – 0.2.90` | Recommended | Current pin range. `last_known_good: "0.2.90"` per frontmatter. Validated against the [minimal Python agent](#minimal-python-agent) and the [hooks](#hooks) examples in this doc. |
+| `0.2.91+` | Untested | Likely fine — 0.2.x has held additive — but CI does not validate. Re-verify the [tools](#tools) content-block shape before adopting. |
+| `>=0.3.0` | Likely incompatible | The SDK team has shipped minor-line breakages in past majors; treat 0.3 as a re-port rather than a bump. |
+
+**TypeScript** — `@anthropic-ai/claude-agent-sdk`:
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 0.3.0` | Unsupported | The 0.2.x line had a different `ClaudeAgentOptions` field shape (camelCase variants drifted) and a different `tool()` return type. |
+| `^0.3.0` (last known good `0.3.163`) | Recommended | Current pin. Validated against the [TypeScript variant](#typescript-variant) section in this doc. |
+| `>=0.4.0` | Untested | npm publishes are frequent; pin to the 0.3 major and re-verify the `query()` async-iteration contract before bumping. |
+
+### Upgrade gotchas
+
+- **Independent semver across languages.** A "we bumped the SDK" change request must specify which language. The two packages do not move in lockstep; matching Python `0.2.90` against TS `0.3.163` is the validated baseline, not the only valid pairing.
+- **`anthropic` companion package.** The Python package's `extra_packages: anthropic` pin (`>=0.69.0`) tracks the SDK's own minimum. Pinning `anthropic` separately to a lower version causes `tool_use` content-block schema mismatches that surface as silent missing tool calls. Let the SDK's transitive resolution win.
+- **`ClaudeAgentOptions` field renames.** Mid-0.2 the Python field set settled on `system_prompt` / `max_turns` / `subagents_dir`; older drafts that used `systemPrompt` / `maxTurns` will pass type-check but be silently ignored. The TS package uses camelCase canonically.
+- **Hook context shape.** `HookContext.tool_input` (Python) and `HookContext.toolInput` (TypeScript) stabilized as the canonical accessor mid-0.2 / mid-0.3. The [hooks](#hooks) examples are the durable shape; older snake_case-on-TS drafts will not match.
+- **MCP server config across the language boundary.** The `mcp_servers` (Python) / `mcpServers` (TypeScript) config shape mirrors the Claude Code config format; if you derive it from a Claude Code `.mcp.json` programmatically, normalize the case before passing to the SDK.
+
+### Why these bounds
+
+The Python `0.2.0` floor and the TypeScript `^0.3.0` floor are the current release lines for the two packages — there are no validated older bounds because the API has moved fast enough that pre-floor versions don't import the same options-object shape. The `last_known_good` markers (`0.2.90` Python, `0.3.163` TypeScript) reflect the most recent minor we've verified against the [minimal agent](#minimal-python-agent) and [TypeScript variant](#typescript-variant) examples in this doc. Treat any `>=0.3` (Python) or `>=0.4` (TypeScript) bump as a re-port: the SDK has used major bumps to ship breaking renames, and the recipe burden of catching that in CI is not in place yet.
