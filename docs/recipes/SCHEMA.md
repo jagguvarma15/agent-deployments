@@ -3,7 +3,7 @@
 Canonical specification for the YAML frontmatter block that opens every recipe under `docs/recipes/`. This is the contract `agent-scaffold` reads to resolve a recipe into a generated project.
 
 > Authoritative since: introduction of this file.
-> Worked reference: [`restaurant-rebooking.md`](restaurant-rebooking.md) frontmatter lines 1–64.
+> Worked reference: [`restaurant-rebooking.md`](restaurant-rebooking.md) frontmatter lines 1–116.
 > Capability schema (separate contract): [`../capabilities/README.md`](../capabilities/README.md).
 
 ## Why this exists
@@ -44,7 +44,7 @@ topology: single
 ---
 ```
 
-A multi-agent recipe with `bootstrap_config` and roles:
+A multi-agent recipe with `bootstrap_config` and roles. This snippet is excerpted verbatim from [`restaurant-rebooking.md`](restaurant-rebooking.md) (the worked reference cited at the top of this file) so the example and the worked reference cannot drift:
 
 ```yaml
 ---
@@ -56,31 +56,40 @@ required_files:
   - tests/integration/test_event_loop.py
 recipe_dependencies:
   python:
-    fastapi: ">=0.110.0"
     redis: ">=5.0.0"
+    fastapi: ">=0.110.0"
   typescript:
-    hono: "^4.0.0"
     ioredis: "^5.4.0"
-external_services: [postgres, redis, qdrant]
+    hono: "^4.0.0"
+external_services: [postgres, redis, qdrant, langfuse]
 capabilities:
-  - relational.postgres
   - cache.redis
+  - relational.postgres
   - vector_db.qdrant
+  - queue.redis-streams
   - obs.langfuse
 bootstrap_config:
   vector_collections:
     - { name: docs, vector_size: 1536, distance: cosine }
   redis_streams:
-    - { name: events.in, maxlen: 10000, consumer_group: worker }
+    - { name: reservations.cancelled, maxlen: 10000, consumer_group: rebooker }
+    - { name: reservations.rebooked, maxlen: 10000 }
 topology: multi-agent-flat
 roles:
   - name: intake
-    description: "Read events from the stream and classify."
     role_kind: worker
+    description: "Consume reservation-change events from Redis Streams, classify (cancel / no-show / modify), build the case envelope."
     model_hint: sonnet
     model_fallbacks: [haiku]
-    cost_budget_usd_per_day: 5.00
+    cost_budget_usd_per_day: 2.00
     tools: [event_bus_consumer]
+  - name: eligibility
+    role_kind: router
+    description: "Apply auto-rebook policy rules (tier, time window, customer history) to dispatch the case along one of three terminal paths (rebook / notify host only / decline)."
+    model_hint: sonnet
+    model_fallbacks: [sonnet, haiku]
+    cost_budget_usd_per_day: 5.00
+    tools: [policy_lookup, customer_lookup]
 ---
 ```
 
@@ -341,6 +350,8 @@ Per-agent specification for multi-agent recipes. Required when `topology` is `mu
 - `worker` — executes a bounded task; receives delegation.
 - `router` — pure routing decision; no tool calls of its own.
 - `notifier` — terminal role that produces outbound side effects (email, SMS, webhook).
+
+Required when `roles:` is present. Worked example: [`restaurant-rebooking.md`](restaurant-rebooking.md) frontmatter lines 60–88 (four roles spanning `worker`, `router`, and `notifier`).
 
 ##### `roles[].model_fallbacks`
 

@@ -59,20 +59,32 @@ bootstrap_config:
 topology: multi-agent-flat
 roles:
   - name: intake
+    role_kind: worker
     description: "Consume reservation-change events from Redis Streams, classify (cancel / no-show / modify), build the case envelope."
     model_hint: sonnet
+    model_fallbacks: [haiku]
+    cost_budget_usd_per_day: 2.00
     tools: [event_bus_consumer]
   - name: eligibility
-    description: "Apply auto-rebook policy rules (tier, time window, customer history) to decide whether to attempt rebooking."
+    role_kind: router
+    description: "Apply auto-rebook policy rules (tier, time window, customer history) to dispatch the case along one of three terminal paths (rebook / notify host only / decline)."
     model_hint: sonnet
+    model_fallbacks: [sonnet, haiku]
+    cost_budget_usd_per_day: 5.00
     tools: [policy_lookup, customer_lookup]
   - name: search
+    role_kind: worker
     description: "Query alternative slots across reservation platforms (Resy, OpenTable, Toast) and rank candidates."
     model_hint: opus
+    model_fallbacks: [haiku]
+    cost_budget_usd_per_day: 3.00
     tools: [resy_adapter, opentable_adapter, toast_adapter]
   - name: notifier
+    role_kind: notifier
     description: "Compose and send rebooking offers via email/SMS; record customer acceptance back to the case."
     model_hint: haiku
+    model_fallbacks: [haiku]
+    cost_budget_usd_per_day: 1.50
     tools: [email_send, sms_send]
 load_list:
   - {path: ../patterns/event-driven.md, required: true}
@@ -793,6 +805,8 @@ See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation p
 - **Two-phase idempotency:** A short-TTL "claimed" marker is set before the orchestrator runs; the marker is upgraded to "completed" (long TTL) on success or deleted on failure. This prevents the bug where a crashed worker between SETNX and XACK silently dedupes the event on the next delivery.
 - **`trace_id` in event payload:** Producer assigns it. The consumer reads it into the Langfuse trace context so every tool call in this rebooking is linked to the originating cancellation across services.
 - **Multi-tenancy via `restaurant_id`:** Every record (outcomes, audit rows, idempotency keys) is keyed by `restaurant_id`. Shared schema with planned Postgres RLS adoption — see [multi-tenancy.md](../cross-cutting/multi-tenancy.md). Per-restaurant rate limits prevent one noisy chain from DoSing the rest; per-tenant log / trace fields keep incident investigation tractable.
+- **`role_kind` classifications:** `intake` and `search` are `worker` (they execute one bounded task per case). `notifier` is `notifier` (its job is to deliver a customer-facing message; the allowed value name matches the role's purpose). `eligibility` is classified as `router` rather than `worker` because its job is to dispatch the case along one of three mutually exclusive terminal paths (rebook / notify host only / decline) based on the policy lookup — that's the dispatcher contract. A `worker` reading would be defensible since the role doesn't fan out to multiple downstream agents, but the routing decision is the load-bearing output, not the policy lookup itself.
+- **`model_fallbacks` chains:** Match the recipe's cost-tracking prose ("graceful-degrade Opus → Sonnet → Haiku above 80% of budget"). `eligibility` is the only role with reasoning depth that benefits from Sonnet on degrade; the others fall straight to Haiku. The per-day cost budgets are illustrative, sized by the recipe's stated throughput (~few-per-minute cancellations per restaurant chain) at Haiku pricing — operators should re-tune per deployment.
 
 ## Generation instructions
 
