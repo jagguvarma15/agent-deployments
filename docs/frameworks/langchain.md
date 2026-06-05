@@ -396,3 +396,25 @@ How the patterns in [`../patterns/`](../patterns/) map to LangChain vs LangGraph
 | [Multi-agent (hierarchical)](../patterns/multi-agent-hierarchical.md) | Awkward — no supervisor abstraction | `langgraph-supervisor` | **Use LangGraph** |
 | [Event-driven](../patterns/event-driven.md) | Wrap executor in your own consumer loop | Explicit graph per event | LangGraph wins; the per-event state machine is exactly what it's for |
 | [Memory](../patterns/memory.md) | `RunnableWithMessageHistory` + backend | Checkpointer + state | LangChain for plain chat history; LangGraph when memory crosses runs |
+
+## Version notes
+
+One-line summary: 0.3.x consolidated agents under `langchain.agents`; earlier versions split between `langchain` and `langchain-experimental`. `>=0.4` may break the `@tool` decorator surface — pin tight. (Matches frontmatter `versions.notes`.)
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 0.3.0` | Known incompatible | `langchain.agents` lived split across `langchain` and `langchain-experimental`. `initialize_agent` was the documented loop, not `create_tool_calling_agent`. Recipes that target the consolidated 0.3.x surface won't import. |
+| `0.3.0 – 0.3.18` | Recommended | Last validated against the [agent minimal example](#minimal-agent) and [memory](#memory) sections in this doc. `last_known_good: "0.3.18"` per frontmatter. |
+| `0.3.19+` | Untested-on-paper | Likely fine — 0.3.x has stayed source-compatible since the consolidation — but CI does not validate. Re-verify the [streaming](#streaming) `astream_events(version="v2")` shape before adopting. |
+| `>=0.4.0` | Likely incompatible | The `@tool` decorator surface is signaled to change in the 0.4 line. Treat as a re-port, not a bump. |
+
+### Upgrade gotchas
+
+- **`langchain-anthropic >=0.2.0`.** Required to expose `ChatAnthropic.bind_tools` with strict-schema support. Pinned in the frontmatter. Below 0.2 the binder silently relaxes the tool schema and the model improvises arguments.
+- **`langchain-core >=0.3.0`.** The runnable + messages protocol must match the `langchain` major. Mixing `langchain-core 0.2.x` with `langchain 0.3.x` is a frequent silent-fail source (tool-call protocol drift in `AIMessage.tool_calls`).
+- **`langchain.chains.LLMChain` and `ConversationChain`.** Deprecated in 0.2, removed from the agent-friendly surface in 0.3. Already called out in [Anti-patterns](#anti-patterns); replace with LCEL (`prompt | llm`) for one-shot calls and `AgentExecutor` for tool loops.
+- **`astream_events(version="v1")`.** Deprecated. The v1 event names differ from v2; mixing them in one consumer loop yields silent missing-event drops. Set `version="v2"` per the [Streaming](#streaming) section.
+
+### Why these bounds
+
+The `0.3.0` floor is the version that consolidated `langchain.agents` and removed the `langchain-experimental` split. Before 0.3 the import paths shifted often enough that pinned recipes broke between minors; after 0.3 the surface has held source-compatible. The `last_known_good: "0.3.18"` upper marker is the most recent minor we've validated the [minimal agent](#minimal-agent) and [memory](#memory) examples against. The forward-looking note about `>=0.4` is conservative: the LangChain team has signaled that the `@tool` decorator surface will change, so treat a 0.4 bump as a porting exercise, not a `package.json` edit.
