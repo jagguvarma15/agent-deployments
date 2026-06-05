@@ -63,3 +63,5 @@ Each blueprint follows a canonical section order:
 14. **Reference Implementation** — full source code for validated blueprints; pseudocode-labeled for design-spec
 
 Optional tail sections allowed where present (not required): `## Seed data`, `## Lifecycle`, `## Generation instructions`.
+
+Multi-agent recipes use `role_kind` to declare each role's dispatcher / worker / supervisor / notifier classification. See [`SCHEMA.md`](SCHEMA.md#rolesrole_kind).
