@@ -13,6 +13,8 @@ Agent frameworks used in this repo. Each file answers: **"How do I implement the
 | [Mastra](mastra.md) | TypeScript | Workflows, memory, multi-agent | Not yet used (documented as TS option) |
 | [Vercel AI SDK](vercel-ai-sdk.md) | TypeScript | Lightweight agents, streaming | All TS tracks |
 
+For a full capability-by-capability comparison (tool use, structured output, memory, checkpointing, streaming, multi-agent, MCP, observability, …) across every framework above, see [`comparison.md`](comparison.md). The quick-pick decision tree below is the skim-friendly version; the matrix is the source of truth for the cell-by-cell ratings and links into each per-framework doc.
+
 ## How to pick a framework
 
 **Python track:**
