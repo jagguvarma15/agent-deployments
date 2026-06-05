@@ -21,6 +21,7 @@ Full-spec agent blueprints showing how patterns, frameworks, and stack compose i
 | [Memory Assistant](memory-assistant.md) | Memory | LangGraph / Vercel AI SDK | Blueprint (design spec) |
 | [Hierarchical Agent](hierarchical-agent.md) | Multi-Agent Hierarchical | LangGraph / Vercel AI SDK | Blueprint (design spec) |
 | [Restaurant Rebooking](restaurant-rebooking.md) | Event-Driven + Multi-Agent Flat | LangGraph / Mastra | Blueprint (design spec) |
+| [Claude Code Subagent](claude-code-subagent.md) | ReAct + Routing/Tool use | Claude Agent SDK (Py / TS) | Blueprint (design spec) |
 
 ## Frontmatter
 
