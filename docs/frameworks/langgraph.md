@@ -157,3 +157,23 @@ print(result["messages"][-1].content)
 - [recipes/research-assistant.md](../recipes/research-assistant.md) -- ReAct agent
 - [recipes/code-review-agent.md](../recipes/code-review-agent.md) -- Plan & Execute (skeleton)
 - [recipes/hierarchical-agent.md](../recipes/hierarchical-agent.md) -- Hierarchical multi-agent (skeleton)
+
+## Version notes
+
+One-line summary: 0.3.x is the recipe-validated floor; pin tight because the checkpointer + prebuilt agent surface still shifts between minors.
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `< 0.3.0` | Unsupported | Pre-stable checkpointer interface; `create_react_agent` import path differs. Recipes assume the post-0.3 layout. |
+| `0.3.21+` | Recommended | Current pin in the frontmatter. Validated against [`../recipes/research-assistant.md`](../recipes/research-assistant.md) and the hierarchical / code-review skeletons. |
+| `0.4+` | Untested | May work; CI does not validate. Re-verify checkpointer + `langgraph-supervisor` compatibility before bumping. |
+
+### Upgrade gotchas
+
+- **`create_react_agent` import path.** Lives under `langgraph.prebuilt` in 0.3.x. Older code that imported from `langgraph.prebuilt.chat_agent_executor` will break; newer code that imports from a moved-again path on `0.4` will break in the other direction. Pin `0.3.x` and re-verify the import shape on bump.
+- **`langgraph-supervisor` is on its own semver.** The hierarchical recipe ([`../recipes/hierarchical-agent.md`](../recipes/hierarchical-agent.md)) depends on it as a separate package; check both pins together when planning a LangGraph bump.
+- **Checkpointer connection-string format.** Postgres checkpointer parses the URL itself; using `psycopg`-style vs `asyncpg`-style URIs interchangeably is a frequent silent-fail. The recipe code uses the docs' canonical shape.
+
+### Why these bounds
+
+The `0.3.21` floor is the version that ships the stabilized `StateGraph` + `ToolNode` + `create_react_agent` surface every recipe in this repo exercises. Pre-0.3 the prebuilt agent layered on a different state contract; recipes that rely on the post-0.3 `MessagesState` typed-dict shortcut won't run. The reason there is no recorded upper bound is conservative: LangGraph's release cadence is fast enough that "last_known_good" would drift between sessions; treat anything past `0.3.x` as "test before you ship".
