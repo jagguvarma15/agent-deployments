@@ -77,6 +77,7 @@ load_list:
   - {path: ../cross-cutting/logging-structured.md, required: false}
   - {path: ../cross-cutting/observability.md, required: false}
   - {path: ../cross-cutting/rate-limiting.md, required: false}
+  - {path: ../cross-cutting/prompt-management.md, required: false}
 ---
 
 # Recipe: Hierarchical Agent

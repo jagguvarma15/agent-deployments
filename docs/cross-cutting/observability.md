@@ -264,3 +264,4 @@ export async function traced<T>(
 - [Prometheus + Grafana](../stack/prometheus-grafana.md) — metrics scraping, dashboards, alerting, SLO tracking.
 - [Log aggregation](../stack/log-aggregation.md) — centralized log search; correlate to traces via `trace_id`.
 - [Langfuse](../stack/tracing-langfuse.md) — LLM-specific tracing covered inline above.
+- [Prompt management](prompt-management.md) — Langfuse's prompts API (`langfuse.get_prompt(...)`) piggybacks on the same client this doc configures; record `prompt_label` and `prompt_version` on every trace so A/B arms and rollback events surface in the trace UI.

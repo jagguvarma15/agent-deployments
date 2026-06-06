@@ -114,6 +114,7 @@ load_list:
   - {path: ../cross-cutting/authorization-rbac.md, required: false}
   - {path: ../cross-cutting/audit-logging.md, required: false}
   - {path: ../cross-cutting/pii-gdpr.md, required: false}
+  - {path: ../cross-cutting/prompt-management.md, required: false}
 ---
 
 # Recipe: Restaurant Rebooking

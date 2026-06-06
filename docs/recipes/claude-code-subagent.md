@@ -48,6 +48,7 @@ roles:
     model_hint: sonnet
     model_fallbacks: [haiku]
     tools: [web_search, fetch_url]
+  - {path: ../cross-cutting/prompt-management.md, required: false}
 ---
 
 # Recipe: Claude Code Subagent

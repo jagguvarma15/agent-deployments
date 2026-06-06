@@ -42,6 +42,7 @@ Conventions:
 - **`category`** — one of the strata you used to sample (see §4). Lets you compute pass rate per stratum.
 - **`expected_*`** — assertions that the evaluator checks. Avoid stuffing a free-text "expected_answer" string when the real assertion is "must contain these substrings" or "must call this tool".
 - **`metadata`** — provenance: `{"source": "synthetic", "generator": "haiku-v2", "reviewed_by": "alice", "frozen_at": "2026-05-12"}`. Lets you re-run synthesis for a stratum without losing the manual review pass on the rest.
+- **`metadata.prompt_version`** *(recommended)* — integer version the row was authored against. Re-running the eval against a later prompt version produces a comparable score; scoring v5 of a prompt against rows authored at v3 measures drift, not quality. See [`prompt-management.md`](prompt-management.md) §eval-integration for the discipline and the immutability rule (publish a new version, don't edit the published one).
 
 Schema drift is the most common failure mode — pin the assertion keys in your recipe's `## Eval Dataset` section and resist adding ad-hoc ones case by case.
 

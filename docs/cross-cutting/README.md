@@ -17,6 +17,7 @@ Shared production plumbing used by all agents. Each file answers: **"What produc
 | [Authorization & RBAC](authorization-rbac.md) | stdlib enums + FastAPI / Hono; OPA optional | RBAC / ABAC / PBAC; per-intent tool allowlists; tenant scoping |
 | [Audit logging](audit-logging.md) | Postgres `audit_events` + triggers; S3 archive | Immutable trail with hash-chain tamper evidence |
 | [PII handling (GDPR)](pii-gdpr.md) | `pgcrypto` / KMS envelope + tokenization | Minimization, storage, erasure, LLM redaction, DLP |
+| [Prompt management](prompt-management.md) | Langfuse `get_prompt` / LangSmith Hub / flat-file + git | Versioning, registry, A/B routing, rollback playbook |
 
 ## The 11-point production checklist
 
