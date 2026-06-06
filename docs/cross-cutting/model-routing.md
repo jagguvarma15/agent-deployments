@@ -169,3 +169,7 @@ Practical rules:
 ## Where used in repo
 
 - [recipes/restaurant-rebooking.md](../recipes/restaurant-rebooking.md) — `roles[].model_hint`: intake=Sonnet (frequent classifier), eligibility=Sonnet (structured rules), search=Opus (subtle ranking), notifier=Haiku (template). Fallback chains and experiments configured at the deployed runtime layer; recipe-level `model_fallbacks` / `model_experiments` will be added when a future PR teaches agent-scaffold to honour them.
+
+## See also
+
+- [`prompt-management.md`](prompt-management.md) — prompt routing follows the same `(tenant_id, request_id)` discipline this doc lays out for model routing. The deterministic-keying primitive applies identically; the runtime can resolve both a model arm and a prompt label from one hash.

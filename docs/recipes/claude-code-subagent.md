@@ -41,6 +41,7 @@ load_list:
   - {path: ../cross-cutting/logging-structured.md, required: false}
   - {path: ../cross-cutting/testing-strategy.md, required: false}
   - {path: ../cross-cutting/eval-data.md, required: false}
+  - {path: ../cross-cutting/prompt-management.md, required: false}
 roles:
   - name: researcher
     description: Subagent that takes a research question and returns a list of cited findings.
