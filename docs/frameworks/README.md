@@ -31,6 +31,8 @@ For a full capability-by-capability comparison (tool use, structured output, mem
 
 ## Frontmatter schema
 
+Body shape: see [SCHEMA.md](SCHEMA.md). The body H2 set declared there is the interface `comparison.md` cells link against; renaming an H2 silently breaks the matrix, so new framework docs should copy the worked reference at [`langchain.md`](langchain.md) verbatim and adapt content under the existing headings.
+
 Each framework doc carries a YAML frontmatter block declaring the canonical version pin so downstream consumers (e.g. `agent-scaffold`) read pins from one place instead of re-encoding them. Fields:
 
 - `id` — the slug the scaffold REPL accepts (snake_case: `pydantic_ai`, `vercel_ai_sdk`, …). Maps to the PyPI / npm distribution via `package`.

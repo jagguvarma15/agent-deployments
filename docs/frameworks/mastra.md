@@ -4,6 +4,8 @@ language: typescript
 package: "@mastra/core"
 versions:
   minimum: "^0.1.0"
+  last_known_good: "0.1.0"
+  notes: "Pre-1.0 line; the ^0.1.0 floor unlocks the agents + workflows + memory triad recipes assume, but the surface still moves between minors. Pin tight."
 ---
 
 # Framework: Mastra
@@ -12,7 +14,11 @@ versions:
 **Install:** `npm install mastra @mastra/core`
 **Version pinned:** ^0.1.0
 
-## Core abstractions
+## When to choose Mastra
+
+Mastra is the right fit when a TypeScript track needs workflow orchestration, built-in memory, or multi-agent handoff out of the box. The framework is TS-native — Zod schemas, async/await, full type inference from agent to tool to result. Batteries-included is the central trade-off: memory, workflows, integrations, and tools live under one roof, so a single dependency unlocks most of the agent surface. The workflow engine carries directed-graph steps with branching and parallelism, similar to LangGraph but in TypeScript. The ecosystem is growing — active development, increasing community adoption — and the team's release cadence is fast.
+
+Core abstractions:
 
 - **Agent:** An LLM-powered entity with a system prompt, model config, and tools. Similar to Pydantic AI's Agent but in TypeScript.
 - **Tool:** A typed function the agent can call. Defined with Zod schemas for input/output validation.
@@ -20,20 +26,7 @@ versions:
 - **Memory:** Built-in memory primitives for conversation history and semantic memory. Integrates with vector stores.
 - **Integration:** Pre-built connectors for external services (APIs, databases, SaaS tools).
 
-## Patterns it supports well
-
-- **ReAct** — Agent with tools runs a built-in reason-act-observe loop. Similar ergonomics to Pydantic AI.
-- **Routing + Tool Use** — Agent with structured output for classification, separate agents per handler.
-- **Prompt Chaining** — Workflow steps execute sequentially, passing typed data between stages.
-- **Memory** — First-class memory support with built-in storage backends.
-- **Multi-Agent** — Agent handoffs via workflows. Agents can delegate to other agents.
-
-## Patterns where it's awkward
-
-- **Plan-and-Execute** — Possible via workflows but no dedicated planner/reflector abstractions.
-- **Complex state management** — Workflows handle state but lack LangGraph's checkpointing depth (no replay, no branching history).
-
-## Idiomatic minimal example
+## Minimal agent
 
 ```typescript
 import { Agent } from "@mastra/core";
@@ -57,33 +50,45 @@ const result = await agent.generate("What is MCP?");
 console.log(result.text);
 ```
 
-## Strengths
+## Tools
 
-- **TS-native** — Built for TypeScript from the ground up. Zod schemas, async/await, full type inference.
-- **Batteries included** — Memory, workflows, integrations, and tools in one framework.
-- **Workflow engine** — Directed graph workflows with branching and parallelism, similar to LangGraph but in TS.
-- **Growing ecosystem** — Active development, increasing community adoption.
+Tools attach to an `Agent` as a map of named entries. Each tool declares a Zod `parameters` schema, a `description`, and an `execute` async function. The framework hands the Zod schema to the model as the OpenAI-format tool definition; on invocation, the parsed arguments are validated and passed to `execute`. Tools can read `runtimeContext` for per-request state (DB connections, user identity) without globals.
 
-## Trade-offs
+## Structured output
 
-- **Newer framework** — Smaller community, fewer production deployments compared to Vercel AI SDK or LangChain.
-- **Heavier than Vercel AI SDK** — More abstractions to learn. For simple agents, Vercel AI SDK is lighter.
-- **Integration lock-in** — Built-in integrations are convenient but may not match your exact needs.
-- **Documentation gaps** — As a newer project, some advanced use cases lack documentation.
+Pass an `output` schema (Zod) to `agent.generate()` and Mastra binds the model's response to that shape, returning a typed result. The same shape works inside workflow steps via the step's `outputSchema`. Validation failures retry inside the framework's loop before surfacing.
 
-## Used in this repo
+## Memory
 
-| Prototype | Role |
-|-----------|------|
-| Not currently used | The TS track uses Vercel AI SDK. Mastra is documented as a TS framework option for teams that need workflow orchestration or built-in memory. |
+Memory is first-class. The `@mastra/memory` package provides short-term conversation buffers and long-term semantic memory (vector-store-backed). Wire on the `Agent` via the `memory:` option; the package ships adapters for the common vector stores (Pinecone, Qdrant, pgvector). For cross-session persistence, point the memory store at a durable backend; the contract is small enough to plug in a custom adapter.
 
-## Reference implementations
+## Streaming
 
-- No direct recipes yet. See [frameworks/vercel-ai-sdk.md](vercel-ai-sdk.md) for the TS framework currently used in prototypes.
+`agent.stream()` returns an async iterable of partial response chunks (text and tool calls). Pair with Vercel AI SDK's React hooks for browser streaming, or with a Node HTTP framework's chunked response for server-only flows. Workflow steps can emit progress events that the caller subscribes to via the workflow run's emitter.
+
+## Observability
+
+Mastra emits OpenTelemetry spans for agent runs, tool calls, and workflow steps when the OTel SDK is initialized in-process — backends like Jaeger or Honeycomb pick them up automatically. The workflow engine also surfaces per-step status via the run's `events` channel for application-level monitoring.
+
+## Anti-patterns
+
+- **Plan & Execute** — Possible via workflows but no dedicated planner/reflector abstractions. If plan/execute is the central pattern, LangGraph (Python) is the better fit.
+- **Complex state management with replay.** Workflows handle state but lack LangGraph's checkpointing depth (no replay, no branching history). For pause-and-resume across long-running workflows, that gap matters.
+- **Mature production with deep ecosystem expectations.** Newer framework, smaller community, fewer production deployments compared to Vercel AI SDK or LangChain. Expect fewer pre-built integrations and shorter answer surfaces on StackOverflow / GitHub issues.
+- **Heavier than Vercel AI SDK for simple agents.** More abstractions to learn. For a single-turn agent with one tool, Vercel AI SDK is lighter.
+- **Integration lock-in risk.** Built-in integrations are convenient but may not match your exact needs. Custom backends require working against the framework's adapter shape, which can lag the underlying tool's native SDK.
+
+## Composition matrix
+
+- **ReAct** — Agent with tools runs a built-in reason-act-observe loop. Similar ergonomics to Pydantic AI.
+- **Routing + Tool Use** — Agent with structured output for classification, separate agents per handler.
+- **Prompt Chaining** — Workflow steps execute sequentially, passing typed data between stages.
+- **Memory** — First-class memory support with built-in storage backends.
+- **Multi-Agent** — Agent handoffs via workflows. Agents can delegate to other agents.
 
 ## Version notes
 
-One-line summary: pre-1.0 line; the `^0.1.0` floor unlocks the agents + workflows + memory triad recipes assume, but the surface still moves between minors. Pin tight.
+Pre-1.0 line; the `^0.1.0` floor unlocks the agents + workflows + memory triad recipes assume, but the surface still moves between minors. Pin tight.
 
 | Version | Status | Notes |
 |---------|--------|-------|
@@ -100,3 +105,13 @@ One-line summary: pre-1.0 line; the `^0.1.0` floor unlocks the agents + workflow
 ### Why these bounds
 
 The `^0.1.0` floor exists because that release cut over to the stable `Agent` + `Workflow` + `Memory` shape that any greenfield Mastra-based recipe would adopt. Pre-0.1 the agent surface was still moving fast enough that a pinned minor would break within weeks. No recorded upper bound — Mastra is pre-1.0 and the team is shipping fast — so the practical guidance is "pin the exact minor in `package.json`, bump deliberately, and re-test the `@mastra/memory` integration against the recipe before promoting."
+
+## Used in this repo
+
+| Prototype | Role |
+|-----------|------|
+| Not currently used | The TS track uses Vercel AI SDK. Mastra is documented as a TS framework option for teams that need workflow orchestration or built-in memory. |
+
+Reference implementations:
+
+- No direct recipes yet. See [frameworks/vercel-ai-sdk.md](vercel-ai-sdk.md) for the TS framework currently used in prototypes.
