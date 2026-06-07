@@ -6,9 +6,7 @@ generator_version: 1.0.0
 blueprints:
   repo: jagguvarma15/agent-blueprints
   branch: main
-  catalog_url: file:///Users/marchingsquirrel/Desktop/agent-blueprints/patterns-catalog.yaml
   catalog_path: patterns-catalog.yaml
-  upstream_sha: null
   url_pattern: https://github.com/{repo}/(?:tree|blob|raw)/{branch}/{path}
   directory_entry: overview.md
 patterns:
