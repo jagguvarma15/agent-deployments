@@ -1,0 +1,3 @@
+# Runtime deps for scripts/generate_catalog.py and the CI workflows that
+# invoke it. Pinned to a floor; CI installs with `pip install -r`.
+PyYAML>=6.0

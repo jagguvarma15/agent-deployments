@@ -2,6 +2,8 @@
 
 Full-spec agent blueprints showing how patterns, frameworks, and stack compose into real agents. Each file answers: **"Give me everything I need to build this agent."**
 
+> **For tools that consume recipes programmatically:** the [top-level `catalog.yaml`](../../catalog.yaml) aggregates every recipe's frontmatter (plus capabilities, frameworks, and the agent-blueprints pattern catalog) into one machine-readable index. Don't parse this directory yourself — read the catalog. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md). Editing a recipe? Run `uv run scripts/generate_catalog.py` and commit the regenerated `catalog.yaml` — the drift CI gate enforces this.
+
 ## Validated (with reference implementation)
 
 | Recipe | Pattern | Framework (Py / TS) | Status |

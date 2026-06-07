@@ -1,0 +1,84 @@
+name: Blueprints Bump
+
+# Daily cron + manual dispatch. Regenerates catalog.yaml against the LIVE
+# blueprints patterns-catalog.yaml and opens a PR if anything changed.
+# Catches the case where blueprints publishes new patterns / workflows /
+# composition edges without a corresponding deployments-side change to force
+# a regen via the drift CI.
+#
+# Why this is separate from drift-check:
+# - drift-check verifies AUTHOR INTENT: "did this PR's contributor regenerate?"
+# - blueprints-bump tracks UPSTREAM DRIFT: "has blueprints changed since we
+#   last regenerated, and should we now?"
+# Combining them would either cause every blueprints commit to break unrelated
+# deployments PRs (if drift-check fetched live) or hide upstream changes
+# entirely (if neither did).
+
+on:
+  schedule:
+    # Daily at 06:00 UTC. Times the run to land before most working hours
+    # in US time zones so a bump PR is waiting when reviewers log on.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Open PR if blueprints catalog has new content
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          # Need full history so the auto-created PR base is correct.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install generator dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Regenerate catalog against live blueprints
+        run: python scripts/generate_catalog.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet catalog.yaml; then
+            echo "no_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Blueprints catalog content unchanged — nothing to do."
+          else
+            echo "no_changes=false" >> "$GITHUB_OUTPUT"
+            echo "Detected upstream changes in blueprints catalog."
+          fi
+
+      - name: Create pull request
+        if: steps.changes.outputs.no_changes == 'false'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bot/blueprints-bump
+          commit-message: "chore(catalog): bump embedded blueprints catalog"
+          title: "chore(catalog): bump embedded blueprints catalog"
+          body: |
+            Automated bump opened by `.github/workflows/blueprints-bump.yml`.
+
+            The upstream `patterns-catalog.yaml` from
+            `agent-blueprints` has changed. Re-running
+            `scripts/generate_catalog.py` produced a new
+            `catalog.yaml`. Review the diff for any unexpected
+            changes (renamed patterns, removed compositions,
+            modified evolution chains) before merging.
+
+            If everything looks right, merge to ship the updated
+            catalog to downstream consumers (agent-scaffold).
+          labels: |
+            catalog-bump
+            automated
