@@ -2,6 +2,8 @@
 
 Architecture patterns for AI agents. Each file answers: **"What shape does my agent take?"**
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+
 | Pattern | One-liner | Best framework fit |
 |---------|-----------|-------------------|
 | [RAG](rag.md) | Ground answers in retrieved documents | LangGraph, Pydantic AI |

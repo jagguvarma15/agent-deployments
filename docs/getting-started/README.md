@@ -2,6 +2,8 @@
 
 If you ran `agent-scaffold doctor` and saw a missing or misconfigured service, open the matching guide. Each guide is one screen: signup link at the top, env vars at the bottom, copy-pasteable commands in the middle.
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+
 | Service | Required for | Guide |
 |---------|--------------|-------|
 | Anthropic API | every recipe | [anthropic.md](anthropic.md) |

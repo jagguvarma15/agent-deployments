@@ -2,6 +2,8 @@
 
 Infrastructure components used across prototypes. Each file answers: **"What do I run it on?"**
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+
 | Component | Choice | Role |
 |-----------|--------|------|
 | [LLM](llm-claude.md) | Claude (Sonnet / Haiku) | Primary language model |
