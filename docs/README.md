@@ -4,6 +4,8 @@ Composable markdown context for designing, building, and deploying AI agents.
 
 Load the small docs you need for your design — one file per axis of choice.
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../MANIFEST_SCHEMA.md).
+
 ## How to use these docs
 
 1. Start with the **playbook** to walk the design process.

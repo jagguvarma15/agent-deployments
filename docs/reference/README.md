@@ -2,6 +2,8 @@
 
 Reusable project scaffolding extracted from the original prototypes. Each file answers: **"How do I set up the build/deploy infrastructure?"**
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+
 | Template | What it provides |
 |----------|-----------------|
 | [Makefile](makefile-template.md) | Build, test, eval, lint, and Docker targets |

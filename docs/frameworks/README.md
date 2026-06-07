@@ -2,6 +2,8 @@
 
 Agent frameworks used in this repo. Each file answers: **"How do I implement the pattern?"**
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+
 | Framework | Language | Best for | Used in |
 |-----------|----------|----------|---------|
 | [LangGraph](langgraph.md) | Python | Stateful graphs, multi-step, multi-agent | research-assistant, code-review, memory, hierarchical |

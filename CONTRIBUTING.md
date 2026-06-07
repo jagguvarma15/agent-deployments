@@ -15,7 +15,8 @@ Thank you for your interest in contributing! This guide covers how to contribute
 1. Open an issue describing the improvement
 2. Fork, branch (`improve/<short-description>`), and make changes
 3. Ensure all internal markdown links still resolve
-4. Submit a PR referencing the issue
+4. If you edited any recipe / capability / framework frontmatter, regenerate the catalog (`uv run scripts/generate_catalog.py`) and commit the resulting `catalog.yaml`
+5. Submit a PR referencing the issue
 
 ### Stack swaps
 
@@ -33,6 +34,7 @@ New blueprints must:
 2. Map to a pattern from [`docs/patterns/`](docs/patterns/) or propose a new one
 3. Include specifications for **both** Python and TypeScript tracks
 4. Follow the 13-section blueprint template (see any existing recipe for reference)
+5. Regenerate the catalog — after editing the new recipe's frontmatter (or any capability / framework / cross-cutting doc), run `uv run scripts/generate_catalog.py` and commit the resulting `catalog.yaml`. The drift CI gate enforces this.
 
 ### Blueprint template sections
 
@@ -69,6 +71,7 @@ Use concise, descriptive commit messages:
 - [ ] I have read the contributing guide
 - [ ] Both language tracks are specified (for new blueprints)
 - [ ] All internal markdown links resolve
+- [ ] If I edited any recipe / capability / framework frontmatter: I regenerated `catalog.yaml` (`uv run scripts/generate_catalog.py`) and committed the result
 - [ ] I have not committed secrets or API keys
 
 ## Questions?

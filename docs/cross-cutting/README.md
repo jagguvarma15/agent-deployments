@@ -2,6 +2,8 @@
 
 Shared production plumbing used by all agents. Each file answers: **"What production scaffolding do I need?"**
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+
 | Concern | Library (Py / TS) | Reference |
 |---------|-------------------|-----------|
 | [Auth](auth-jwt.md) | python-jose / hono-jwt | Inline implementation below |

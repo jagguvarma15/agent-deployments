@@ -2,6 +2,12 @@
 
 Full mapping between `agent-deployments` recipes and `agent-blueprints` patterns.
 
+> **Authoritative machine-readable view:** [`catalog.yaml`](../catalog.yaml).
+> This document is the prose-friendly companion — it adds context and
+> rationale (per-recipe pattern justification, `composition/` notes,
+> visual mapping) that the catalog can't carry. When the two disagree,
+> the catalog wins; open a PR to fix this file.
+
 > [`agent-blueprints`](https://github.com/jagguvarma15/agent-blueprints) teaches
 > architecture at three tiers: Overview, Design, Implementation.
 > Each blueprint below links to the relevant pattern pages.

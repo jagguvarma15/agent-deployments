@@ -6,6 +6,8 @@ Recipes opt in by declaring `capabilities:` in their frontmatter; `agent-scaffol
 
 This catalog is consumed by `agent-scaffold` ≥ v0.3 (Phase 1b of Track C). On older scaffold versions the `capabilities:` field is silently ignored — recipes remain backwards-compatible.
 
+> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+
 ## When to add a capability vs. extend stack/
 
 - **stack/`<x>`.md** — deep reference doc for a stack pick: tradeoffs, every config knob, multi-paragraph integration patterns. Long-form. Human-first.
