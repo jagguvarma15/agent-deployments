@@ -1,0 +1,89 @@
+# Seed file for catalog.yaml's alias / cross_cutting / non_recipe_stems / min_alias_length blocks.
+#
+# These values are LIFTED from agent-scaffold's hardcoded maps and pinned here
+# as the v1 source of truth. Once they live here, scaffold (PR #3) deletes its
+# in-process copies and reads these via the generated catalog instead.
+#
+# v1.1 follow-up moves the alias declarations into per-doc `aliases:` frontmatter
+# (so each doc owns its own alias list); the generator will then derive these
+# blocks from the docs and this seed file becomes empty / removable.
+#
+# Paths are repo-root-relative (e.g. `docs/patterns/react.md`), not `docs/`-relative.
+
+# Lowercase prose token -> doc path. Source: scaffold/src/agent_scaffold/context.py ALIAS_TABLE.
+aliases:
+  react: docs/patterns/react.md
+  rag: docs/patterns/rag.md
+  routing: docs/patterns/routing-tool-use.md
+  tool use: docs/patterns/routing-tool-use.md
+  tool-use: docs/patterns/routing-tool-use.md
+  routing-tool-use: docs/patterns/routing-tool-use.md
+  prompt chaining: docs/patterns/prompt-chaining.md
+  plan, execute, reflect: docs/patterns/plan-execute-reflect.md
+  multi-agent: docs/patterns/multi-agent-flat.md
+  multi-agent-flat: docs/patterns/multi-agent-flat.md
+  multi-agent-hierarchical: docs/patterns/multi-agent-hierarchical.md
+  memory: docs/patterns/memory.md
+  parallel calls: docs/patterns/parallel-calls.md
+  event driven: docs/patterns/event-driven.md
+  event-driven: docs/patterns/event-driven.md
+  langgraph: docs/frameworks/langgraph.md
+  pydantic ai: docs/frameworks/pydantic-ai.md
+  pydantic-ai: docs/frameworks/pydantic-ai.md
+  crewai: docs/frameworks/crewai.md
+  vercel ai sdk: docs/frameworks/vercel-ai-sdk.md
+  vercel-ai-sdk: docs/frameworks/vercel-ai-sdk.md
+  mastra: docs/frameworks/mastra.md
+  qdrant: docs/stack/vector-qdrant.md
+  vector-qdrant: docs/stack/vector-qdrant.md
+  postgres: docs/stack/relational-postgres.md
+  redis: docs/stack/cache-redis.md
+  langfuse: docs/stack/tracing-langfuse.md
+  fastapi: docs/stack/api-fastapi.md
+  hono: docs/stack/api-hono.md
+  anthropic: docs/stack/llm-claude.md
+  claude: docs/stack/llm-claude.md
+
+# Cross-cutting category -> doc path. Source: scaffold/src/agent_scaffold/context.py CROSS_CUTTING.
+cross_cutting:
+  auth: docs/cross-cutting/authorization-rbac.md
+  auth-jwt: docs/cross-cutting/auth-jwt.md
+  authorization: docs/cross-cutting/authorization-rbac.md
+  authorization-rbac: docs/cross-cutting/authorization-rbac.md
+  audit: docs/cross-cutting/audit-logging.md
+  audit-logging: docs/cross-cutting/audit-logging.md
+  pii: docs/cross-cutting/pii-gdpr.md
+  pii-gdpr: docs/cross-cutting/pii-gdpr.md
+  gdpr: docs/cross-cutting/pii-gdpr.md
+  logging: docs/cross-cutting/logging-structured.md
+  rate limiting: docs/cross-cutting/rate-limiting.md
+  rate-limiting: docs/cross-cutting/rate-limiting.md
+  testing: docs/cross-cutting/testing-strategy.md
+  idempotency: docs/cross-cutting/idempotency.md
+  resilience: docs/cross-cutting/resilience.md
+  distributed-locking: docs/cross-cutting/distributed-locking.md
+  distributed locking: docs/cross-cutting/distributed-locking.md
+  health: docs/cross-cutting/health-graceful-shutdown.md
+  graceful shutdown: docs/cross-cutting/health-graceful-shutdown.md
+  security-hardening: docs/cross-cutting/security-hardening.md
+  schema-evolution: docs/cross-cutting/schema-evolution.md
+  schema evolution: docs/cross-cutting/schema-evolution.md
+  validation-strategy: docs/cross-cutting/validation-strategy.md
+  caching-strategies: docs/cross-cutting/caching-strategies.md
+  multi-tenancy: docs/cross-cutting/multi-tenancy.md
+  multi tenancy: docs/cross-cutting/multi-tenancy.md
+
+# Files inside docs/recipes/ etc. that aren't recipes/capabilities/frameworks themselves.
+# Source: scaffold/src/agent_scaffold/discovery.py _NON_RECIPE_STEMS.
+non_recipe_stems:
+  - readme
+  - schema
+  - index
+  - changelog
+  - contributing
+  - license
+  - templates
+
+# Minimum alias length. Below this, aliases are dropped at consumer load time
+# to prevent over-matching (a one-letter alias would match almost every doc).
+min_alias_length: 3
