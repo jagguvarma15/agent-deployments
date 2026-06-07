@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["PyYAML>=6.0"]
+# ///
 """Generate catalog.yaml from this repo's frontmatter + agent-blueprints' catalog.
 
 This script is the **single source of truth** for `catalog.yaml`. The file is
