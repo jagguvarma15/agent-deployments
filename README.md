@@ -12,12 +12,12 @@ This repo is one of three that work together as a single pipeline:
 agent-blueprints     →     agent-deployments    →     agent-scaffold
 (architecture)             (specs)                    (generator)
 "how to think"             "what to build"            "build it for me"
-patterns + tradeoffs       9 production-shaped        reads spec, asks LLM,
+patterns + tradeoffs       11 production-shaped       reads spec, asks LLM,
 framework-agnostic         markdown blueprints        writes runnable project
 ```
 
 - **[agent-blueprints](https://github.com/jagguvarma15/agent-blueprints)** — framework-agnostic patterns, tradeoffs, and design guidance. Start here if you want to design before you build.
-- **[agent-deployments](https://github.com/jagguvarma15/agent-deployments)** *(this repo)* — opinionated, production-shaped markdown specs for nine concrete agents (Python + TypeScript tracks).
+- **[agent-deployments](https://github.com/jagguvarma15/agent-deployments)** *(this repo)* — opinionated, production-shaped markdown specs for eleven concrete agents (Python + TypeScript tracks).
 - **[agent-scaffold](https://github.com/jagguvarma15/agent-scaffold)** — a CLI that consumes a deployment spec, asks Claude to emit a complete project, and writes the files atomically to disk.
 
 If you want to skip the manual "load these docs into your AI assistant" step in the Quick Start below, point `agent-scaffold` at this repo and it'll do the assembly + generation for you.
@@ -40,6 +40,7 @@ If you want to skip the manual "load these docs into your AI assistant" step in 
 | A personal assistant with memory | [`memory-assistant`](docs/recipes/memory-assistant.md) | Memory |
 | A hierarchical multi-agent system | [`hierarchical-agent`](docs/recipes/hierarchical-agent.md) | Multi-Agent (hierarchical) |
 | An event-driven rebooking agent | [`restaurant-rebooking`](docs/recipes/restaurant-rebooking.md) | Event-Driven + Multi-Agent (flat) |
+| A CLI host that delegates to a Claude Code subagent | [`claude-code-subagent`](docs/recipes/claude-code-subagent.md) | ReAct + Routing/Tool Use (Claude Agent SDK) |
 
 Every blueprint includes **Python** (FastAPI + Pydantic AI) and **TypeScript** (Hono + Vercel AI SDK) specifications side by side.
 
@@ -122,7 +123,7 @@ Want to swap a stack component? See [`docs/playbook/stack-swaps.md`](docs/playbo
 ```
 agent-deployments/
 ├── docs/
-│   ├── recipes/           # 10 agent blueprints (the main content)
+│   ├── recipes/           # 11 agent blueprints (the main content)
 │   ├── patterns/          # 10 agent design patterns
 │   ├── frameworks/        # Framework-specific guides (LangGraph, Pydantic AI, etc.)
 │   ├── stack/             # Stack choice docs (Postgres, Redis, Qdrant, etc.)
