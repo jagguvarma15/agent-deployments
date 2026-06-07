@@ -19,21 +19,24 @@ What it does (in order):
    URL: raw.githubusercontent.com main branch; overridable via
    ``--blueprints-catalog-url``). Extracts its ``patterns[]``, ``workflows[]``,
    and ``compositions[]`` blocks and embeds them.
-3. Queries the GitHub Commits API for the blueprints HEAD SHA and stamps it
-   as ``blueprints.upstream_sha``. This pins which blueprints revision the
-   deployments catalog was built against, so consumers can detect upstream
-   drift even when the deployments catalog hasn't been regenerated.
-4. Reads ``scripts/_seed_aliases.yaml`` for the v1 alias / cross-cutting /
+3. Reads ``scripts/_seed_aliases.yaml`` for the v1 alias / cross-cutting /
    non-recipe-stems / min-alias-length blocks. (v1.1 will move alias data
    into per-doc frontmatter.)
-5. Emits ``catalog.yaml`` (or ``--out <path>``) via deterministic PyYAML dump
+4. Emits ``catalog.yaml`` (or ``--out <path>``) via deterministic PyYAML dump
    (sort_keys=False, no flow style, no timestamps).
 
 Determinism notes:
 
-- No ``generated_at``, no source-side ``source_commit_sha`` — both would
-  break the drift check's byte-diff. The blueprints upstream SHA is the
-  only externally-derived field, and it's stable per upstream commit.
+- The output is a pure function of input file content: no ``generated_at``,
+  no commit SHAs, no environment-dependent fields, no record of which URL
+  the blueprints catalog was fetched from. That's load-bearing for the
+  drift CI — running the generator with ``--blueprints-catalog-url`` set
+  to a local file or to the live URL must produce identical bytes given
+  identical input content.
+- Blueprints version tracking happens implicitly via the embedded
+  ``patterns[]`` / ``workflows[]`` / ``compositions[]`` content. If
+  blueprints changes, those blocks change, and the deployments catalog
+  diffs. No separate ``upstream_sha`` field needed.
 - All collections are sorted before emit: recipes / capabilities / frameworks
   / stack / cross-cutting / patterns by their natural primary key.
 - Aliases and cross-cutting maps inherit the seed file's insertion order
@@ -55,7 +58,6 @@ Local development:
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 import urllib.error
@@ -272,29 +274,6 @@ def fetch_text(url: str) -> str:
         return resp.read().decode("utf-8")
 
 
-def fetch_blueprints_head_sha(repo: str, branch: str) -> str | None:
-    """Return the HEAD commit SHA on ``branch`` of ``repo``, or None on failure.
-
-    Uses the public GitHub Commits API. Anonymous; subject to the unauth
-    rate limit (60 req/hr/IP). Failures (offline, rate-limited, 404) return
-    None — the generator stamps ``upstream_sha: null`` and continues so a
-    local dev run without network still produces a usable catalog.
-    """
-    url = f"https://api.github.com/repos/{repo}/commits/{branch}"
-    req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json"})
-    try:
-        with urllib.request.urlopen(req, timeout=NETWORK_TIMEOUT_SECONDS) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
-            sha = payload.get("sha")
-            return sha if isinstance(sha, str) else None
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
-        print(
-            f"warning: could not fetch blueprints HEAD SHA from {url}: {exc}",
-            file=sys.stderr,
-        )
-        return None
-
-
 def load_blueprints_catalog(url: str) -> dict[str, Any]:
     """Fetch + parse the blueprints catalog. Raises on any failure."""
     try:
@@ -322,10 +301,8 @@ def load_blueprints_catalog(url: str) -> dict[str, Any]:
 def build_catalog(
     seed: dict[str, Any],
     blueprints_catalog: dict[str, Any],
-    blueprints_url: str,
     blueprints_repo: str,
     blueprints_branch: str,
-    blueprints_upstream_sha: str | None,
 ) -> dict[str, Any]:
     non_recipe_stems = frozenset(
         s.lower() for s in seed.get("non_recipe_stems", list(DEFAULT_NON_RECIPE_STEMS))
@@ -336,13 +313,15 @@ def build_catalog(
 
     # Blueprints pointer block — the dependency declaration this repo makes
     # explicit so downstream consumers (scaffold) never reach into blueprints
-    # by name.
+    # by name. Deliberately no `catalog_url` or `upstream_sha` fields: those
+    # are environment-dependent and would make the drift check flap.
+    # Version tracking happens implicitly via the embedded patterns[] /
+    # compositions[] content — blueprints changes show up as catalog content
+    # diffs.
     blueprints_block: dict[str, Any] = OrderedDict()
     blueprints_block["repo"] = blueprints_repo
     blueprints_block["branch"] = blueprints_branch
-    blueprints_block["catalog_url"] = blueprints_url
     blueprints_block["catalog_path"] = "patterns-catalog.yaml"
-    blueprints_block["upstream_sha"] = blueprints_upstream_sha
     # URL pattern + directory entry: scaffold uses these to resolve recipe-body
     # links of the form `github.com/.../agent-blueprints/...` to local paths
     # in the fetched blueprints tree, without hardcoding the convention itself.
@@ -424,13 +403,6 @@ def main(argv: list[str] | None = None) -> int:
         help=f"Branch on the blueprints repo. Default: {DEFAULT_BLUEPRINTS_BRANCH}",
     )
     parser.add_argument(
-        "--skip-sha-fetch",
-        action="store_true",
-        help="Skip the GitHub Commits API call for the blueprints upstream SHA. "
-        "Useful for offline runs or when iterating on a non-default branch. "
-        "Sets upstream_sha to null in the output.",
-    )
-    parser.add_argument(
         "--seed",
         default=str(REPO_ROOT / "scripts" / "_seed_aliases.yaml"),
         help="Path to the seed aliases / cross-cutting / non-recipe-stems YAML.",
@@ -445,18 +417,11 @@ def main(argv: list[str] | None = None) -> int:
 
     blueprints_catalog = load_blueprints_catalog(args.blueprints_catalog_url)
 
-    if args.skip_sha_fetch:
-        upstream_sha = None
-    else:
-        upstream_sha = fetch_blueprints_head_sha(args.blueprints_repo, args.blueprints_branch)
-
     catalog = build_catalog(
         seed=seed,
         blueprints_catalog=blueprints_catalog,
-        blueprints_url=args.blueprints_catalog_url,
         blueprints_repo=args.blueprints_repo,
         blueprints_branch=args.blueprints_branch,
-        blueprints_upstream_sha=upstream_sha,
     )
 
     body = render_yaml(catalog)
