@@ -1,6 +1,6 @@
 # Recipe frontmatter schema
 
-Canonical specification for the YAML frontmatter block that opens every recipe under `docs/recipes/`. This is the contract `agent-scaffold` reads to resolve a recipe into a generated project.
+Canonical specification for the YAML frontmatter block that opens every recipe under `docs/recipes/`. This is the contract every recipe's frontmatter declares. The catalog generator ([`scripts/generate_catalog.py`](../../scripts/generate_catalog.py)) aggregates these into the top-level [`catalog.yaml`](../../catalog.yaml), which is what `agent-scaffold` (and any other downstream consumer) actually reads. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md) for the catalog's own schema.
 
 > Authoritative since: introduction of this file.
 > Worked reference: [`restaurant-rebooking.md`](restaurant-rebooking.md) frontmatter lines 1–116.
@@ -10,16 +10,11 @@ Canonical specification for the YAML frontmatter block that opens every recipe u
 
 Until this document landed, the de facto recipe schema lived in two places — the frontmatter of `restaurant-rebooking.md` (full shape) and `customer-support-triage.md` (partial: `topology` + `roles` only). New contributors had nothing authoritative to copy; scaffold maintainers had no single reference to point at. This file is that reference.
 
-The schema is **additive**. Older `agent-scaffold` versions silently ignore unknown frontmatter keys per the catalog policy in [`../capabilities/README.md`](../capabilities/README.md) ("Phase 1b loader treats unknown keys as warnings"). Adding fields here does not break any current consumer.
+The schema is **additive**. Consumers ignore unknown frontmatter keys per the forward-compat policy in [`../../MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md). Adding fields here does not break any current consumer.
 
-## Consumer versions
+## Consumer compatibility
 
-Two `agent-scaffold` versions matter:
-
-- **v0.2.x (live)** — reads `status`, `languages`, `required_files`, `recipe_dependencies`, `external_services`.
-- **v0.3+ (pending, "Track C")** — adds `capabilities` and `bootstrap_config`. Recipes should declare both `external_services` (v0.2 reach) and `capabilities` (v0.3 reach) during the transition so the same recipe works against either version.
-
-Per-field consumer notes appear in each section below.
+Every field below is passed through verbatim into the catalog's `recipes[]` block. Consumers use forward-compatible parsing (`extra: ignore`) so additive fields don't break older scaffold versions. Removing or changing the semantic of an existing field requires a `schema_version` bump in `catalog.yaml` (see [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md)).
 
 ## Worked example
 
