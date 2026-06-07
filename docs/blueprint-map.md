@@ -20,6 +20,7 @@ Full mapping between `agent-deployments` recipes and `agent-blueprints` patterns
 | `memory-assistant` | Memory | `patterns/memory/` |
 | `hierarchical-agent` | Multi-Agent (hierarchical) | `patterns/multi-agent/` (hierarchical variant) |
 | `restaurant-rebooking` | Event-Driven + Multi-Agent (flat) | `patterns/event-driven/` · `patterns/multi-agent/` (flat variant) — first recipe to declare `capabilities:` end-to-end |
+| `claude-code-subagent` | ReAct + Routing/Tool Use | `patterns/react/` (overview, design, implementation) · `patterns/routing/` · `patterns/tool-use/` — host CLI delegating a research turn to a Claude Code-style subagent via the Claude Agent SDK |
 
 ## How to read this
 
@@ -44,12 +45,12 @@ agent-blueprints                          agent-deployments
 foundations/choosing-a-pattern.md    ──►   customer-support-triage
                                            (why Routing, not ReAct)
 
-patterns/routing/                    ──►   customer-support-triage
-patterns/tool-use/                   ──►   customer-support-triage, research-assistant
+patterns/routing/                    ──►   customer-support-triage, claude-code-subagent
+patterns/tool-use/                   ──►   customer-support-triage, research-assistant, claude-code-subagent
 
 patterns/rag/                        ──►   docs-rag-qa
 
-patterns/react/                      ──►   research-assistant
+patterns/react/                      ──►   research-assistant, claude-code-subagent
 
 patterns/plan-and-execute/           ──►   code-review-agent
 patterns/reflection/                 ──►   code-review-agent
