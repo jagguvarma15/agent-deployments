@@ -1,0 +1,50 @@
+name: Catalog Drift Check
+
+# Regenerates catalog.yaml on every PR and push and fails if the committed
+# file diverges from what the generator produces. Forces contributors who edit
+# any recipe / capability / framework / etc. frontmatter to also commit the
+# regenerated catalog. Downstream consumers (agent-scaffold) read this file
+# directly, so drift here = silent breakage at scaffold runtime.
+#
+# This workflow is content-deterministic: it fetches the LIVE blueprints
+# patterns-catalog.yaml from raw.githubusercontent.com. If blueprints publishes
+# changes that haven't yet been folded into this repo's catalog, this workflow
+# will fail — that's the signal to run the blueprints-bump workflow (or wait
+# for the daily cron to open the bump PR).
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  drift-check:
+    name: catalog.yaml is up to date
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install generator dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Regenerate catalog
+        run: python scripts/generate_catalog.py --out /tmp/catalog.yaml
+
+      - name: Diff against committed file
+        run: |
+          if ! diff -u catalog.yaml /tmp/catalog.yaml; then
+            echo "::error::catalog.yaml is stale."
+            echo "::error::Run: uv run scripts/generate_catalog.py"
+            echo "::error::(or: python scripts/generate_catalog.py)"
+            echo "::error::Then commit the result."
+            exit 1
+          fi
+          echo "catalog.yaml matches generator output"
