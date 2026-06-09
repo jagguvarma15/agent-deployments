@@ -1,27 +1,27 @@
 name: Sync Blueprints Vendored Tree
 
-# Pulls the latest agent-blueprints content into vendored/blueprints/ via vendir.
-# Runs on three triggers:
-#   - schedule  : nightly cron, catches drift even when no upstream push event
-#                 fired (push events can be dropped by GitHub's at-most-once
-#                 delivery; the cron is the belt to that suspenders).
-#   - repository_dispatch (blueprints-push): fired by agent-blueprints'
-#                 notify-deployments.yml workflow on every push to main.
-#                 Sub-10-minute latency from upstream merge to vendored PR.
-#   - workflow_dispatch  : manual override.
+# Updates vendored/blueprints/ to a tagged release of agent-blueprints.
+# Triggers:
+#   - repository_dispatch (blueprints-release): fired by agent-blueprints'
+#     notify-deployments.yml workflow whenever a release is published. The
+#     client payload carries the release tag; this workflow pins vendir.yml
+#     at that tag, runs `vendir sync`, regenerates the catalog, and opens
+#     a PR with the diff.
+#   - workflow_dispatch (manual): admin override. Specify the target tag in
+#     the `tag` input; defaults to the latest release on agent-blueprints.
 #
-# If `vendir sync` produces a non-empty diff, the workflow opens a PR titled
-# "chore(blueprints): sync vendored content @ <short-sha>" with the diff. The
-# matching catalog drift CI then runs on that PR — if the new vendored content
-# changes catalog.yaml, the bot also has to regenerate the catalog before the
-# PR can merge (see catalog-drift.yml).
+# Release-driven (not push-driven): vendored snapshots track tagged releases,
+# not raw main HEAD. Stable consumers, deterministic sync diffs.
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
   repository_dispatch:
-    types: [blueprints-push]
+    types: [blueprints-release]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Blueprints release tag to sync to (e.g. v0.3.0). Leave empty to use the latest release.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -35,6 +35,46 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Resolve target tag
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Precedence: repository_dispatch payload > workflow_dispatch input >
+          # latest release lookup via gh.
+          tag="${{ github.event.client_payload.tag }}"
+          if [ -z "$tag" ]; then
+            tag="${{ github.event.inputs.tag }}"
+          fi
+          if [ -z "$tag" ]; then
+            tag=$(gh release view -R jagguvarma15/agent-blueprints --json tagName -q .tagName)
+          fi
+          if [ -z "$tag" ]; then
+            echo "::error::Could not resolve a target release tag"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Target tag: $tag"
+
+      - name: Pin vendir.yml to target tag
+        run: |
+          # Rewrite the `ref:` line so vendir syncs the released tarball.
+          # Idempotent: re-running with the same tag is a no-op.
+          tag="${{ steps.target.outputs.tag }}"
+          python3 - "$tag" <<'PY'
+          import re, sys, pathlib
+          tag = sys.argv[1]
+          path = pathlib.Path("vendir.yml")
+          text = path.read_text(encoding="utf-8")
+          new = re.sub(
+              r"(\bref:\s*)\S+",
+              lambda m: f"{m.group(1)}refs/tags/{tag}",
+              text,
+              count=1,
+          )
+          path.write_text(new, encoding="utf-8")
+          PY
 
       - name: Install vendir
         uses: carvel-dev/setup-action@v2
@@ -59,7 +99,7 @@ jobs:
       - name: Detect changes
         id: diff
         run: |
-          if git diff --quiet -- vendored/ vendir.lock.yml catalog.yaml; then
+          if git diff --quiet -- vendir.yml vendored/ vendir.lock.yml catalog.yaml; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -69,15 +109,16 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: 'chore(blueprints): sync vendored content'
-          title: 'chore(blueprints): sync vendored content @ ${{ github.event.client_payload.sha && github.event.client_payload.sha || ''upstream main'' }}'
+          commit-message: 'chore(blueprints): sync vendored to ${{ steps.target.outputs.tag }}'
+          title: 'chore(blueprints): sync vendored to ${{ steps.target.outputs.tag }}'
           body: |
-            Automated sync of `vendored/blueprints/` from upstream `agent-blueprints@main`.
+            Automated sync of `vendored/blueprints/` to upstream `agent-blueprints` release **${{ steps.target.outputs.tag }}**.
 
             **Trigger:** `${{ github.event_name }}`
-            ${{ github.event.client_payload.summary && format('**Upstream commit:** {0}', github.event.client_payload.summary) || '' }}
+            ${{ github.event.client_payload.html_url && format('**Release:** {0}', github.event.client_payload.html_url) || '' }}
+            ${{ github.event.client_payload.name && format('**Release name:** {0}', github.event.client_payload.name) || '' }}
 
             Regenerated `catalog.yaml` is included so the catalog drift CI passes.
-          branch: chore/blueprints-sync
+          branch: chore/blueprints-sync-${{ steps.target.outputs.tag }}
           delete-branch: true
           labels: automated-sync
