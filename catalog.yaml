@@ -1974,16 +1974,21 @@ cross_cutting_docs:
 - docs/cross-cutting/testing-strategy.md
 - docs/cross-cutting/validation-strategy.md
 pattern_docs:
-- docs/patterns/event-driven.md
-- docs/patterns/memory.md
-- docs/patterns/multi-agent-flat.md
-- docs/patterns/multi-agent-hierarchical.md
-- docs/patterns/parallel-calls.md
-- docs/patterns/plan-execute-reflect.md
-- docs/patterns/prompt-chaining.md
-- docs/patterns/rag.md
-- docs/patterns/react.md
-- docs/patterns/routing-tool-use.md
+- vendored/blueprints/patterns/event_driven/overview.md
+- vendored/blueprints/patterns/human_in_the_loop/overview.md
+- vendored/blueprints/patterns/memory/overview.md
+- vendored/blueprints/patterns/multi_agent/overview.md
+- vendored/blueprints/patterns/plan_and_execute/overview.md
+- vendored/blueprints/patterns/rag/overview.md
+- vendored/blueprints/patterns/react/overview.md
+- vendored/blueprints/patterns/reflection/overview.md
+- vendored/blueprints/patterns/routing/overview.md
+- vendored/blueprints/patterns/saga/overview.md
+- vendored/blueprints/patterns/tool_use/overview.md
+- vendored/blueprints/workflows/evaluator-optimizer/overview.md
+- vendored/blueprints/workflows/orchestrator-worker/overview.md
+- vendored/blueprints/workflows/parallel-calls/overview.md
+- vendored/blueprints/workflows/prompt-chaining/overview.md
 aliases:
   react: docs/patterns/react.md
   rag: docs/patterns/rag.md
