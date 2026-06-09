@@ -1,6 +1,6 @@
 # Playbook: Production Checklist
 
-Every blueprint in this repo specifies these 11 points. Use this as a gate before calling any agent "production-shaped."
+Every blueprint in this repo specifies these 16 points. Use this as a gate before calling any agent "production-shaped."
 
 ## The checklist
 
@@ -15,6 +15,18 @@ Every blueprint in this repo specifies these 11 points. Use this as a gate befor
 9. **Tests** — Unit (mocked LLM), integration (real LLM), eval (golden datasets). See [`docs/cross-cutting/testing-strategy.md`](../cross-cutting/testing-strategy.md).
 10. **CI** — Lint, typecheck, unit, eval, docker build, security scan via GitHub Actions. See [`docs/reference/ci-template.md`](../reference/ci-template.md).
 11. **Docs** — Architecture diagram, API contract, eval docs per blueprint.
+12. **MCP wired** — Every external tool the agent invokes goes through an MCP server (server stub committed if custom). Recipe declares `mcp_servers:` in frontmatter; generated project ships `mcp.json` + per-server launcher.
+13. **Skills declared** — Repeatable in-context procedures live as discoverable skills, not inline prompt fragments. Recipe declares `skills:` in frontmatter; each skill ships a `SKILL.md` + optional helper scripts.
+14. **Trajectory eval** — Eval suite scores BOTH end-to-end success AND the path taken (tool order, retry count, hallucinated tool calls). The agent that reaches a correct answer through dangerous or inefficient tool calls still represents a production failure.
+15. **Guardrails layer** — At least one capability from `kind: guardrail` runs in front of the agent's tool-call surface. Inbound prompt-injection and outbound PII checks pass. Recipe declares `guardrails:` in frontmatter.
+16. **Sandbox for code execution** — Any agent that runs LLM-emitted code does it inside a `kind: sandbox` capability (E2B / Modal / Daytona). Recipe declares `sandbox:` in frontmatter when applicable.
+
+### Conditional follow-ups
+
+These are not blocking criteria — they apply when the recipe's shape makes them load-bearing:
+
+- **Durable workflow** *(if the agent's success criterion can take longer than 30 seconds)*: a `kind: durable` capability (Temporal / Inngest / Restate) journals every step so the agent can resume from exactly where it stopped, regardless of what crashed. Recipe declares `durable_workflow:` in frontmatter.
+- **OTel `gen_ai.*` semconv** *(when tracing exists)*: spans use the [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) (`gen_ai.request.model`, `gen_ai.token.usage`, `gen_ai.system`, …), not generic attribute names. Langfuse, Datadog, Honeycomb, and Phoenix all consume these.
 
 ## How to check
 
@@ -33,11 +45,16 @@ For each point, verify against your implementation:
 | 9 | Tests | Unit tests pass without API keys; integration tests pass with `ANTHROPIC_API_KEY` set |
 | 10 | CI | Push to a branch, CI pipeline runs lint + typecheck + unit + docker build |
 | 11 | Docs | README has architecture diagram, API contract section matches actual endpoints |
+| 12 | MCP wired | `mcp.json` exists in repo root; every entry resolves to a reachable server (probe passes) |
+| 13 | Skills declared | `skills/<id>/SKILL.md` exists per `skills:` entry; loader registers each one at boot |
+| 14 | Trajectory eval | `make trajectory-eval` (or equivalent) scores recent runs against a rubric of step order + tool-call validity |
+| 15 | Guardrails layer | A canned prompt-injection input is rejected by the inbound guardrail; a canned PII output is rejected by the outbound guardrail |
+| 16 | Sandbox for code execution | LLM-emitted code that attempts `rm -rf /` (or similar) is contained — host filesystem unaffected; sandbox session ends without escape |
 
 ## Tiered adoption
 
-You don't need all 11 points on day one. See the [tiered approach in the quickstart](../../docs/quickstart.md):
+You don't need all 16 points on day one. See the [tiered approach in the quickstart](../../docs/quickstart.md):
 
-- **Tier 1 (working agent):** Points 3 (config), 9 (tests) — the minimum for a functioning prototype.
-- **Tier 2 (API-ready):** Add points 1 (container), 2 (docker compose), 8 (persistence).
-- **Tier 3 (production-shaped):** Add points 4-7 (auth, rate limiting, logging, tracing), 10 (CI), 11 (docs).
+- **Tier 1 (working agent):** Points 3 (config), 9 (tests), 13 (skills) — the minimum for a functioning prototype.
+- **Tier 2 (API-ready):** Add points 1 (container), 2 (docker compose), 8 (persistence), 12 (MCP).
+- **Tier 3 (production-shaped):** Add points 4-7 (auth, rate limiting, logging, tracing), 10 (CI), 11 (docs), 14 (trajectory eval), 15 (guardrails), 16 (sandbox if the agent executes code).
