@@ -2,23 +2,34 @@ apiVersion: vendir.k14s.io/v1alpha1
 kind: Config
 minimumRequiredVersion: 0.40.0
 
-# Vendored snapshot of agent-blueprints — fetched from upstream main + pinned
-# in vendir.lock.yml for determinism. This makes agent-deployments the single
+# Vendored snapshot of agent-blueprints — fetched from upstream + pinned in
+# vendir.lock.yml for determinism. This makes agent-deployments the single
 # source of truth that downstream consumers (agent-scaffold, third-party
 # tools) read: blueprints content lives under vendored/blueprints/ in this
 # repo, no separate fetch required.
 #
-# Sync workflow:
-#   1. `vendir sync` on a clean checkout → updates vendored/blueprints/ to
-#      whatever upstream main currently resolves to + rewrites vendir.lock.yml.
-#   2. CI verifies determinism via `vendir sync && git diff --exit-code`.
-#   3. .github/workflows/sync-blueprints.yml runs `vendir sync` nightly + on
-#      repository_dispatch from agent-blueprints push events; opens a PR
-#      when the diff is non-empty.
+# Release-driven sync:
+#   - When agent-blueprints publishes a release, its notify-deployments.yml
+#     workflow fires a repository_dispatch (`blueprints-release`) here.
+#   - .github/workflows/sync-blueprints.yml consumes the dispatch, rewrites
+#     the `ref:` line below to the new tag (`refs/tags/<version>`), runs
+#     `vendir sync`, regenerates catalog.yaml, and opens a PR with the diff.
+#   - Admins can manually trigger the sync workflow against any tag via
+#     workflow_dispatch — useful for backfilling or rolling forward.
 #
-# Path filters mirror the brief: pattern + workflow + foundations content is
-# kept; runnable code under patterns/*/code/ is excluded (scaffold doesn't
-# read it; it'd bloat the snapshot).
+# Determinism:
+#   - vendir.lock.yml carries the resolved commit SHA for the current ref.
+#   - CI verifies `vendir sync && git diff --exit-code` produces no diff.
+#
+# Bootstrap note:
+#   The `ref:` below currently points at `origin/main` because agent-blueprints
+#   has not cut its first release yet. The first release will be pinned via
+#   the sync workflow rewriting this to `refs/tags/v0.X.0`. After that, this
+#   file's `ref:` should always be a tag, never a branch.
+#
+# Path filters: pattern + workflow + foundations content is kept; runnable
+# code under patterns/*/code/ and workflows/*/code/ is excluded (scaffold
+# doesn't read it; would bloat the snapshot).
 directories:
   - path: vendored/blueprints
     contents:
