@@ -1,0 +1,29 @@
+{
+  "id": "evaluator-optimizer",
+  "name": "Evaluator-Optimizer",
+  "category": "workflow",
+  "complexity": "Intermediate",
+  "description": "Generate-evaluate feedback loop that iteratively improves output.",
+  "tiers": [
+    "overview",
+    "design",
+    "implementation",
+    "observability",
+    "cost-and-latency"
+  ],
+  "evolvesInto": [
+    "reflection"
+  ],
+  "composableWith": [
+    "prompt-chaining",
+    "rag"
+  ],
+  "tags": [
+    "feedback-loop",
+    "quality",
+    "iterative",
+    "evaluation"
+  ],
+  "costTier": "medium-high",
+  "latencyTier": "high"
+}

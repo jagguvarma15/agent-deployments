@@ -122,9 +122,11 @@ Want to swap a stack component? See [`docs/playbook/stack-swaps.md`](docs/playbo
 
 ```
 agent-deployments/
+├── catalog.yaml           # Single source of truth (auto-generated)
+├── vendir.yml             # Declarative sync config for the vendored tree
+├── vendir.lock.yml        # Pinned upstream blueprints commit SHA
 ├── docs/
 │   ├── recipes/           # 11 agent blueprints (the main content)
-│   ├── patterns/          # 10 agent design patterns
 │   ├── frameworks/        # Framework-specific guides (LangGraph, Pydantic AI, etc.)
 │   ├── stack/             # Stack choice docs (Postgres, Redis, Qdrant, etc.)
 │   ├── capabilities/      # Provisioning contracts consumed by agent-scaffold up
@@ -132,11 +134,22 @@ agent-deployments/
 │   ├── getting-started/   # First-run remediation docs (one screen per service)
 │   ├── reference/         # Dockerfile, docker-compose, CI, Makefile templates
 │   └── playbook/          # Design guides and production checklist
+├── vendored/
+│   └── blueprints/        # Vendored snapshot of agent-blueprints (managed by vendir)
+│       ├── patterns/      # 11 cognitive patterns × 6 tier files each
+│       ├── workflows/     # 4 workflow patterns × 6 tier files each
+│       ├── foundations/   # anatomy, terminology, choosing-a-pattern, …
+│       ├── composition/   # blueprints-to-deployments, combination-matrix, …
+│       └── patterns-catalog.yaml
+├── scripts/
+│   └── generate_catalog.py  # Reads vendored/blueprints/ + this repo's docs/
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md
 ├── SECURITY.md
 └── LICENSE
 ```
+
+> The previous `docs/patterns/` lighter mirror has been retired. Pattern content now lives in `vendored/blueprints/patterns/<id>/` (note: blueprints uses underscored ids like `event_driven`, `multi_agent`, `plan_and_execute`). The vendored tree is upstream-owned and managed by [vendir](https://carvel.dev/vendir/) — pinned to a tagged release of `agent-blueprints`. Sync refreshes are **release-driven**: a release on `agent-blueprints` triggers an auto-PR here. Never edit `vendored/` by hand — edit upstream and cut a release.
 
 ---
 

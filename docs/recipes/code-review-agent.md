@@ -38,7 +38,8 @@ capabilities:
   - eval.promptfoo
 topology: chain
 load_list:
-  - {path: ../patterns/plan-execute-reflect.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/plan_and_execute/overview.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/reflection/overview.md, required: true}
   - {path: ../frameworks/langgraph.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -61,7 +62,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Plan, Execute, Reflect](../patterns/plan-execute-reflect.md)
+- Pattern: [Plan & Execute](../../vendored/blueprints/patterns/plan_and_execute/overview.md) + [Reflection](../../vendored/blueprints/patterns/reflection/overview.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (state graph with planner/executor/reflector nodes)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (manual orchestration)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -73,7 +74,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/code-review-agent.md` — this blueprint
-- `docs/patterns/plan-execute-reflect.md` — the plan-execute-reflect pattern
+- `vendored/blueprints/patterns/plan_and_execute/overview.md` and `vendored/blueprints/patterns/reflection/overview.md` — the plan-execute-reflect composition
 - `docs/frameworks/langgraph.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 

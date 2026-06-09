@@ -13,16 +13,22 @@ diverging from a fresh regen.
 What it does (in order):
 
 1. Walks ``docs/recipes/*.md``, ``docs/capabilities/**/*.md``,
-   ``docs/frameworks/*.md``, ``docs/stack/*.md``, ``docs/cross-cutting/*.md``,
-   ``docs/patterns/*.md``. Parses each file's YAML frontmatter via PyYAML.
-2. Fetches ``patterns-catalog.yaml`` from the agent-blueprints repo (default
-   URL: raw.githubusercontent.com main branch; overridable via
-   ``--blueprints-catalog-url``). Extracts its ``patterns[]``, ``workflows[]``,
-   and ``compositions[]`` blocks and embeds them.
-3. Reads ``scripts/_seed_aliases.yaml`` for the v1 alias / cross-cutting /
+   ``docs/frameworks/*.md``, ``docs/stack/*.md``, ``docs/cross-cutting/*.md``.
+   Parses each file's YAML frontmatter via PyYAML.
+2. Reads ``patterns-catalog.yaml`` from the **vendored snapshot** of
+   agent-blueprints at ``vendored/blueprints/patterns-catalog.yaml``. The
+   vendored tree is managed by ``vendir`` (see ``vendir.yml``). Extracts
+   its ``patterns[]``, ``workflows[]``, and ``compositions[]`` blocks and
+   embeds them. Override the source via ``--blueprints-catalog-url`` for
+   local iteration against an unmerged blueprints branch.
+3. Enumerates ``pattern_docs[]`` from the vendored tree:
+   ``vendored/blueprints/patterns/<id>/overview.md`` (one per pattern) and
+   ``vendored/blueprints/workflows/<id>/overview.md`` (one per workflow).
+   The previous lighter mirror at ``docs/patterns/*.md`` has been retired.
+4. Reads ``scripts/_seed_aliases.yaml`` for the v1 alias / cross-cutting /
    non-recipe-stems / min-alias-length blocks. (v1.1 will move alias data
    into per-doc frontmatter.)
-4. Emits ``catalog.yaml`` (or ``--out <path>``) via deterministic PyYAML dump
+5. Emits ``catalog.yaml`` (or ``--out <path>``) via deterministic PyYAML dump
    (sort_keys=False, no flow style, no timestamps).
 
 Determinism notes:
@@ -44,7 +50,11 @@ Determinism notes:
 
 Local development:
 
-    # Run against PR #43's branch URL while it's still unmerged:
+    # Default: read from vendored/blueprints/patterns-catalog.yaml. To pull
+    # newer upstream content, run `vendir sync` first.
+    python scripts/generate_catalog.py
+
+    # Run against an unmerged blueprints branch URL:
     python scripts/generate_catalog.py \\
       --blueprints-catalog-url \\
       https://raw.githubusercontent.com/jagguvarma15/agent-blueprints/feat/patterns-catalog/patterns-catalog.yaml
@@ -74,9 +84,14 @@ GENERATOR_VERSION = "1.0.0"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
 
-DEFAULT_BLUEPRINTS_CATALOG_URL = (
-    "https://raw.githubusercontent.com/jagguvarma15/agent-blueprints/main/patterns-catalog.yaml"
-)
+VENDORED_BLUEPRINTS_DIR = REPO_ROOT / "vendored" / "blueprints"
+DEFAULT_BLUEPRINTS_CATALOG_URL = str(VENDORED_BLUEPRINTS_DIR / "patterns-catalog.yaml")
+"""Default source for the blueprints catalog. Reads the vendored snapshot at
+``vendored/blueprints/patterns-catalog.yaml``. The vendored tree is managed
+by ``vendir`` (see ``vendir.yml``). Override via ``--blueprints-catalog-url``
+to point at a URL or a different local path when iterating against an
+unmerged upstream branch."""
+
 DEFAULT_BLUEPRINTS_REPO = "jagguvarma15/agent-blueprints"
 DEFAULT_BLUEPRINTS_BRANCH = "main"
 
@@ -88,7 +103,6 @@ CAPABILITY_GLOB = ("capabilities", "*", "*.md")
 FRAMEWORK_GLOB = ("frameworks", "*.md")
 STACK_GLOB = ("stack", "*.md")
 CROSS_CUTTING_GLOB = ("cross-cutting", "*.md")
-PATTERN_GLOB = ("patterns", "*.md")
 
 # Frontmatter regex matches identical to scaffold's discovery.py:_parse_frontmatter
 # so the generator and the consumer agree on what counts as frontmatter.
@@ -245,14 +259,51 @@ def collect_frameworks(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[str]:
     """Build a flat list of repo-root-relative paths for a category.
 
-    Used for stack[], cross_cutting_docs[], patterns[] — these are reference
-    docs the consumer needs to know exist but they don't carry structured
-    metadata worth lifting into the catalog beyond the path itself.
+    Used for stack[], cross_cutting_docs[] — reference docs the consumer
+    needs to know exist but they don't carry structured metadata worth
+    lifting into the catalog beyond the path itself.
     """
     return sorted(
         str(p.relative_to(REPO_ROOT).as_posix())
         for p in iter_files(glob, non_recipe_stems)
     )
+
+
+def collect_pattern_docs() -> list[str]:
+    """Enumerate the vendored blueprints patterns + workflows for ``pattern_docs[]``.
+
+    Each pattern / workflow contributes its ``overview.md`` (the canonical
+    entry file the catalog's ``blueprints.directory_entry`` field declares).
+    Used by scaffold's alias resolver to convert prose mentions ("ReAct",
+    "RAG", …) to a concrete vendored path.
+
+    Replaces the previous enumeration of ``docs/patterns/*.md`` (the
+    lighter mirror that has been retired in favor of the vendored canonical
+    content).
+    """
+    if not VENDORED_BLUEPRINTS_DIR.is_dir():
+        # No vendored tree on disk — run `vendir sync` first. Return empty so
+        # the generator doesn't half-fail; the catalog drift CI will surface
+        # the missing tree separately.
+        print(
+            "warning: vendored/blueprints/ not present — run `vendir sync`",
+            file=sys.stderr,
+        )
+        return []
+
+    out: list[str] = []
+    for kind_dir in ("patterns", "workflows"):
+        kind_root = VENDORED_BLUEPRINTS_DIR / kind_dir
+        if not kind_root.is_dir():
+            continue
+        for entry in sorted(kind_root.iterdir()):
+            if not entry.is_dir():
+                continue
+            overview = entry / "overview.md"
+            if not overview.is_file():
+                continue
+            out.append(str(overview.relative_to(REPO_ROOT).as_posix()))
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -340,7 +391,7 @@ def build_catalog(
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)
-    catalog["pattern_docs"] = collect_path_only(PATTERN_GLOB, non_recipe_stems)
+    catalog["pattern_docs"] = collect_pattern_docs()
 
     # Seeded behavior knobs.
     catalog["aliases"] = seed.get("aliases", {})

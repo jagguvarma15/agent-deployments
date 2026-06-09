@@ -1,0 +1,55 @@
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.40.0
+
+# Vendored snapshot of agent-blueprints — fetched from upstream + pinned in
+# vendir.lock.yml for determinism. This makes agent-deployments the single
+# source of truth that downstream consumers (agent-scaffold, third-party
+# tools) read: blueprints content lives under vendored/blueprints/ in this
+# repo, no separate fetch required.
+#
+# Release-driven sync:
+#   - When agent-blueprints publishes a release, its notify-deployments.yml
+#     workflow fires a repository_dispatch (`blueprints-release`) here.
+#   - .github/workflows/sync-blueprints.yml consumes the dispatch, rewrites
+#     the `ref:` line below to the new tag (`refs/tags/<version>`), runs
+#     `vendir sync`, regenerates catalog.yaml, and opens a PR with the diff.
+#   - Admins can manually trigger the sync workflow against any tag via
+#     workflow_dispatch — useful for backfilling or rolling forward.
+#
+# Determinism:
+#   - vendir.lock.yml carries the resolved commit SHA for the current ref.
+#   - CI verifies `vendir sync && git diff --exit-code` produces no diff.
+#
+# Bootstrap note:
+#   The `ref:` below currently points at `origin/main` because agent-blueprints
+#   has not cut its first release yet. The first release will be pinned via
+#   the sync workflow rewriting this to `refs/tags/v0.X.0`. After that, this
+#   file's `ref:` should always be a tag, never a branch.
+#
+# Path filters: pattern + workflow + foundations content is kept; runnable
+# code under patterns/*/code/ and workflows/*/code/ is excluded (scaffold
+# doesn't read it; would bloat the snapshot).
+directories:
+  - path: vendored/blueprints
+    contents:
+      - path: .
+        git:
+          url: https://github.com/jagguvarma15/agent-blueprints
+          ref: origin/main
+          depth: 1
+        includePaths:
+          - "patterns/**"
+          - "workflows/**"
+          - "foundations/**"
+          - "composition/**"
+          - "patterns-catalog.yaml"
+          - "PATTERNS_CATALOG_SCHEMA.md"
+          - "README.md"
+          - "LICENSE"
+        excludePaths:
+          - "patterns/**/code/**"
+          - "workflows/**/code/**"
+          - "**/.DS_Store"
+          - "**/__pycache__/**"
+          - "**/node_modules/**"

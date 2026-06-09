@@ -1,0 +1,521 @@
+schema_version: 1
+generator_version: "1.0.0"
+patterns:
+  - id: event_driven
+    name: Event-Driven
+    category: agent
+    complexity: Advanced
+    description: "Agents triggered by queue or stream events rather than HTTP requests."
+    dir: patterns/event_driven
+    tier_files:
+      overview: patterns/event_driven/overview.md
+      design: patterns/event_driven/design.md
+      implementation: patterns/event_driven/implementation.md
+      evolution: patterns/event_driven/evolution.md
+      observability: patterns/event_driven/observability.md
+      cost-and-latency: patterns/event_driven/cost-and-latency.md
+    evolvesFrom:
+      - tool_use
+    composableWith:
+      - multi_agent
+      - routing
+      - memory
+    requires:
+      - tools
+      - event-source
+      - idempotency-store
+    tags:
+      - streaming
+      - queue
+      - async
+      - idempotency
+      - backpressure
+      - dlq
+    costTier: medium
+    latencyTier: medium
+    extras:
+      prompts: patterns/event_driven/prompts/
+      schemas: patterns/event_driven/schemas/
+      code: patterns/event_driven/code/
+      examples: patterns/event_driven/examples/
+  - id: human_in_the_loop
+    name: "Human in the Loop"
+    category: agent
+    complexity: Intermediate
+    description: "Agent proposes an action; a human approves, denies, or modifies before the action commits."
+    dir: patterns/human_in_the_loop
+    tier_files:
+      overview: patterns/human_in_the_loop/overview.md
+      design: patterns/human_in_the_loop/design.md
+      implementation: patterns/human_in_the_loop/implementation.md
+      evolution: patterns/human_in_the_loop/evolution.md
+      observability: patterns/human_in_the_loop/observability.md
+      cost-and-latency: patterns/human_in_the_loop/cost-and-latency.md
+    evolvesFrom:
+      - tool_use
+    composableWith:
+      - saga
+      - event_driven
+      - tool_use
+    requires:
+      - pause-resume
+      - approver-surface
+      - audit
+    tags:
+      - approval
+      - governance
+      - compliance
+      - pause-resume
+      - escalation
+    costTier: low
+    latencyTier: very-high
+    extras:
+      prompts: patterns/human_in_the_loop/prompts/
+      schemas: patterns/human_in_the_loop/schemas/
+      code: patterns/human_in_the_loop/code/
+  - id: memory
+    name: Memory
+    category: agent
+    complexity: Intermediate
+    description: "Persistent state across sessions: short-term, long-term, and semantic memory."
+    dir: patterns/memory
+    tier_files:
+      overview: patterns/memory/overview.md
+      design: patterns/memory/design.md
+      implementation: patterns/memory/implementation.md
+      evolution: patterns/memory/evolution.md
+      observability: patterns/memory/observability.md
+      cost-and-latency: patterns/memory/cost-and-latency.md
+    evolvesFrom:
+      - prompt-chaining
+    composableWith:
+      - react
+      - rag
+      - multi_agent
+    requires:
+      - storage
+    tags:
+      - persistence
+      - personalization
+      - context
+      - sessions
+      - retrieval
+    costTier: medium
+    latencyTier: medium
+    extras:
+      prompts: patterns/memory/prompts/
+      schemas: patterns/memory/schemas/
+      code: patterns/memory/code/
+  - id: multi_agent
+    name: Multi-Agent
+    category: agent
+    complexity: Advanced
+    description: "Supervisor-worker delegation across multiple autonomous agents."
+    dir: patterns/multi_agent
+    tier_files:
+      overview: patterns/multi_agent/overview.md
+      design: patterns/multi_agent/design.md
+      implementation: patterns/multi_agent/implementation.md
+      evolution: patterns/multi_agent/evolution.md
+      observability: patterns/multi_agent/observability.md
+      cost-and-latency: patterns/multi_agent/cost-and-latency.md
+    evolvesFrom:
+      - orchestrator-worker
+      - routing
+    composableWith:
+      - react
+      - routing
+      - memory
+    requires:
+      - tools
+      - orchestration
+    tags:
+      - supervisor
+      - delegation
+      - parallel
+      - specialization
+      - enterprise
+    costTier: high
+    latencyTier: high
+    extras:
+      prompts: patterns/multi_agent/prompts/
+      schemas: patterns/multi_agent/schemas/
+      code: patterns/multi_agent/code/
+      examples: patterns/multi_agent/examples/
+  - id: plan_and_execute
+    name: "Plan & Execute"
+    category: agent
+    complexity: Intermediate
+    description: "LLM creates a full plan upfront, then executes each step sequentially."
+    dir: patterns/plan_and_execute
+    tier_files:
+      overview: patterns/plan_and_execute/overview.md
+      design: patterns/plan_and_execute/design.md
+      implementation: patterns/plan_and_execute/implementation.md
+      evolution: patterns/plan_and_execute/evolution.md
+      observability: patterns/plan_and_execute/observability.md
+      cost-and-latency: patterns/plan_and_execute/cost-and-latency.md
+    evolvesFrom:
+      - orchestrator-worker
+    composableWith:
+      - react
+      - multi_agent
+    requires:
+      - tools
+    tags:
+      - planning
+      - sequential
+      - structured
+      - trackable
+    costTier: medium
+    latencyTier: medium-high
+    extras:
+      prompts: patterns/plan_and_execute/prompts/
+      schemas: patterns/plan_and_execute/schemas/
+      code: patterns/plan_and_execute/code/
+      examples: patterns/plan_and_execute/examples/
+  - id: rag
+    name: RAG
+    category: agent
+    complexity: Intermediate
+    description: "Retrieval-augmented generation: retrieve relevant context before generating."
+    dir: patterns/rag
+    tier_files:
+      overview: patterns/rag/overview.md
+      design: patterns/rag/design.md
+      implementation: patterns/rag/implementation.md
+      evolution: patterns/rag/evolution.md
+      observability: patterns/rag/observability.md
+      cost-and-latency: patterns/rag/cost-and-latency.md
+    evolvesFrom:
+      - parallel-calls
+    composableWith:
+      - react
+      - routing
+      - reflection
+    requires:
+      - retrieval
+      - vector-store
+    tags:
+      - retrieval
+      - grounding
+      - knowledge-base
+      - embeddings
+      - semantic-search
+    costTier: low-medium
+    latencyTier: low-medium
+    extras:
+      prompts: patterns/rag/prompts/
+      schemas: patterns/rag/schemas/
+      code: patterns/rag/code/
+  - id: react
+    name: ReAct
+    category: agent
+    complexity: Intermediate
+    description: "Reason-act loop: the LLM reasons, calls a tool, observes, and repeats until done."
+    dir: patterns/react
+    tier_files:
+      overview: patterns/react/overview.md
+      design: patterns/react/design.md
+      implementation: patterns/react/implementation.md
+      evolution: patterns/react/evolution.md
+      observability: patterns/react/observability.md
+      cost-and-latency: patterns/react/cost-and-latency.md
+    evolvesFrom:
+      - prompt-chaining
+    composableWith:
+      - memory
+      - reflection
+      - rag
+    requires:
+      - tools
+    tags:
+      - reasoning
+      - tool_use
+      - loop
+      - adaptive
+      - open-ended
+    costTier: medium
+    latencyTier: variable
+    extras:
+      prompts: patterns/react/prompts/
+      schemas: patterns/react/schemas/
+      code: patterns/react/code/
+  - id: reflection
+    name: Reflection
+    category: agent
+    complexity: Intermediate
+    description: "LLM critiques its own output and self-improves through structured feedback."
+    dir: patterns/reflection
+    tier_files:
+      overview: patterns/reflection/overview.md
+      design: patterns/reflection/design.md
+      implementation: patterns/reflection/implementation.md
+      evolution: patterns/reflection/evolution.md
+      observability: patterns/reflection/observability.md
+      cost-and-latency: patterns/reflection/cost-and-latency.md
+    evolvesFrom:
+      - evaluator-optimizer
+    composableWith:
+      - react
+      - rag
+      - plan_and_execute
+    requires: []
+    tags:
+      - self-critique
+      - quality
+      - iterative
+      - feedback
+      - improvement
+    costTier: medium-high
+    latencyTier: high
+    extras:
+      prompts: patterns/reflection/prompts/
+      schemas: patterns/reflection/schemas/
+      code: patterns/reflection/code/
+  - id: routing
+    name: Routing
+    category: agent
+    complexity: Beginner
+    description: "Intent classification dispatches inputs to specialized handlers."
+    dir: patterns/routing
+    tier_files:
+      overview: patterns/routing/overview.md
+      design: patterns/routing/design.md
+      implementation: patterns/routing/implementation.md
+      evolution: patterns/routing/evolution.md
+      observability: patterns/routing/observability.md
+      cost-and-latency: patterns/routing/cost-and-latency.md
+    evolvesFrom:
+      - parallel-calls
+    composableWith:
+      - react
+      - rag
+      - multi_agent
+    requires: []
+    tags:
+      - classification
+      - dispatch
+      - specialization
+      - intent
+      - multi-skill
+    costTier: low
+    latencyTier: low
+    extras:
+      prompts: patterns/routing/prompts/
+      schemas: patterns/routing/schemas/
+      code: patterns/routing/code/
+  - id: saga
+    name: Saga
+    category: agent
+    complexity: Advanced
+    description: "Long-running, multi-step business processes that need compensation when an intermediate step fails."
+    dir: patterns/saga
+    tier_files:
+      overview: patterns/saga/overview.md
+      design: patterns/saga/design.md
+      implementation: patterns/saga/implementation.md
+      evolution: patterns/saga/evolution.md
+      observability: patterns/saga/observability.md
+      cost-and-latency: patterns/saga/cost-and-latency.md
+    evolvesFrom:
+      - tool_use
+      - prompt-chaining
+    composableWith:
+      - event_driven
+      - multi_agent
+    requires:
+      - storage
+      - idempotency
+      - compensation-handlers
+    tags:
+      - long-running
+      - compensation
+      - eventual-consistency
+      - saga-log
+      - orchestration
+      - choreography
+    costTier: medium
+    latencyTier: high
+    extras:
+      prompts: patterns/saga/prompts/
+      schemas: patterns/saga/schemas/
+      code: patterns/saga/code/
+      examples: patterns/saga/examples/
+  - id: tool_use
+    name: "Tool Use"
+    category: agent
+    complexity: Beginner
+    description: "Structured function calling with schema-validated tool dispatch."
+    dir: patterns/tool_use
+    tier_files:
+      overview: patterns/tool_use/overview.md
+      design: patterns/tool_use/design.md
+      implementation: patterns/tool_use/implementation.md
+      evolution: patterns/tool_use/evolution.md
+      observability: patterns/tool_use/observability.md
+      cost-and-latency: patterns/tool_use/cost-and-latency.md
+    evolvesFrom:
+      - prompt-chaining
+    composableWith:
+      - react
+      - rag
+      - routing
+    requires:
+      - tools
+    tags:
+      - function-calling
+      - structured
+      - schema
+      - deterministic
+    costTier: low-medium
+    latencyTier: low
+    extras:
+      prompts: patterns/tool_use/prompts/
+      schemas: patterns/tool_use/schemas/
+      code: patterns/tool_use/code/
+workflows:
+  - id: evaluator-optimizer
+    name: Evaluator-Optimizer
+    category: workflow
+    complexity: Intermediate
+    description: "Generate-evaluate feedback loop that iteratively improves output."
+    dir: workflows/evaluator-optimizer
+    tier_files:
+      overview: workflows/evaluator-optimizer/overview.md
+      design: workflows/evaluator-optimizer/design.md
+      implementation: workflows/evaluator-optimizer/implementation.md
+      observability: workflows/evaluator-optimizer/observability.md
+      cost-and-latency: workflows/evaluator-optimizer/cost-and-latency.md
+    evolvesInto:
+      - reflection
+    composableWith:
+      - prompt-chaining
+      - rag
+    tags:
+      - feedback-loop
+      - quality
+      - iterative
+      - evaluation
+    costTier: medium-high
+    latencyTier: high
+    extras:
+      code: workflows/evaluator-optimizer/code/
+  - id: orchestrator-worker
+    name: Orchestrator-Worker
+    category: workflow
+    complexity: Intermediate
+    description: "LLM decomposes a task and delegates to specialized workers."
+    dir: workflows/orchestrator-worker
+    tier_files:
+      overview: workflows/orchestrator-worker/overview.md
+      design: workflows/orchestrator-worker/design.md
+      implementation: workflows/orchestrator-worker/implementation.md
+      observability: workflows/orchestrator-worker/observability.md
+      cost-and-latency: workflows/orchestrator-worker/cost-and-latency.md
+    evolvesInto:
+      - plan_and_execute
+      - multi_agent
+    composableWith:
+      - parallel-calls
+      - evaluator-optimizer
+    tags:
+      - decomposition
+      - delegation
+      - dynamic
+      - specialization
+    costTier: medium-high
+    latencyTier: medium
+    extras:
+      code: workflows/orchestrator-worker/code/
+  - id: parallel-calls
+    name: "Parallel Calls"
+    category: workflow
+    complexity: Beginner
+    description: "Concurrent LLM calls on independent inputs, aggregated at the end."
+    dir: workflows/parallel-calls
+    tier_files:
+      overview: workflows/parallel-calls/overview.md
+      design: workflows/parallel-calls/design.md
+      implementation: workflows/parallel-calls/implementation.md
+      observability: workflows/parallel-calls/observability.md
+      cost-and-latency: workflows/parallel-calls/cost-and-latency.md
+    evolvesInto:
+      - rag
+      - routing
+    composableWith:
+      - prompt-chaining
+      - orchestrator-worker
+    tags:
+      - parallel
+      - concurrent
+      - low-latency
+      - fan-out
+      - aggregation
+    costTier: medium
+    latencyTier: low
+    extras:
+      code: workflows/parallel-calls/code/
+  - id: prompt-chaining
+    name: "Prompt Chaining"
+    category: workflow
+    complexity: Beginner
+    description: "Sequential LLM calls with validation gates between steps."
+    dir: workflows/prompt-chaining
+    tier_files:
+      overview: workflows/prompt-chaining/overview.md
+      design: workflows/prompt-chaining/design.md
+      implementation: workflows/prompt-chaining/implementation.md
+      observability: workflows/prompt-chaining/observability.md
+      cost-and-latency: workflows/prompt-chaining/cost-and-latency.md
+    evolvesInto:
+      - react
+      - tool_use
+      - memory
+    composableWith:
+      - parallel-calls
+      - evaluator-optimizer
+    tags:
+      - sequential
+      - deterministic
+      - predictable
+      - low-latency
+    costTier: low
+    latencyTier: medium
+    extras:
+      code: workflows/prompt-chaining/code/
+compositions:
+  - {a: evaluator-optimizer, b: orchestrator-worker, kind: useful, rationale: "Evaluate synthesized result"}
+  - {a: evaluator-optimizer, b: parallel-calls, kind: useful, rationale: "Evaluate aggregated output"}
+  - {a: evaluator-optimizer, b: prompt-chaining, kind: natural, rationale: "Evaluate chain output quality"}
+  - {a: memory, b: multi_agent, kind: natural, rationale: "Shared agent memory"}
+  - {a: memory, b: plan_and_execute, kind: useful, rationale: "Remember plans across sessions"}
+  - {a: memory, b: rag, kind: natural, rationale: "Shared vector store"}
+  - {a: memory, b: react, kind: natural, rationale: "Add session persistence"}
+  - {a: memory, b: reflection, kind: complex, rationale: "Remember critiques"}
+  - {a: memory, b: routing, kind: useful, rationale: "Per-route memory"}
+  - {a: memory, b: tool_use, kind: useful, rationale: "Tools store/retrieve memory"}
+  - {a: multi_agent, b: plan_and_execute, kind: natural, rationale: "Delegate steps to agents"}
+  - {a: multi_agent, b: rag, kind: useful, rationale: "Agents with knowledge"}
+  - {a: multi_agent, b: react, kind: natural, rationale: "Workers are ReAct agents"}
+  - {a: multi_agent, b: reflection, kind: useful, rationale: "Reflect on synthesis"}
+  - {a: multi_agent, b: routing, kind: natural, rationale: "Route to agents"}
+  - {a: multi_agent, b: tool_use, kind: natural, rationale: "Each agent has tools"}
+  - {a: orchestrator-worker, b: parallel-calls, kind: natural, rationale: "Workers execute in parallel"}
+  - {a: orchestrator-worker, b: prompt-chaining, kind: useful, rationale: "Chain is the simplest form of worker"}
+  - {a: parallel-calls, b: prompt-chaining, kind: useful, rationale: "Parallelize independent chain steps"}
+  - {a: plan_and_execute, b: rag, kind: useful, rationale: "Retrieve context for planning"}
+  - {a: plan_and_execute, b: react, kind: natural, rationale: "ReAct runs each plan step"}
+  - {a: plan_and_execute, b: reflection, kind: useful, rationale: "Reflect on plan quality"}
+  - {a: plan_and_execute, b: routing, kind: complex, rationale: "Route then plan"}
+  - {a: plan_and_execute, b: tool_use, kind: natural, rationale: "Steps use tools"}
+  - {a: rag, b: react, kind: natural, rationale: "Retrieve before reasoning"}
+  - {a: rag, b: reflection, kind: useful, rationale: "Evaluate retrieval quality"}
+  - {a: rag, b: routing, kind: useful, rationale: "RAG as one route handler"}
+  - {a: rag, b: tool_use, kind: natural, rationale: "Retrieval as a tool"}
+  - {a: react, b: reflection, kind: useful, rationale: "Reflect on agent output"}
+  - {a: react, b: routing, kind: useful, rationale: "Route then run agent"}
+  - {a: react, b: tool_use, kind: natural, rationale: "ReAct uses tool calling"}
+  - {a: reflection, b: routing, kind: complex, rationale: "Reflect on routing"}
+  - {a: reflection, b: tool_use, kind: useful, rationale: "Validate tool results"}
+  - {a: routing, b: tool_use, kind: useful, rationale: "Different tools per route"}

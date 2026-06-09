@@ -1,0 +1,37 @@
+{
+  "id": "multi_agent",
+  "name": "Multi-Agent",
+  "category": "agent",
+  "complexity": "Advanced",
+  "description": "Supervisor-worker delegation across multiple autonomous agents.",
+  "tiers": [
+    "overview",
+    "design",
+    "implementation",
+    "evolution",
+    "observability",
+    "cost-and-latency"
+  ],
+  "evolvesFrom": [
+    "orchestrator-worker",
+    "routing"
+  ],
+  "composableWith": [
+    "react",
+    "routing",
+    "memory"
+  ],
+  "requires": [
+    "tools",
+    "orchestration"
+  ],
+  "tags": [
+    "supervisor",
+    "delegation",
+    "parallel",
+    "specialization",
+    "enterprise"
+  ],
+  "costTier": "high",
+  "latencyTier": "high"
+}

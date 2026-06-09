@@ -1,30 +1,33 @@
 # Patterns
 
-Architecture patterns for AI agents. Each file answers: **"What shape does my agent take?"**
+> **This directory was retired.** Pattern docs now live in the vendored snapshot of agent-blueprints at [`../../vendored/blueprints/patterns/`](../../vendored/blueprints/patterns/) (and [`../../vendored/blueprints/workflows/`](../../vendored/blueprints/workflows/) for workflow-shaped patterns). The lighter mirror that previously lived here has been deleted in favor of vendoring the canonical content directly.
+>
+> Pattern ids use the **underscore** form (matches upstream blueprints): `event_driven`, `multi_agent`, `plan_and_execute`, `tool_use`, `human_in_the_loop`, `react`, `rag`, `memory`, `reflection`, `routing`, `saga`. Workflow ids use **hyphen** form: `prompt-chaining`, `parallel-calls`, `orchestrator-worker`, `evaluator-optimizer`. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md#naming-canon).
 
-> **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
+## Where to find each pattern
 
-| Pattern | One-liner | Best framework fit |
-|---------|-----------|-------------------|
-| [RAG](rag.md) | Ground answers in retrieved documents | LangGraph, Pydantic AI |
-| [ReAct](react.md) | Think → act → observe loop with tools | LangGraph, Pydantic AI |
-| [Routing + Tool Use](routing-tool-use.md) | Classify intent, route to specialist | Pydantic AI |
-| [Prompt Chaining](prompt-chaining.md) | Fixed sequence of LLM calls | Pydantic AI, Vercel AI SDK |
-| [Plan, Execute, Reflect](plan-execute-reflect.md) | Plan steps, execute, self-correct | LangGraph |
-| [Parallel Calls](parallel-calls.md) | Fan-out / fan-in concurrent execution | Pydantic AI, Vercel AI SDK |
-| [Memory](memory.md) | Persist context across conversations | LangGraph |
-| [Multi-Agent Flat](multi-agent-flat.md) | Peer agents collaborating | CrewAI |
-| [Multi-Agent Hierarchical](multi-agent-hierarchical.md) | Supervisor delegates to workers | LangGraph |
-| [Event-Driven](event-driven.md) | Queue/stream-triggered agents (subscribe → enrich → decide → act → ACK) | LangGraph, Mastra |
+| Pattern | Where it lives now |
+|---|---|
+| RAG | [`../../vendored/blueprints/patterns/rag/`](../../vendored/blueprints/patterns/rag/) |
+| ReAct | [`../../vendored/blueprints/patterns/react/`](../../vendored/blueprints/patterns/react/) |
+| Tool Use | [`../../vendored/blueprints/patterns/tool_use/`](../../vendored/blueprints/patterns/tool_use/) |
+| Routing | [`../../vendored/blueprints/patterns/routing/`](../../vendored/blueprints/patterns/routing/) |
+| Memory | [`../../vendored/blueprints/patterns/memory/`](../../vendored/blueprints/patterns/memory/) |
+| Plan & Execute | [`../../vendored/blueprints/patterns/plan_and_execute/`](../../vendored/blueprints/patterns/plan_and_execute/) |
+| Reflection | [`../../vendored/blueprints/patterns/reflection/`](../../vendored/blueprints/patterns/reflection/) |
+| Multi-Agent (flat + hierarchical) | [`../../vendored/blueprints/patterns/multi_agent/`](../../vendored/blueprints/patterns/multi_agent/) |
+| Event-Driven | [`../../vendored/blueprints/patterns/event_driven/`](../../vendored/blueprints/patterns/event_driven/) |
+| Saga | [`../../vendored/blueprints/patterns/saga/`](../../vendored/blueprints/patterns/saga/) |
+| Human-in-the-Loop | [`../../vendored/blueprints/patterns/human_in_the_loop/`](../../vendored/blueprints/patterns/human_in_the_loop/) |
+| Prompt Chaining (workflow) | [`../../vendored/blueprints/workflows/prompt-chaining/`](../../vendored/blueprints/workflows/prompt-chaining/) |
+| Parallel Calls (workflow) | [`../../vendored/blueprints/workflows/parallel-calls/`](../../vendored/blueprints/workflows/parallel-calls/) |
+| Orchestrator-Worker (workflow) | [`../../vendored/blueprints/workflows/orchestrator-worker/`](../../vendored/blueprints/workflows/orchestrator-worker/) |
+| Evaluator-Optimizer (workflow) | [`../../vendored/blueprints/workflows/evaluator-optimizer/`](../../vendored/blueprints/workflows/evaluator-optimizer/) |
 
-## How to pick a pattern
+Each pattern ships six tier files: `overview.md` (Tier 1), `design.md` (Tier 2), `implementation.md` (Tier 3), `evolution.md`, `observability.md`, `cost-and-latency.md`.
 
-1. **Single task, no tools needed?** → Just prompt the model directly. No pattern needed.
-2. **Need external data but fixed flow?** → [RAG](rag.md) or [Prompt Chaining](prompt-chaining.md)
-3. **Need tools, unknown sequence?** → [ReAct](react.md)
-4. **Multiple request types?** → [Routing + Tool Use](routing-tool-use.md)
-5. **Complex task needing self-correction?** → [Plan, Execute, Reflect](plan-execute-reflect.md)
-6. **N independent sub-tasks?** → [Parallel Calls](parallel-calls.md)
-7. **Need cross-session context?** → [Memory](memory.md)
-8. **Multiple specialists needed?** → [Multi-Agent Flat](multi-agent-flat.md) or [Hierarchical](multi-agent-hierarchical.md)
-9. **Triggered by an external event, not a user?** → [Event-Driven](event-driven.md)
+For machine-readable consumers, the [`catalog.yaml`](../../catalog.yaml) embeds the full pattern index in its `patterns[]` / `workflows[]` / `compositions[]` blocks (sourced from upstream `patterns-catalog.yaml`).
+
+## Decision flow
+
+For "how do I pick a pattern?", read [`../../vendored/blueprints/foundations/choosing-a-pattern.md`](../../vendored/blueprints/foundations/choosing-a-pattern.md) (the upstream decision flowchart).

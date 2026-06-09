@@ -1,16 +1,18 @@
 name: Catalog Drift Check
 
-# Regenerates catalog.yaml on every PR and push and fails if the committed
-# file diverges from what the generator produces. Forces contributors who edit
-# any recipe / capability / framework / etc. frontmatter to also commit the
-# regenerated catalog. Downstream consumers (agent-scaffold) read this file
-# directly, so drift here = silent breakage at scaffold runtime.
+# Two-part determinism gate:
 #
-# This workflow is content-deterministic: it fetches the LIVE blueprints
-# patterns-catalog.yaml from raw.githubusercontent.com. If blueprints publishes
-# changes that haven't yet been folded into this repo's catalog, this workflow
-# will fail — that's the signal to run the blueprints-bump workflow (or wait
-# for the daily cron to open the bump PR).
+# 1. vendored/blueprints/ matches what `vendir sync` would produce. Forces
+#    contributors who edit upstream blueprints content (via local
+#    vendir sync) to also commit the lock file + vendored tree.
+#
+# 2. catalog.yaml matches what `scripts/generate_catalog.py` produces from
+#    the vendored tree + this repo's own frontmatter. Forces contributors
+#    who edit any recipe / capability / framework / vendored content to
+#    regenerate the catalog.
+#
+# Downstream consumers (agent-scaffold) read catalog.yaml + vendored/blueprints/
+# directly, so drift in either layer = silent breakage at scaffold runtime.
 
 on:
   pull_request:
@@ -20,12 +22,30 @@ on:
 
 jobs:
   drift-check:
-    name: catalog.yaml is up to date
+    name: vendored/ + catalog.yaml are up to date
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Install vendir
+        uses: carvel-dev/setup-action@v2
+        with:
+          only: vendir
+          vendir: v0.40.0
+
+      - name: Verify vendored tree matches vendir.yml
+        run: |
+          vendir sync
+          if ! git diff --quiet -- vendored/ vendir.lock.yml; then
+            echo "::error::vendored/blueprints/ is stale relative to upstream agent-blueprints."
+            echo "::error::Run: vendir sync"
+            echo "::error::Then commit the result (vendored/blueprints/ + vendir.lock.yml)."
+            git diff -- vendored/ vendir.lock.yml | head -120
+            exit 1
+          fi
+          echo "vendored/blueprints/ matches vendir sync output"
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -38,7 +58,7 @@ jobs:
       - name: Regenerate catalog
         run: python scripts/generate_catalog.py --out /tmp/catalog.yaml
 
-      - name: Diff against committed file
+      - name: Diff against committed catalog
         run: |
           if ! diff -u catalog.yaml /tmp/catalog.yaml; then
             echo "::error::catalog.yaml is stale."
