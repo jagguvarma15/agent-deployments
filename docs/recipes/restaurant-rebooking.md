@@ -87,8 +87,8 @@ roles:
     cost_budget_usd_per_day: 1.50
     tools: [email_send, sms_send]
 load_list:
-  - {path: ../patterns/event-driven.md, required: true}
-  - {path: ../patterns/multi-agent-flat.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/event_driven/overview.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/multi_agent/overview.md, required: true}
   - {path: ../frameworks/langgraph.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/mastra.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -123,7 +123,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Event-Driven Agents](../patterns/event-driven.md) + [Multi-Agent Flat](../patterns/multi-agent-flat.md)
+- Pattern: [Event-Driven Agents](../../vendored/blueprints/patterns/event_driven/overview.md) + [Multi-Agent Flat](../../vendored/blueprints/patterns/multi_agent/overview.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (explicit state machine fits event-driven lifecycle)
 - Framework (TS): [Mastra](../frameworks/mastra.md) (event-triggered workflows)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md) (admin + health endpoints), [Redis](../stack/cache-redis.md) (event stream + idempotency), [Postgres](../stack/relational-postgres.md) (outcomes + state), [Langfuse](../stack/tracing-langfuse.md), [Secrets management](../stack/secrets-management.md) (Resy / OpenTable / Toast credentials)
@@ -137,8 +137,8 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/restaurant-rebooking.md` — this blueprint
-- `docs/patterns/event-driven.md` — the event-driven agent pattern
-- `docs/patterns/multi-agent-flat.md` — the multi-agent flat composition
+- `vendored/blueprints/patterns/event_driven/overview.md` — the event-driven agent pattern
+- `vendored/blueprints/patterns/multi_agent/overview.md` — the multi-agent flat composition
 - `docs/frameworks/langgraph.md` (Python) or `docs/frameworks/mastra.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 

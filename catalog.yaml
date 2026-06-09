@@ -683,9 +683,11 @@ recipes:
   - path: ../frameworks/claude-agent-sdk-typescript.md
     required: true
     when: language == 'typescript'
-  - path: ../patterns/react.md
+  - path: ../../vendored/blueprints/patterns/react/overview.md
     required: true
-  - path: ../patterns/routing-tool-use.md
+  - path: ../../vendored/blueprints/patterns/routing/overview.md
+    required: true
+  - path: ../../vendored/blueprints/patterns/tool_use/overview.md
     required: true
   - path: ../cross-cutting/project-layout.md
     required: true
@@ -748,7 +750,9 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../patterns/plan-execute-reflect.md
+  - path: ../../vendored/blueprints/patterns/plan_and_execute/overview.md
+    required: true
+  - path: ../../vendored/blueprints/patterns/reflection/overview.md
     required: true
   - path: ../frameworks/langgraph.md
     required: true
@@ -829,7 +833,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../patterns/prompt-chaining.md
+  - path: ../../vendored/blueprints/workflows/prompt-chaining/overview.md
     required: true
   - path: ../frameworks/pydantic-ai.md
     required: true
@@ -936,7 +940,9 @@ recipes:
     - account_lookup
     - kb_search
   load_list:
-  - path: ../patterns/routing-tool-use.md
+  - path: ../../vendored/blueprints/patterns/routing/overview.md
+    required: true
+  - path: ../../vendored/blueprints/patterns/tool_use/overview.md
     required: true
   - path: ../frameworks/pydantic-ai.md
     required: true
@@ -1027,7 +1033,7 @@ recipes:
       vector_size: 1536
       distance: cosine
   load_list:
-  - path: ../patterns/rag.md
+  - path: ../../vendored/blueprints/patterns/rag/overview.md
     required: true
   - path: ../frameworks/pydantic-ai.md
     required: true
@@ -1141,7 +1147,7 @@ recipes:
     tools:
     - evaluate_quality
   load_list:
-  - path: ../patterns/multi-agent-hierarchical.md
+  - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
     required: true
   - path: ../frameworks/langgraph.md
     required: true
@@ -1231,7 +1237,7 @@ recipes:
       vector_size: 1536
       distance: cosine
   load_list:
-  - path: ../patterns/memory.md
+  - path: ../../vendored/blueprints/patterns/memory/overview.md
     required: true
   - path: ../frameworks/langgraph.md
     required: true
@@ -1339,7 +1345,7 @@ recipes:
     - check_query_performance
     - check_schema_health
   load_list:
-  - path: ../patterns/multi-agent-flat.md
+  - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
     required: true
   - path: ../frameworks/crewai.md
     required: true
@@ -1416,7 +1422,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../patterns/parallel-calls.md
+  - path: ../../vendored/blueprints/workflows/parallel-calls/overview.md
     required: true
   - path: ../frameworks/pydantic-ai.md
     required: true
@@ -1498,7 +1504,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../patterns/react.md
+  - path: ../../vendored/blueprints/patterns/react/overview.md
     required: true
   - path: ../frameworks/pydantic-ai.md
     required: true
@@ -1647,9 +1653,9 @@ recipes:
     - email_send
     - sms_send
   load_list:
-  - path: ../patterns/event-driven.md
+  - path: ../../vendored/blueprints/patterns/event_driven/overview.md
     required: true
-  - path: ../patterns/multi-agent-flat.md
+  - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
     required: true
   - path: ../frameworks/langgraph.md
     required: true

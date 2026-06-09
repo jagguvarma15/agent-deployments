@@ -56,7 +56,7 @@ roles:
     model_hint: sonnet
     tools: [check_query_performance, check_schema_health]
 load_list:
-  - {path: ../patterns/multi-agent-flat.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/multi_agent/overview.md, required: true}
   - {path: ../frameworks/crewai.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -79,7 +79,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Multi-Agent Flat](../patterns/multi-agent-flat.md)
+- Pattern: [Multi-Agent Flat](../../vendored/blueprints/patterns/multi_agent/overview.md)
 - Framework (Py): [CrewAI](../frameworks/crewai.md) (Crew + Agent + Task)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (manual multi-agent orchestration)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -91,7 +91,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/ops-crew.md` — this blueprint
-- `docs/patterns/multi-agent-flat.md` — the multi-agent flat pattern
+- `vendored/blueprints/patterns/multi_agent/overview.md` — the multi-agent flat pattern
 - `docs/frameworks/crewai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 

@@ -32,8 +32,9 @@ topology: single
 load_list:
   - {path: ../frameworks/claude-agent-sdk.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/claude-agent-sdk-typescript.md, required: true, when: "language == 'typescript'"}
-  - {path: ../patterns/react.md, required: true}
-  - {path: ../patterns/routing-tool-use.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/react/overview.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/routing/overview.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/tool_use/overview.md, required: true}
   - {path: ../cross-cutting/project-layout.md, required: true}
   - {path: ../stack/llm-claude.md, required: true}
   - {path: ../stack/tool-protocol-mcp.md, required: false}
@@ -59,7 +60,7 @@ roles:
 
 - Framework (Py): [Claude Agent SDK](../frameworks/claude-agent-sdk.md) (`claude-agent-sdk` `>=0.2.0`)
 - Framework (TS): [Claude Agent SDK (TypeScript)](../frameworks/claude-agent-sdk-typescript.md) (`@anthropic-ai/claude-agent-sdk` `^0.3.0`)
-- Pattern: [ReAct](../patterns/react.md) — the SDK's default loop. Combined with [Routing / Tool use](../patterns/routing-tool-use.md) for the host's intent classification.
+- Pattern: [ReAct](../../vendored/blueprints/patterns/react/overview.md) — the SDK's default loop. Combined with [Routing](../../vendored/blueprints/patterns/routing/overview.md) + [Tool Use](../../vendored/blueprints/patterns/tool_use/overview.md) for the host's intent classification.
 - Stack: [Claude LLM](../stack/llm-claude.md), optional [Langfuse](../stack/tracing-langfuse.md) for tracing, optional [MCP tool protocol](../stack/tool-protocol-mcp.md) for future tool re-use.
 - Cross-cutting: [Project layout](../cross-cutting/project-layout.md), [Logging](../cross-cutting/logging-structured.md), [Testing strategy](../cross-cutting/testing-strategy.md), [Eval data](../cross-cutting/eval-data.md).
 
@@ -70,8 +71,8 @@ Feed these files to your AI coding assistant to build this agent:
 **Core (always load):**
 - `docs/recipes/claude-code-subagent.md` — this blueprint
 - `docs/frameworks/claude-agent-sdk.md` (Python) or `docs/frameworks/claude-agent-sdk-typescript.md` (TypeScript)
-- `docs/patterns/react.md` — the ReAct loop the subagent runs
-- `docs/patterns/routing-tool-use.md` — how the host decides what to delegate
+- `vendored/blueprints/patterns/react/overview.md` — the ReAct loop the subagent runs
+- `vendored/blueprints/patterns/routing/overview.md` and `vendored/blueprints/patterns/tool_use/overview.md` — how the host decides what to delegate
 - `docs/cross-cutting/project-layout.md` — the canonical directory tree the host CLI lives in
 - `docs/stack/llm-claude.md` — Claude model selection and pricing
 

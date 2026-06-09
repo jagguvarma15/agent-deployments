@@ -63,7 +63,7 @@ roles:
     model_hint: sonnet
     tools: [evaluate_quality]
 load_list:
-  - {path: ../patterns/multi-agent-hierarchical.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/multi_agent/overview.md, required: true}
   - {path: ../frameworks/langgraph.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -86,7 +86,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Multi-Agent Hierarchical](../patterns/multi-agent-hierarchical.md)
+- Pattern: [Multi-Agent Hierarchical](../../vendored/blueprints/patterns/multi_agent/overview.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (`langgraph-supervisor` for supervisor + sub-agent graphs)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (manual supervisor orchestration)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -98,7 +98,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/hierarchical-agent.md` — this blueprint
-- `docs/patterns/multi-agent-hierarchical.md` — the hierarchical multi-agent pattern
+- `vendored/blueprints/patterns/multi_agent/overview.md` — the hierarchical multi-agent pattern
 - `docs/frameworks/langgraph.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 

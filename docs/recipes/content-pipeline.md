@@ -38,7 +38,7 @@ capabilities:
   - eval.promptfoo
 topology: chain
 load_list:
-  - {path: ../patterns/prompt-chaining.md, required: true}
+  - {path: ../../vendored/blueprints/workflows/prompt-chaining/overview.md, required: true}
   - {path: ../frameworks/pydantic-ai.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -61,7 +61,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Prompt Chaining](../patterns/prompt-chaining.md)
+- Pattern: [Prompt Chaining](../../vendored/blueprints/workflows/prompt-chaining/overview.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (sequential `agent.run()` with typed `result_type` per stage)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (sequential `generateObject()` / `generateText()` calls)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -73,7 +73,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/content-pipeline.md` — this blueprint
-- `docs/patterns/prompt-chaining.md` — the prompt chaining pattern
+- `vendored/blueprints/workflows/prompt-chaining/overview.md` — the prompt chaining pattern
 - `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 

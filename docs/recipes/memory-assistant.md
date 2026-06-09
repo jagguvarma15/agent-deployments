@@ -45,7 +45,7 @@ bootstrap_config:
     - { name: memories, vector_size: 1536, distance: cosine }
 topology: single
 load_list:
-  - {path: ../patterns/memory.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/memory/overview.md, required: true}
   - {path: ../frameworks/langgraph.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -69,7 +69,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Memory](../patterns/memory.md)
+- Pattern: [Memory](../../vendored/blueprints/patterns/memory/overview.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (checkpointer + external memory store)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (manual memory integration)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Qdrant](../stack/vector-qdrant.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -81,7 +81,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/memory-assistant.md` — this blueprint
-- `docs/patterns/memory.md` — the memory pattern
+- `vendored/blueprints/patterns/memory/overview.md` — the memory pattern
 - `docs/frameworks/langgraph.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 - `docs/stack/vector-qdrant.md` — memory vector store (core to this pattern)
