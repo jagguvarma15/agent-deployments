@@ -94,15 +94,41 @@ Pass-through from the blueprints catalog. See [agent-blueprints/PATTERNS_CATALOG
 | `bootstrap_config` | object | no | Per-recipe inputs to capability bootstrap steps. |
 | `roles` | object[] | no | Per-agent specifications for multi-agent recipes. |
 | `load_list` | object[] | no | Structured context-loading directives (path / required / when predicates). |
+| `mcp_servers` | object[] | no | MCP servers the generated agent connects to (see "Advanced recipe fields" below). |
+| `skills` | object[] | no | File-based skills bundled into the generated project (see "Advanced recipe fields" below). |
+| `guardrails` | string[] | no | Capability ids (`kind: guardrail`) wrapping the agent's tool-call surface. |
+| `sandbox` | string \| null | no | Capability id (`kind: sandbox`) for the code-execution environment LLM-emitted code runs in. |
+| `durable_workflow` | string \| null | no | Capability id (`kind: durable`) for the workflow engine when the agent's success criterion is long-running. |
 
 All optional fields are passed through verbatim from the recipe's frontmatter. New optional fields can be added in source recipes without bumping `schema_version` (consumers use forward-compat parsing).
+
+### Advanced recipe fields
+
+These five fields are additive at the v1 schema and ignored cleanly by older scaffold builds (Pydantic `extra: ignore`). They lift verbatim from recipe frontmatter; see [`docs/recipes/SCHEMA.md`](docs/recipes/SCHEMA.md) for authoring examples.
+
+#### `mcp_servers[]`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `id` | string | yes | Recipe-local identifier (e.g. `tavily`, `postgres`). |
+| `capability` | string | yes | Dotted capability id of `kind: mcp` (e.g. `mcp.tavily`). |
+| `transport` | enum | no | `stdio` (default) or `streamable_http`. |
+| `env` | map | no | Per-server env var hints. Value `required` is a sentinel the scaffold's `wire_credentials` step prompts for. |
+
+#### `skills[]`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `id` | string | yes | Kebab-case skill identifier. |
+| `path` | string | yes | Repo-relative path to the skill's `SKILL.md`. |
+| `triggers` | string[] | no | Lowercase keywords / phrases hinting when the skill applies. |
 
 ### `capabilities[]`
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `id` | string | yes | Dotted `<kind>.<name>` identifier. |
-| `kind` | enum | yes | One of `vector_db`, `cache`, `relational`, `queue`, `obs`, `frontend`, `host`, `eval`. |
+| `kind` | enum | yes | One of `vector_db`, `cache`, `relational`, `queue`, `obs`, `frontend`, `host`, `eval`, `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank`. The first 8 are the v0.2 set; the latter 8 are additive (see "Capability kinds" note below). |
 | `path` | string | yes | Repo-root-relative path to the capability markdown. |
 | `env_vars` | string[] | no | Canonical environment variable names. |
 | `docker_service` | string | no | Lifted from `docker.service` in frontmatter — the most commonly-needed nested field. |
@@ -110,6 +136,20 @@ All optional fields are passed through verbatim from the recipe's frontmatter. N
 | `probe` | string | no | Name of the health-probe routine. |
 
 The full capability spec (Docker fragment, ports, volumes, healthcheck, etc.) stays in the source markdown's frontmatter; consumers can fetch the source file when they need the deeper detail. The catalog surfaces just enough to make discovery and `docker_service` lookup cheap.
+
+#### Capability kinds
+
+The catalog ships 16 known kinds, in two cohorts. Scaffold's `kind` field is a free string, so unknown kinds degrade gracefully (they surface as `unresolved` rather than raising) — that's the consumer-side forward-compat story when a capability lands upstream before the consumer has been updated.
+
+| Cohort | Kinds | Purpose |
+|---|---|---|
+| **v0.2 set** | `relational`, `cache`, `vector_db`, `queue`, `obs`, `eval`, `frontend`, `host` | The original infrastructure layers. |
+| **2026-SOTA set (additive)** | `embedding`, `rerank`, `memory_store`, `live_data`, `mcp`, `sandbox`, `durable`, `guardrail` | Data-layer enrichment (embedding/rerank/memory), tool connectivity (live_data/mcp), runtime (sandbox/durable), and safety (guardrail). |
+
+The 2026-SOTA cohort lands without bumping `schema_version` because:
+- Each kind is a free string in the catalog; older consumers ignore unknown values via `unresolved`.
+- New optional recipe fields (`mcp_servers`, `skills`, `guardrails`, `sandbox`, `durable_workflow`) parse via `extra: ignore` on Pydantic `RecipeEntry`.
+- The provisioning order is encoded in scaffold-side `LAYER_ORDER`, not the catalog.
 
 ### `frameworks[]`
 

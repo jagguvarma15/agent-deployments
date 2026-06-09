@@ -205,7 +205,7 @@ Dotted capability ids matching files under [`../capabilities/<kind>/<name>.md`](
 
 - **Type:** list of strings (dotted `<kind>.<name>` ids)
 - **Consumer:** v0.3+ (silently ignored on v0.2).
-- **Allowed kinds:** `vector_db`, `cache`, `relational`, `queue`, `obs`, `eval`, `frontend`, `host` (the 8 enumerated kinds — see [`../capabilities/README.md`](../capabilities/README.md)).
+- **Allowed kinds:** `vector_db`, `cache`, `relational`, `queue`, `obs`, `eval`, `frontend`, `host` (the v0.2 cohort), plus `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` (the additive 2026-SOTA cohort — see [`../../MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md#capability-kinds) and [`../capabilities/README.md`](../capabilities/README.md)).
 - **Examples:**
   ```yaml
   capabilities:
@@ -219,6 +219,97 @@ Dotted capability ids matching files under [`../capabilities/<kind>/<name>.md`](
   ```
 
 Every id must resolve to an existing capability file. Adding a capability that doesn't have a sibling under [`../capabilities/`](../capabilities/) is a contract break — the resolver will raise.
+
+---
+
+### Optional advanced fields
+
+Five additive frontmatter fields surface 2026-SOTA agent integrations that the v0.2 schema couldn't represent. They are all optional, all default to empty / null, and are ignored cleanly by older scaffold builds (via Pydantic `extra: ignore` on the catalog `RecipeEntry`). New recipes should declare any of these that apply.
+
+The eight new capability kinds these fields reference (`mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank`) are documented in [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md#capability-kinds).
+
+#### `mcp_servers`
+
+MCP (Model Context Protocol) servers the generated agent connects to. Each entry binds a recipe-local identifier to a `kind: mcp` capability id and chooses the transport.
+
+- **Type:** list of objects.
+- **Entry shape:**
+  - `id` *(required, string)*: recipe-local identifier (e.g. `tavily`).
+  - `capability` *(required, string)*: capability id (e.g. `mcp.tavily`).
+  - `transport` *(optional, enum)*: `stdio` (default; in-process spawn) or `streamable_http` (remote endpoint).
+  - `env` *(optional, map)*: per-server environment-variable hints. Use the literal string `required` as the value to mark that the credential is mandatory — scaffold's `wire_credentials` step prompts for it.
+- **Consumer:** v0.3+ (additive). Older scaffold ignores the key.
+- **Examples:**
+
+  ```yaml
+  mcp_servers:
+    - id: tavily
+      capability: mcp.tavily
+      transport: streamable_http
+      env: { TAVILY_API_KEY: required }
+    - id: postgres
+      capability: mcp.postgres
+      transport: stdio
+      env: { POSTGRES_URL: required }
+  ```
+
+- **Conformance:** every `capability` must resolve to a capability under `docs/capabilities/mcp/<name>.md`. Malformed transport values drop the entry with a warning.
+
+#### `skills`
+
+File-based skills (per Anthropic's `SKILL.md` convention) the generated project bundles. Each skill is a folder under the project's `skills/` directory containing a `SKILL.md` plus optional helper scripts.
+
+- **Type:** list of objects.
+- **Entry shape:**
+  - `id` *(required, string)*: kebab-case skill identifier.
+  - `path` *(required, string)*: project-root-relative path to the skill's `SKILL.md` (e.g. `skills/web-search-loop/SKILL.md`).
+  - `triggers` *(optional, list of strings)*: lowercase keywords / phrases hinting when the skill applies. Used by the runtime's skill loader to score relevance.
+- **Consumer:** v0.3+ (additive).
+- **Examples:**
+
+  ```yaml
+  skills:
+    - id: web-search-loop
+      path: skills/web-search-loop/SKILL.md
+      triggers: [research, "look up", investigate]
+    - id: citation-formatting
+      path: skills/citation-formatting/SKILL.md
+      triggers: [cite, citation, "source list"]
+  ```
+
+#### `guardrails`
+
+Capability ids of the safety layers wrapping the agent's tool-call surface. Each must match a `kind: guardrail` capability.
+
+- **Type:** list of strings (dotted `<kind>.<name>` ids).
+- **Consumer:** v0.3+ (additive).
+- **Examples:**
+  ```yaml
+  guardrails: [guardrail.llama-guard]
+  ```
+- **Conformance:** every id must resolve to a capability under `docs/capabilities/guardrail/<name>.md`.
+
+#### `sandbox`
+
+Optional capability id for the code-execution environment LLM-emitted code runs in. Set on recipes whose agents write and execute code (code-review, claude-code-subagent, etc.).
+
+- **Type:** string (dotted `<kind>.<name>` id) or absent.
+- **Consumer:** v0.3+ (additive).
+- **Examples:**
+  ```yaml
+  sandbox: sandbox.e2b
+  ```
+
+#### `durable_workflow`
+
+Optional capability id for the workflow-execution engine when the agent's success criterion is long-running (multi-hour / multi-day).
+
+- **Type:** string (dotted `<kind>.<name>` id) or absent.
+- **Consumer:** v0.3+ (additive).
+- **Examples:**
+  ```yaml
+  durable_workflow: durable.temporal
+  ```
 
 ---
 
@@ -376,6 +467,11 @@ Referenced by [`../cross-cutting/cost-tracking.md`](../cross-cutting/cost-tracki
 | `bootstrap_config` | Optional | v0.3+ | Required if recipe uses vector_db / queue / langsmith |
 | `topology` | Recommended | v0.3+ | Required for multi-agent recipes |
 | `roles` | Conditional | v0.3+ | Required when `topology` is multi-agent or event-driven |
+| `mcp_servers` | Optional | v0.3+ | Recipes integrating with external systems via MCP |
+| `skills` | Optional | v0.3+ | Recipes bundling reusable in-context procedures |
+| `guardrails` | Optional | v0.3+ | Recipes requiring safety / policy enforcement |
+| `sandbox` | Conditional | v0.3+ | Required for recipes whose agents execute LLM-emitted code |
+| `durable_workflow` | Optional | v0.3+ | Recipes whose success criterion spans hours/days |
 
 ## Section ordering convention
 
