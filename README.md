@@ -149,7 +149,7 @@ agent-deployments/
 └── LICENSE
 ```
 
-> The previous `docs/patterns/` lighter mirror has been retired. Pattern content now lives in `vendored/blueprints/patterns/<id>/` (note: blueprints uses underscored ids like `event_driven`, `multi_agent`, `plan_and_execute`). The vendored tree is upstream-owned and managed by [vendir](https://carvel.dev/vendir/); never edit it by hand — edit upstream `agent-blueprints` and run `vendir sync`.
+> The previous `docs/patterns/` lighter mirror has been retired. Pattern content now lives in `vendored/blueprints/patterns/<id>/` (note: blueprints uses underscored ids like `event_driven`, `multi_agent`, `plan_and_execute`). The vendored tree is upstream-owned and managed by [vendir](https://carvel.dev/vendir/) — pinned to a tagged release of `agent-blueprints`. Sync refreshes are **release-driven**: a release on `agent-blueprints` triggers an auto-PR here. Never edit `vendored/` by hand — edit upstream and cut a release.
 
 ---
 
