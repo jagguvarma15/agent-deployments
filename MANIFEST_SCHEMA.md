@@ -12,14 +12,60 @@ uv run scripts/generate_catalog.py
 python scripts/generate_catalog.py
 ```
 
-By default the generator fetches `patterns-catalog.yaml` from `raw.githubusercontent.com/jagguvarma15/agent-blueprints/main/patterns-catalog.yaml`. Override with `--blueprints-catalog-url` for local development:
+The generator reads `patterns-catalog.yaml` and pattern docs from the **vendored snapshot** of agent-blueprints under [`vendored/blueprints/`](vendored/blueprints/). The vendored tree is managed by [`vendir.yml`](vendir.yml) + the [`sync-blueprints.yml`](.github/workflows/sync-blueprints.yml) workflow — running `vendir sync` updates it to whatever upstream `agent-blueprints@main` currently resolves to.
+
+For local development against an unmerged blueprints branch:
+
+```bash
+# Edit vendir.yml temporarily to point at the branch, then:
+vendir sync
+uv run scripts/generate_catalog.py
+```
+
+Or pass an explicit local path override:
 
 ```bash
 uv run scripts/generate_catalog.py \
   --blueprints-catalog-url file:///path/to/agent-blueprints/patterns-catalog.yaml
 ```
 
-The generator is deterministic: same source files + same upstream blueprints catalog content → byte-identical output. Drift CI uses this to gate any PR that edits a `metadata.json` or recipe frontmatter without regenerating.
+The generator is deterministic: same source files + same vendored content → byte-identical output. Drift CI ([`catalog-drift.yml`](.github/workflows/catalog-drift.yml)) gates any PR by checking BOTH that `vendored/blueprints/` matches `vendir sync` output AND that `catalog.yaml` matches the generator output.
+
+## Vendored tree layout
+
+The vendored snapshot is upstream-owned. Never edit files under `vendored/blueprints/` directly — edit upstream `agent-blueprints` and let the sync workflow pull the change in.
+
+```
+vendored/blueprints/
+├── patterns/                # 11 cognitive patterns (underscore ids: react, rag,
+│   ├── react/                 event_driven, multi_agent, plan_and_execute, …)
+│   │   ├── overview.md      #   Tier 1
+│   │   ├── design.md        #   Tier 2
+│   │   ├── implementation.md#   Tier 3
+│   │   ├── evolution.md     #   How this pattern grew from simpler ones
+│   │   ├── observability.md #   What to trace
+│   │   ├── cost-and-latency.md
+│   │   ├── metadata.json    #   Machine-readable descriptor
+│   │   ├── prompts/         #   Example prompt templates
+│   │   └── schemas/         #   Example input/output schemas
+│   └── …
+├── workflows/               # 4 workflow patterns (hyphen ids: prompt-chaining,
+│   └── …                      parallel-calls, orchestrator-worker, evaluator-optimizer)
+├── foundations/             # Anatomy, terminology, choosing-a-pattern, …
+├── composition/             # blueprints-to-deployments, combination-matrix, …
+├── patterns-catalog.yaml    # Embedded by generate_catalog.py
+├── PATTERNS_CATALOG_SCHEMA.md
+├── README.md
+└── LICENSE
+```
+
+### Naming canon
+
+Pattern ids use **underscore** form (matches upstream blueprints, matches the embedded `patterns[]` block): `event_driven`, `multi_agent`, `plan_and_execute`, `tool_use`, `human_in_the_loop`, `react`, `rag`, `memory`, `reflection`, `routing`, `saga`.
+
+Workflow ids use **hyphen** form: `prompt-chaining`, `parallel-calls`, `orchestrator-worker`, `evaluator-optimizer`.
+
+Recipes' `agent_pattern:` frontmatter field uses these canonical ids. The `aliases` block in `catalog.yaml` provides backward-compat for old kebab-case names (`event-driven`, `multi-agent-flat`) that map to the same vendored overview.md file.
 
 ## Top-level shape
 
