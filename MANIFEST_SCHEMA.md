@@ -12,7 +12,9 @@ uv run scripts/generate_catalog.py
 python scripts/generate_catalog.py
 ```
 
-The generator reads `patterns-catalog.yaml` and pattern docs from the **vendored snapshot** of agent-blueprints under [`vendored/blueprints/`](vendored/blueprints/). The vendored tree is managed by [`vendir.yml`](vendir.yml) + the [`sync-blueprints.yml`](.github/workflows/sync-blueprints.yml) workflow — running `vendir sync` updates it to whatever upstream `agent-blueprints@main` currently resolves to.
+The generator reads `patterns-catalog.yaml` and pattern docs from the **vendored snapshot** of agent-blueprints under [`vendored/blueprints/`](vendored/blueprints/). The vendored tree is managed by [`vendir.yml`](vendir.yml) and refreshed via the **release-driven** [`sync-blueprints.yml`](.github/workflows/sync-blueprints.yml) workflow: when upstream agent-blueprints publishes a release, its `notify-deployments.yml` workflow fires a `repository_dispatch` (`blueprints-release`) at this repo, the sync workflow pins `vendir.yml`'s `ref:` to the new tag, runs `vendir sync`, regenerates `catalog.yaml`, and opens a PR with the diff.
+
+Downstream consumers (agent-scaffold, third-party tools) therefore track tagged releases of agent-blueprints, not raw `main`. This matches standard open-source vendoring practice — pin to stable artifacts, never to a moving branch.
 
 For local development against an unmerged blueprints branch:
 
@@ -33,7 +35,7 @@ The generator is deterministic: same source files + same vendored content → by
 
 ## Vendored tree layout
 
-The vendored snapshot is upstream-owned. Never edit files under `vendored/blueprints/` directly — edit upstream `agent-blueprints` and let the sync workflow pull the change in.
+The vendored snapshot is upstream-owned. Never edit files under `vendored/blueprints/` directly — edit upstream `agent-blueprints`, cut a release there, and let the sync workflow pull the new release in via `vendir`.
 
 ```
 vendored/blueprints/
