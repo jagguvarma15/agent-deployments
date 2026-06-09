@@ -1,0 +1,9 @@
+apiVersion: vendir.k14s.io/v1alpha1
+kind: LockConfig
+directories:
+  - path: vendored/blueprints
+    contents:
+      - path: .
+        git:
+          sha: 91adb9b4cc42b032d45ca696689c634568ba16c3
+          commitTitle: 'agent-blueprints @ main'

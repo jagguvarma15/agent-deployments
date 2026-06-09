@@ -1,0 +1,33 @@
+{
+  "id": "reflection",
+  "name": "Reflection",
+  "category": "agent",
+  "complexity": "Intermediate",
+  "description": "LLM critiques its own output and self-improves through structured feedback.",
+  "tiers": [
+    "overview",
+    "design",
+    "implementation",
+    "evolution",
+    "observability",
+    "cost-and-latency"
+  ],
+  "evolvesFrom": [
+    "evaluator-optimizer"
+  ],
+  "composableWith": [
+    "react",
+    "rag",
+    "plan_and_execute"
+  ],
+  "requires": [],
+  "tags": [
+    "self-critique",
+    "quality",
+    "iterative",
+    "feedback",
+    "improvement"
+  ],
+  "costTier": "medium-high",
+  "latencyTier": "high"
+}

@@ -1,0 +1,44 @@
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.40.0
+
+# Vendored snapshot of agent-blueprints — fetched from upstream main + pinned
+# in vendir.lock.yml for determinism. This makes agent-deployments the single
+# source of truth that downstream consumers (agent-scaffold, third-party
+# tools) read: blueprints content lives under vendored/blueprints/ in this
+# repo, no separate fetch required.
+#
+# Sync workflow:
+#   1. `vendir sync` on a clean checkout → updates vendored/blueprints/ to
+#      whatever upstream main currently resolves to + rewrites vendir.lock.yml.
+#   2. CI verifies determinism via `vendir sync && git diff --exit-code`.
+#   3. .github/workflows/sync-blueprints.yml runs `vendir sync` nightly + on
+#      repository_dispatch from agent-blueprints push events; opens a PR
+#      when the diff is non-empty.
+#
+# Path filters mirror the brief: pattern + workflow + foundations content is
+# kept; runnable code under patterns/*/code/ is excluded (scaffold doesn't
+# read it; it'd bloat the snapshot).
+directories:
+  - path: vendored/blueprints
+    contents:
+      - path: .
+        git:
+          url: https://github.com/jagguvarma15/agent-blueprints
+          ref: origin/main
+          depth: 1
+        includePaths:
+          - "patterns/**"
+          - "workflows/**"
+          - "foundations/**"
+          - "composition/**"
+          - "patterns-catalog.yaml"
+          - "PATTERNS_CATALOG_SCHEMA.md"
+          - "README.md"
+          - "LICENSE"
+        excludePaths:
+          - "patterns/**/code/**"
+          - "workflows/**/code/**"
+          - "**/.DS_Store"
+          - "**/__pycache__/**"
+          - "**/node_modules/**"
