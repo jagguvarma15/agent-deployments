@@ -1,0 +1,83 @@
+name: Sync Blueprints Vendored Tree
+
+# Pulls the latest agent-blueprints content into vendored/blueprints/ via vendir.
+# Runs on three triggers:
+#   - schedule  : nightly cron, catches drift even when no upstream push event
+#                 fired (push events can be dropped by GitHub's at-most-once
+#                 delivery; the cron is the belt to that suspenders).
+#   - repository_dispatch (blueprints-push): fired by agent-blueprints'
+#                 notify-deployments.yml workflow on every push to main.
+#                 Sub-10-minute latency from upstream merge to vendored PR.
+#   - workflow_dispatch  : manual override.
+#
+# If `vendir sync` produces a non-empty diff, the workflow opens a PR titled
+# "chore(blueprints): sync vendored content @ <short-sha>" with the diff. The
+# matching catalog drift CI then runs on that PR — if the new vendored content
+# changes catalog.yaml, the bot also has to regenerate the catalog before the
+# PR can merge (see catalog-drift.yml).
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  repository_dispatch:
+    types: [blueprints-push]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: vendir sync vendored/blueprints/
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install vendir
+        uses: carvel-dev/setup-action@v2
+        with:
+          only: vendir
+          vendir: v0.40.0
+
+      - name: Sync vendored tree
+        run: vendir sync
+
+      - name: Set up Python (catalog regen)
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install generator dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Regenerate catalog
+        run: python scripts/generate_catalog.py
+
+      - name: Detect changes
+        id: diff
+        run: |
+          if git diff --quiet -- vendored/ vendir.lock.yml catalog.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open sync PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'chore(blueprints): sync vendored content'
+          title: 'chore(blueprints): sync vendored content @ ${{ github.event.client_payload.sha && github.event.client_payload.sha || ''upstream main'' }}'
+          body: |
+            Automated sync of `vendored/blueprints/` from upstream `agent-blueprints@main`.
+
+            **Trigger:** `${{ github.event_name }}`
+            ${{ github.event.client_payload.summary && format('**Upstream commit:** {0}', github.event.client_payload.summary) || '' }}
+
+            Regenerated `catalog.yaml` is included so the catalog drift CI passes.
+          branch: chore/blueprints-sync
+          delete-branch: true
+          labels: automated-sync
