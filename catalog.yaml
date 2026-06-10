@@ -2,7 +2,7 @@
 # Edit source docs (their YAML frontmatter) or the upstream blueprints
 # catalog, then regenerate.
 schema_version: 1
-generator_version: 1.0.0
+generator_version: 1.1.0
 blueprints:
   repo: jagguvarma15/agent-blueprints
   branch: main
@@ -581,6 +581,220 @@ workflows:
   latencyTier: medium
   extras:
     code: patterns/prompt-chaining/code/
+primitives:
+- id: memory
+  name: Memory
+  category: primitive
+  complexity: Intermediate
+  description: 'Persistent state across sessions: short-term, long-term, and semantic memory.'
+  dir: primitives/memory
+  tier_files:
+    overview: primitives/memory/overview.md
+    design: primitives/memory/design.md
+    implementation: primitives/memory/implementation.md
+    evolution: primitives/memory/evolution.md
+    observability: primitives/memory/observability.md
+    cost-and-latency: primitives/memory/cost-and-latency.md
+  evolvesFrom:
+  - prompt-chaining
+  composableWith:
+  - react
+  - rag
+  - multi_agent
+  requires:
+  - storage
+  tags:
+  - persistence
+  - personalization
+  - context
+  - sessions
+  - retrieval
+  costTier: medium
+  latencyTier: medium
+  extras:
+    prompts: primitives/memory/prompts/
+    schemas: primitives/memory/schemas/
+    code: primitives/memory/code/
+- id: skills
+  name: Skills
+  category: primitive
+  complexity: Intermediate
+  description: File-based, agent-discovered procedural modules. Cheap to ship many; loaded on demand at runtime.
+  dir: primitives/skills
+  tier_files:
+    overview: primitives/skills/overview.md
+    design: primitives/skills/design.md
+    implementation: primitives/skills/implementation.md
+    evolution: primitives/skills/evolution.md
+    observability: primitives/skills/observability.md
+    cost-and-latency: primitives/skills/cost-and-latency.md
+  evolvesFrom:
+  - tool_use
+  composableWith:
+  - react
+  - tool_use
+  - plan_and_execute
+  - multi_agent
+  - routing
+  requires:
+  - skill-registry
+  - trigger-matcher
+  tags:
+  - procedural
+  - discovery
+  - file-based
+  - lazy-load
+  - agent-extensible
+  costTier: low
+  latencyTier: low
+  extras:
+    prompts: primitives/skills/prompts/
+    schemas: primitives/skills/schemas/
+    code: primitives/skills/code/
+- id: sub_agents
+  name: Sub-agents
+  category: primitive
+  complexity: Intermediate
+  description: Named, role-scoped agent instances spawned by a parent for delimited tasks; each has its own context window, tool grants, and (optionally) model.
+  dir: primitives/sub_agents
+  tier_files:
+    overview: primitives/sub_agents/overview.md
+    design: primitives/sub_agents/design.md
+    implementation: primitives/sub_agents/implementation.md
+    evolution: primitives/sub_agents/evolution.md
+    observability: primitives/sub_agents/observability.md
+    cost-and-latency: primitives/sub_agents/cost-and-latency.md
+  evolvesFrom:
+  - tool_use
+  composableWith:
+  - multi_agent
+  - plan_and_execute
+  - react
+  - skills
+  - memory
+  requires:
+  - role-registry
+  - result-schemas
+  - scoped-tools
+  tags:
+  - delegation
+  - isolation
+  - scoped-context
+  - scoped-tools
+  - parallel
+  - specialization
+  costTier: low-medium
+  latencyTier: low-medium
+  extras:
+    prompts: primitives/sub_agents/prompts/
+    schemas: primitives/sub_agents/schemas/
+- id: tool_use
+  name: Tool Use
+  category: primitive
+  complexity: Beginner
+  description: Structured function calling with schema-validated tool dispatch.
+  dir: primitives/tool_use
+  tier_files:
+    overview: primitives/tool_use/overview.md
+    design: primitives/tool_use/design.md
+    implementation: primitives/tool_use/implementation.md
+    evolution: primitives/tool_use/evolution.md
+    observability: primitives/tool_use/observability.md
+    cost-and-latency: primitives/tool_use/cost-and-latency.md
+  evolvesFrom:
+  - prompt-chaining
+  composableWith:
+  - react
+  - rag
+  - routing
+  requires:
+  - tools
+  tags:
+  - function-calling
+  - structured
+  - schema
+  - deterministic
+  costTier: low-medium
+  latencyTier: low
+  extras:
+    prompts: primitives/tool_use/prompts/
+    schemas: primitives/tool_use/schemas/
+    code: primitives/tool_use/code/
+modifiers:
+- id: guardrails
+  name: Guardrails
+  category: modifier
+  complexity: Advanced
+  description: Layered input / tool / output policy checks plus a dual-LLM split that breaks the indirect-prompt-injection path.
+  dir: modifiers/guardrails
+  tier_files:
+    overview: modifiers/guardrails/overview.md
+    design: modifiers/guardrails/design.md
+    implementation: modifiers/guardrails/implementation.md
+    evolution: modifiers/guardrails/evolution.md
+    observability: modifiers/guardrails/observability.md
+    cost-and-latency: modifiers/guardrails/cost-and-latency.md
+  evolvesFrom:
+  - tool_use
+  composableWith:
+  - human_in_the_loop
+  - rag
+  - multi_agent
+  - tool_use
+  - react
+  requires:
+  - detector-registry
+  - policy-artifact
+  - audit-sink
+  tags:
+  - safety
+  - policy
+  - dual-llm
+  - prompt-injection
+  - defense-in-depth
+  - calibration
+  costTier: low-medium
+  latencyTier: medium
+  appliesTo:
+  - any
+  extras:
+    prompts: modifiers/guardrails/prompts/
+    schemas: modifiers/guardrails/schemas/
+- id: human_in_the_loop
+  name: Human in the Loop
+  category: modifier
+  complexity: Intermediate
+  description: Agent proposes an action; a human approves, denies, or modifies before the action commits.
+  dir: modifiers/human_in_the_loop
+  tier_files:
+    overview: modifiers/human_in_the_loop/overview.md
+    design: modifiers/human_in_the_loop/design.md
+    implementation: modifiers/human_in_the_loop/implementation.md
+    evolution: modifiers/human_in_the_loop/evolution.md
+    observability: modifiers/human_in_the_loop/observability.md
+    cost-and-latency: modifiers/human_in_the_loop/cost-and-latency.md
+  evolvesFrom:
+  - tool_use
+  composableWith:
+  - saga
+  - event_driven
+  - tool_use
+  requires:
+  - pause-resume
+  - approver-surface
+  - audit
+  tags:
+  - approval
+  - governance
+  - compliance
+  - pause-resume
+  - escalation
+  costTier: low
+  latencyTier: very-high
+  extras:
+    prompts: modifiers/human_in_the_loop/prompts/
+    schemas: modifiers/human_in_the_loop/schemas/
+    code: modifiers/human_in_the_loop/code/
 compositions:
 - a: evaluator-optimizer
   b: orchestrator-worker
@@ -727,6 +941,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: react
   required_files:
   - app/main.py
   - app/agent/host.py
@@ -802,6 +1017,7 @@ recipes:
   - python
   - typescript
   topology: chain
+  agent_pattern: plan_and_execute
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -885,6 +1101,7 @@ recipes:
   - python
   - typescript
   topology: chain
+  agent_pattern: prompt-chaining
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -966,6 +1183,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-hierarchical
+  agent_pattern: routing
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1075,6 +1293,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: rag
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1169,6 +1388,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-hierarchical
+  agent_pattern: multi_agent
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1280,6 +1500,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: react
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1373,6 +1594,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-flat
+  agent_pattern: multi_agent
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1478,6 +1700,7 @@ recipes:
   - python
   - typescript
   topology: parallel
+  agent_pattern: parallel-calls
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1555,6 +1778,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: react
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1637,6 +1861,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-flat
+  agent_pattern: event_driven
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1812,6 +2037,21 @@ capabilities:
   - REDIS_URL
   docker_service: redis
   probe: redis_ping
+- id: durable.temporal
+  kind: durable
+  path: docs/capabilities/durable/temporal.md
+  env_vars:
+  - TEMPORAL_HOST
+  - TEMPORAL_NAMESPACE
+  docker_service: temporal
+  bootstrap_step: bootstrap_temporal
+  probe: temporal_health
+- id: embedding.openai
+  kind: embedding
+  path: docs/capabilities/embedding/openai.md
+  env_vars:
+  - OPENAI_API_KEY
+  probe: openai_embedding_ping
 - id: eval.deepeval
   kind: eval
   path: docs/capabilities/eval/deepeval.md
@@ -1842,6 +2082,12 @@ capabilities:
   path: docs/capabilities/frontend/streamlit.md
   env_vars:
   - AGENT_URL
+- id: guardrail.llama-guard
+  kind: guardrail
+  path: docs/capabilities/guardrail/llama-guard.md
+  env_vars:
+  - TOGETHER_API_KEY
+  probe: llama_guard_classify
 - id: host.fly
   kind: host
   path: docs/capabilities/host/fly.md
@@ -1864,6 +2110,27 @@ capabilities:
   - VERCEL_ORG_ID
   - VERCEL_PROJECT_ID
   bootstrap_step: emit_deploy_configs
+- id: live_data.tavily
+  kind: live_data
+  path: docs/capabilities/live_data/tavily.md
+  env_vars:
+  - TAVILY_API_KEY
+  probe: tavily_search_ping
+- id: mcp.tavily
+  kind: mcp
+  path: docs/capabilities/mcp/tavily.md
+  env_vars:
+  - TAVILY_API_KEY
+  probe: tavily_mcp_ping
+- id: memory_store.zep
+  kind: memory_store
+  path: docs/capabilities/memory_store/zep.md
+  env_vars:
+  - ZEP_API_URL
+  - ZEP_API_KEY
+  docker_service: zep
+  bootstrap_step: bootstrap_zep
+  probe: zep_health
 - id: obs.grafana-stack
   kind: obs
   path: docs/capabilities/obs/grafana-stack.md
@@ -1920,6 +2187,18 @@ capabilities:
   - POSTGRES_DB
   docker_service: postgres
   probe: postgres_select_one
+- id: rerank.cohere
+  kind: rerank
+  path: docs/capabilities/rerank/cohere.md
+  env_vars:
+  - COHERE_API_KEY
+  probe: cohere_rerank_ping
+- id: sandbox.e2b
+  kind: sandbox
+  path: docs/capabilities/sandbox/e2b.md
+  env_vars:
+  - E2B_API_KEY
+  probe: e2b_session_open
 - id: vector_db.chroma
   kind: vector_db
   path: docs/capabilities/vector_db/chroma.md
@@ -2082,22 +2361,53 @@ pattern_docs:
 - vendored/blueprints/patterns/reflection/overview.md
 - vendored/blueprints/patterns/routing/overview.md
 - vendored/blueprints/patterns/saga/overview.md
+primitive_docs:
+- vendored/blueprints/primitives/memory/overview.md
+- vendored/blueprints/primitives/skills/overview.md
+- vendored/blueprints/primitives/sub_agents/overview.md
+- vendored/blueprints/primitives/tool_use/overview.md
+modifier_docs:
+- vendored/blueprints/modifiers/guardrails/overview.md
+- vendored/blueprints/modifiers/human_in_the_loop/overview.md
 aliases:
-  react: docs/patterns/react.md
-  rag: docs/patterns/rag.md
-  routing: docs/patterns/routing-tool-use.md
-  tool use: docs/patterns/routing-tool-use.md
-  tool-use: docs/patterns/routing-tool-use.md
-  routing-tool-use: docs/patterns/routing-tool-use.md
-  prompt chaining: docs/patterns/prompt-chaining.md
-  plan, execute, reflect: docs/patterns/plan-execute-reflect.md
-  multi-agent: docs/patterns/multi-agent-flat.md
-  multi-agent-flat: docs/patterns/multi-agent-flat.md
-  multi-agent-hierarchical: docs/patterns/multi-agent-hierarchical.md
-  memory: docs/patterns/memory.md
-  parallel calls: docs/patterns/parallel-calls.md
-  event driven: docs/patterns/event-driven.md
-  event-driven: docs/patterns/event-driven.md
+  react: vendored/blueprints/patterns/react/overview.md
+  rag: vendored/blueprints/patterns/rag/overview.md
+  agentic_rag: vendored/blueprints/patterns/agentic_rag/overview.md
+  agentic-rag: vendored/blueprints/patterns/agentic_rag/overview.md
+  routing: vendored/blueprints/patterns/routing/overview.md
+  multi_agent: vendored/blueprints/patterns/multi_agent/overview.md
+  multi-agent: vendored/blueprints/patterns/multi_agent/overview.md
+  multi-agent-flat: vendored/blueprints/patterns/multi_agent/overview.md
+  multi-agent-hierarchical: vendored/blueprints/patterns/multi_agent/overview.md
+  plan_and_execute: vendored/blueprints/patterns/plan_and_execute/overview.md
+  plan-and-execute: vendored/blueprints/patterns/plan_and_execute/overview.md
+  plan, execute, reflect: vendored/blueprints/patterns/plan_and_execute/overview.md
+  event_driven: vendored/blueprints/patterns/event_driven/overview.md
+  event-driven: vendored/blueprints/patterns/event_driven/overview.md
+  event driven: vendored/blueprints/patterns/event_driven/overview.md
+  saga: vendored/blueprints/patterns/saga/overview.md
+  reflection: vendored/blueprints/patterns/reflection/overview.md
+  long_horizon: vendored/blueprints/patterns/long_horizon/overview.md
+  long-horizon: vendored/blueprints/patterns/long_horizon/overview.md
+  prompt chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
+  prompt-chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
+  parallel calls: vendored/blueprints/patterns/parallel-calls/overview.md
+  parallel-calls: vendored/blueprints/patterns/parallel-calls/overview.md
+  orchestrator-worker: vendored/blueprints/patterns/orchestrator-worker/overview.md
+  evaluator-optimizer: vendored/blueprints/patterns/evaluator-optimizer/overview.md
+  memory: vendored/blueprints/primitives/memory/overview.md
+  tool_use: vendored/blueprints/primitives/tool_use/overview.md
+  tool use: vendored/blueprints/primitives/tool_use/overview.md
+  tool-use: vendored/blueprints/primitives/tool_use/overview.md
+  routing-tool-use: vendored/blueprints/primitives/tool_use/overview.md
+  skills: vendored/blueprints/primitives/skills/overview.md
+  sub_agents: vendored/blueprints/primitives/sub_agents/overview.md
+  sub-agents: vendored/blueprints/primitives/sub_agents/overview.md
+  subagents: vendored/blueprints/primitives/sub_agents/overview.md
+  guardrails: vendored/blueprints/modifiers/guardrails/overview.md
+  human_in_the_loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
+  human-in-the-loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
+  hitl: vendored/blueprints/modifiers/human_in_the_loop/overview.md
   langgraph: docs/frameworks/langgraph.md
   pydantic ai: docs/frameworks/pydantic-ai.md
   pydantic-ai: docs/frameworks/pydantic-ai.md

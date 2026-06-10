@@ -28,21 +28,25 @@ If you want to skip the manual "load these docs into your AI assistant" step in 
 
 ## Which blueprint should I start from?
 
-| If you're building... | Start here | Pattern |
-|----------------------|------------|---------|
-| A chatbot that routes to specialists | [`customer-support-triage`](docs/recipes/customer-support-triage.md) | Routing + Tool Use |
-| Q&A over your own docs | [`docs-rag-qa`](docs/recipes/docs-rag-qa.md) | RAG |
-| An open-ended research tool | [`research-assistant`](docs/recipes/research-assistant.md) | ReAct + Tool Use |
-| A content generation pipeline | [`content-pipeline`](docs/recipes/content-pipeline.md) | Prompt Chaining |
-| Automated code review | [`code-review-agent`](docs/recipes/code-review-agent.md) | Plan, Execute, Reflect |
-| A team of agents collaborating | [`ops-crew`](docs/recipes/ops-crew.md) | Multi-Agent (flat) |
-| Batch enrichment at scale | [`parallel-enricher`](docs/recipes/parallel-enricher.md) | Parallel Calls |
-| A personal assistant with memory | [`memory-assistant`](docs/recipes/memory-assistant.md) | Memory |
-| A hierarchical multi-agent system | [`hierarchical-agent`](docs/recipes/hierarchical-agent.md) | Multi-Agent (hierarchical) |
-| An event-driven rebooking agent | [`restaurant-rebooking`](docs/recipes/restaurant-rebooking.md) | Event-Driven + Multi-Agent (flat) |
-| A CLI host that delegates to a Claude Code subagent | [`claude-code-subagent`](docs/recipes/claude-code-subagent.md) | ReAct + Routing/Tool Use (Claude Agent SDK) |
+Each recipe declares its **three orthogonal picks** in frontmatter: one `agent_pattern:` + zero-or-more `primitives:` + zero-or-more `modifiers:`. Pattern is the cognitive flow shape (from `catalog.patterns[]`); primitives are building blocks the agent uses across patterns (memory, tool_use, skills, sub_agents); modifiers are transformations layered on top (guardrails, human_in_the_loop). See [`docs/recipes/SCHEMA.md`](docs/recipes/SCHEMA.md).
+
+| If you're building... | Start here | Pattern | Primitives |
+|----------------------|------------|---------|------------|
+| A chatbot that routes to specialists | [`customer-support-triage`](docs/recipes/customer-support-triage.md) | `routing` | `tool_use` |
+| Q&A over your own docs | [`docs-rag-qa`](docs/recipes/docs-rag-qa.md) | `rag` | — |
+| An open-ended research tool | [`research-assistant`](docs/recipes/research-assistant.md) | `react` | `tool_use` |
+| A content generation pipeline | [`content-pipeline`](docs/recipes/content-pipeline.md) | `prompt-chaining` | — |
+| Automated code review | [`code-review-agent`](docs/recipes/code-review-agent.md) | `plan_and_execute` | `tool_use` |
+| A team of agents collaborating | [`ops-crew`](docs/recipes/ops-crew.md) | `multi_agent` | `tool_use`, `sub_agents` |
+| Batch enrichment at scale | [`parallel-enricher`](docs/recipes/parallel-enricher.md) | `parallel-calls` | — |
+| A personal assistant with memory | [`memory-assistant`](docs/recipes/memory-assistant.md) | `react` | `tool_use`, `memory` |
+| A hierarchical multi-agent system | [`hierarchical-agent`](docs/recipes/hierarchical-agent.md) | `multi_agent` | `tool_use`, `sub_agents` |
+| An event-driven rebooking agent | [`restaurant-rebooking`](docs/recipes/restaurant-rebooking.md) | `event_driven` | `tool_use` |
+| A CLI host that delegates to a Claude Code subagent | [`claude-code-subagent`](docs/recipes/claude-code-subagent.md) | `react` | `tool_use`, `sub_agents`, `skills` |
 
 Every blueprint includes **Python** (FastAPI + Pydantic AI) and **TypeScript** (Hono + Vercel AI SDK) specifications side by side.
+
+> **Pipeline placement.** agent-blueprints decides the cognitive shape; this repo decides the stack to run it on; agent-scaffold builds the project. After you've picked a pattern upstream, this is where you pick the framework, infrastructure capabilities, and cross-cutting concerns.
 
 ---
 

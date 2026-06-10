@@ -79,7 +79,7 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
-GENERATOR_VERSION = "1.0.0"
+GENERATOR_VERSION = "1.1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
@@ -270,40 +270,73 @@ def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -
 
 
 def collect_pattern_docs() -> list[str]:
-    """Enumerate the vendored blueprints patterns + workflows for ``pattern_docs[]``.
+    """Enumerate vendored blueprint cohort overviews for the catalog's
+    ``pattern_docs[]``, ``primitive_docs[]``, and ``modifier_docs[]`` lists.
 
-    Each pattern / workflow contributes its ``overview.md`` (the canonical
-    entry file the catalog's ``blueprints.directory_entry`` field declares).
-    Used by scaffold's alias resolver to convert prose mentions ("ReAct",
-    "RAG", …) to a concrete vendored path.
+    Returns one flat sorted list keyed off the four cohort dirs
+    (``patterns/``, ``workflows/``, ``primitives/``, ``modifiers/``); callers
+    bucket the result into per-cohort fields. Used by scaffold's alias
+    resolver to convert prose mentions ("ReAct", "memory", …) to a vendored
+    path.
 
-    Replaces the previous enumeration of ``docs/patterns/*.md`` (the
-    lighter mirror that has been retired in favor of the vendored canonical
-    content).
+    Replaces the previous enumeration of ``docs/patterns/*.md`` (the lighter
+    mirror that has been retired in favor of the vendored canonical content).
     """
     if not VENDORED_BLUEPRINTS_DIR.is_dir():
-        # No vendored tree on disk — run `vendir sync` first. Return empty so
-        # the generator doesn't half-fail; the catalog drift CI will surface
-        # the missing tree separately.
         print(
             "warning: vendored/blueprints/ not present — run `vendir sync`",
             file=sys.stderr,
         )
         return []
-
     out: list[str] = []
-    for kind_dir in ("patterns", "workflows"):
-        kind_root = VENDORED_BLUEPRINTS_DIR / kind_dir
-        if not kind_root.is_dir():
+    for cohort_dir in ("patterns", "workflows", "primitives", "modifiers"):
+        cohort_root = VENDORED_BLUEPRINTS_DIR / cohort_dir
+        if not cohort_root.is_dir():
             continue
-        for entry in sorted(kind_root.iterdir()):
+        for entry in sorted(cohort_root.iterdir()):
             if not entry.is_dir():
                 continue
             overview = entry / "overview.md"
-            if not overview.is_file():
-                continue
-            out.append(str(overview.relative_to(REPO_ROOT).as_posix()))
+            if overview.is_file():
+                out.append(str(overview.relative_to(REPO_ROOT).as_posix()))
     return out
+
+
+def validate_recipe_references(
+    recipes: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
+    blueprints_catalog: dict[str, Any],
+) -> None:
+    """Raise SystemExit if any recipe references an id that doesn't resolve.
+
+    Checks ``agent_pattern`` against ``catalog.patterns[].id``, each
+    ``primitives[]`` / ``modifiers[]`` entry against the matching cohort, and
+    each ``capabilities[]`` id against the locally-discovered capability
+    files. Recipes that don't declare an additive field are skipped. Surfaces
+    bad ids at generator time instead of at scaffold runtime.
+    """
+    cap_ids = {c["id"] for c in capabilities if "id" in c}
+    cohort_ids = {
+        cohort: {e["id"] for e in (blueprints_catalog.get(cohort) or []) if "id" in e}
+        for cohort in ("patterns", "primitives", "modifiers")
+    }
+    errors: list[str] = []
+    for r in recipes:
+        path = r.get("path", "<unknown>")
+        ap = r.get("agent_pattern")
+        if ap and ap not in cohort_ids["patterns"]:
+            errors.append(f"{path}: agent_pattern={ap!r} not in catalog.patterns[]")
+        for prim in r.get("primitives") or []:
+            if prim not in cohort_ids["primitives"]:
+                errors.append(f"{path}: primitives[] {prim!r} not in catalog.primitives[]")
+        for mod in r.get("modifiers") or []:
+            if mod not in cohort_ids["modifiers"]:
+                errors.append(f"{path}: modifiers[] {mod!r} not in catalog.modifiers[]")
+        for cap in r.get("capabilities") or []:
+            if cap not in cap_ids:
+                errors.append(f"{path}: capabilities[] {cap!r} has no docs/capabilities/ entry")
+    if errors:
+        raise SystemExit("error: recipe id-resolution failed:\n  - " + "\n  - ".join(errors))
 
 
 # ---------------------------------------------------------------------------
@@ -381,8 +414,14 @@ def build_catalog(
     catalog["blueprints"] = blueprints_block
 
     # Embedded blueprints index. Pass-through; we don't restructure.
+    # Upstream taxonomy v2 ships four cohort blocks (patterns, workflows,
+    # primitives, modifiers) plus compositions; all are forwarded verbatim.
+    # workflows[] is a derived view of patterns[] where category=workflow and
+    # will be removed in upstream taxonomy v3 — preserved here for compat.
     catalog["patterns"] = blueprints_catalog.get("patterns") or []
     catalog["workflows"] = blueprints_catalog.get("workflows") or []
+    catalog["primitives"] = blueprints_catalog.get("primitives") or []
+    catalog["modifiers"] = blueprints_catalog.get("modifiers") or []
     catalog["compositions"] = blueprints_catalog.get("compositions") or []
 
     # This repo's own content.
@@ -391,7 +430,21 @@ def build_catalog(
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)
-    catalog["pattern_docs"] = collect_pattern_docs()
+
+    # Split the blueprint cohort overviews into per-cohort lists. Older
+    # scaffold versions look for the flat pattern_docs[] (kept populated with
+    # patterns + workflows for back-compat); newer consumers can use the more
+    # granular siblings.
+    all_overviews = collect_pattern_docs()
+    catalog["pattern_docs"] = sorted(
+        p for p in all_overviews if "/patterns/" in p or "/workflows/" in p
+    )
+    catalog["primitive_docs"] = sorted(p for p in all_overviews if "/primitives/" in p)
+    catalog["modifier_docs"] = sorted(p for p in all_overviews if "/modifiers/" in p)
+
+    # Validate every recipe-side id resolves before we emit. Loud failure
+    # here is better than silent skip at scaffold runtime.
+    validate_recipe_references(catalog["recipes"], catalog["capabilities"], blueprints_catalog)
 
     # Seeded behavior knobs.
     catalog["aliases"] = seed.get("aliases", {})
@@ -488,9 +541,10 @@ def main(argv: list[str] | None = None) -> int:
         f"({len(catalog['recipes'])} recipes, "
         f"{len(catalog['capabilities'])} capabilities, "
         f"{len(catalog['frameworks'])} frameworks, "
-        f"{len(catalog['patterns'])} patterns embedded, "
-        f"{len(catalog['workflows'])} workflows embedded, "
-        f"{len(catalog['compositions'])} compositions embedded)"
+        f"{len(catalog['patterns'])} patterns + "
+        f"{len(catalog['primitives'])} primitives + "
+        f"{len(catalog['modifiers'])} modifiers embedded, "
+        f"{len(catalog['compositions'])} compositions)"
     )
     return 0
 

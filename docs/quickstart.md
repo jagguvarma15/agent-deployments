@@ -41,10 +41,10 @@ Browse [`docs/recipes/`](recipes/) and choose a blueprint. Each recipe's **Load 
 Feed these to your AI coding assistant:
 
 ```
-docs/recipes/<your-recipe>.md        # The full blueprint
-docs/patterns/<pattern>.md            # The underlying architecture
-docs/frameworks/<framework>.md        # Idiomatic implementation guide
-docs/stack/llm-claude.md              # LLM integration
+docs/recipes/<your-recipe>.md                              # The full blueprint
+vendored/blueprints/patterns/<pattern>/overview.md         # The underlying architecture
+docs/frameworks/<framework>.md                             # Idiomatic implementation guide
+docs/stack/llm-claude.md                                   # LLM integration
 ```
 
 ### 3. Prompt your AI assistant

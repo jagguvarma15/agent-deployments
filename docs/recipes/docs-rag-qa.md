@@ -1,6 +1,7 @@
 ---
 status: Blueprint (validated)
 languages: [python, typescript]
+agent_pattern: rag
 required_files:
   - Dockerfile
   - docker-compose.yml

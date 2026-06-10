@@ -1,6 +1,8 @@
 ---
 status: Blueprint (design spec)
 languages: [python, typescript]
+agent_pattern: react
+primitives: [tool_use, memory]
 required_files:
   - Dockerfile
   - docker-compose.yml

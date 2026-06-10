@@ -1,6 +1,7 @@
 ---
 status: Blueprint (design spec)
 languages: [python, typescript]
+agent_pattern: prompt-chaining
 required_files:
   - Dockerfile
   - docker-compose.yml
