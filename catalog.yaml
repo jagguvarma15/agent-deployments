@@ -941,6 +941,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: react
   required_files:
   - app/main.py
   - app/agent/host.py
@@ -1016,6 +1017,7 @@ recipes:
   - python
   - typescript
   topology: chain
+  agent_pattern: plan_and_execute
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1099,6 +1101,7 @@ recipes:
   - python
   - typescript
   topology: chain
+  agent_pattern: prompt-chaining
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1180,6 +1183,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-hierarchical
+  agent_pattern: routing
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1289,6 +1293,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: rag
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1383,6 +1388,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-hierarchical
+  agent_pattern: multi_agent
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1494,6 +1500,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: react
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1587,6 +1594,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-flat
+  agent_pattern: multi_agent
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1692,6 +1700,7 @@ recipes:
   - python
   - typescript
   topology: parallel
+  agent_pattern: parallel-calls
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1769,6 +1778,7 @@ recipes:
   - python
   - typescript
   topology: single
+  agent_pattern: react
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1851,6 +1861,7 @@ recipes:
   - python
   - typescript
   topology: multi-agent-flat
+  agent_pattern: event_driven
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -2026,6 +2037,21 @@ capabilities:
   - REDIS_URL
   docker_service: redis
   probe: redis_ping
+- id: durable.temporal
+  kind: durable
+  path: docs/capabilities/durable/temporal.md
+  env_vars:
+  - TEMPORAL_HOST
+  - TEMPORAL_NAMESPACE
+  docker_service: temporal
+  bootstrap_step: bootstrap_temporal
+  probe: temporal_health
+- id: embedding.openai
+  kind: embedding
+  path: docs/capabilities/embedding/openai.md
+  env_vars:
+  - OPENAI_API_KEY
+  probe: openai_embedding_ping
 - id: eval.deepeval
   kind: eval
   path: docs/capabilities/eval/deepeval.md
@@ -2056,6 +2082,12 @@ capabilities:
   path: docs/capabilities/frontend/streamlit.md
   env_vars:
   - AGENT_URL
+- id: guardrail.llama-guard
+  kind: guardrail
+  path: docs/capabilities/guardrail/llama-guard.md
+  env_vars:
+  - TOGETHER_API_KEY
+  probe: llama_guard_classify
 - id: host.fly
   kind: host
   path: docs/capabilities/host/fly.md
@@ -2078,6 +2110,27 @@ capabilities:
   - VERCEL_ORG_ID
   - VERCEL_PROJECT_ID
   bootstrap_step: emit_deploy_configs
+- id: live_data.tavily
+  kind: live_data
+  path: docs/capabilities/live_data/tavily.md
+  env_vars:
+  - TAVILY_API_KEY
+  probe: tavily_search_ping
+- id: mcp.tavily
+  kind: mcp
+  path: docs/capabilities/mcp/tavily.md
+  env_vars:
+  - TAVILY_API_KEY
+  probe: tavily_mcp_ping
+- id: memory_store.zep
+  kind: memory_store
+  path: docs/capabilities/memory_store/zep.md
+  env_vars:
+  - ZEP_API_URL
+  - ZEP_API_KEY
+  docker_service: zep
+  bootstrap_step: bootstrap_zep
+  probe: zep_health
 - id: obs.grafana-stack
   kind: obs
   path: docs/capabilities/obs/grafana-stack.md
@@ -2134,6 +2187,18 @@ capabilities:
   - POSTGRES_DB
   docker_service: postgres
   probe: postgres_select_one
+- id: rerank.cohere
+  kind: rerank
+  path: docs/capabilities/rerank/cohere.md
+  env_vars:
+  - COHERE_API_KEY
+  probe: cohere_rerank_ping
+- id: sandbox.e2b
+  kind: sandbox
+  path: docs/capabilities/sandbox/e2b.md
+  env_vars:
+  - E2B_API_KEY
+  probe: e2b_session_open
 - id: vector_db.chroma
   kind: vector_db
   path: docs/capabilities/vector_db/chroma.md
