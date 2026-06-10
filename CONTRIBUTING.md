@@ -31,7 +31,11 @@ Want to document how to swap a default pick (e.g., Qdrant to Pinecone)?
 New blueprints must:
 
 1. Use the `new-blueprint` issue template for discussion first
-2. Map to a pattern from [`docs/patterns/`](docs/patterns/) or propose a new one
+2. Declare the **three orthogonal picks** in frontmatter:
+   - `agent_pattern:` — required, one id from `catalog.patterns[]` (see [`vendored/blueprints/patterns/`](vendored/blueprints/patterns/) for available ids)
+   - `primitives:` — optional list, ids from `catalog.primitives[]` (memory, tool_use, skills, sub_agents)
+   - `modifiers:` — optional list, ids from `catalog.modifiers[]` (guardrails, human_in_the_loop)
+   The generator validates every id at build time and refuses to emit a catalog with an unresolved reference. See [`docs/recipes/SCHEMA.md`](docs/recipes/SCHEMA.md).
 3. Include specifications for **both** Python and TypeScript tracks
 4. Follow the 13-section blueprint template (see any existing recipe for reference)
 5. Regenerate the catalog — after editing the new recipe's frontmatter (or any capability / framework / cross-cutting doc), run `uv run scripts/generate_catalog.py` and commit the resulting `catalog.yaml`. The drift CI gate enforces this.
