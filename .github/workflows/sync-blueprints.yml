@@ -19,9 +19,17 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Blueprints release tag to sync to (e.g. v0.3.0). Leave empty to use the latest release.'
+        description: 'Blueprints release tag (e.g. v0.3.0) OR a 40-char SHA when mode=sha. Leave empty to use the latest release.'
         required: false
         default: ''
+      mode:
+        description: 'Pin mode: `tag` (default, writes refs/tags/<tag>) or `sha` (writes the input verbatim — bootstrap-only use)'
+        required: false
+        default: 'tag'
+        type: choice
+        options:
+          - tag
+          - sha
 
 permissions:
   contents: write
@@ -36,40 +44,56 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Resolve target tag
+      - name: Resolve target ref
         id: target
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Precedence: repository_dispatch payload > workflow_dispatch input >
-          # latest release lookup via gh.
-          tag="${{ github.event.client_payload.tag }}"
-          if [ -z "$tag" ]; then
-            tag="${{ github.event.inputs.tag }}"
+          # latest release lookup via gh. Mode comes from workflow_dispatch
+          # input (defaults to `tag`); repository_dispatch is always tag mode.
+          mode="${{ github.event.inputs.mode }}"
+          if [ -z "$mode" ]; then
+            mode="tag"
           fi
-          if [ -z "$tag" ]; then
-            tag=$(gh release view -R jagguvarma15/agent-blueprints --json tagName -q .tagName)
+          ref="${{ github.event.client_payload.tag }}"
+          if [ -z "$ref" ]; then
+            ref="${{ github.event.inputs.tag }}"
           fi
-          if [ -z "$tag" ]; then
-            echo "::error::Could not resolve a target release tag"
+          if [ -z "$ref" ] && [ "$mode" = "tag" ]; then
+            ref=$(gh release view -R jagguvarma15/agent-blueprints --json tagName -q .tagName)
+          fi
+          if [ -z "$ref" ]; then
+            echo "::error::Could not resolve a target ref (mode=$mode)"
             exit 1
           fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "Target tag: $tag"
+          if [ "$mode" = "sha" ]; then
+            # Light validation: must look like a 7-40 hex char SHA.
+            if ! echo "$ref" | grep -Eq '^[0-9a-f]{7,40}$'; then
+              echo "::error::mode=sha but '$ref' is not a hex SHA"
+              exit 1
+            fi
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Target ref: $ref (mode=$mode)"
 
-      - name: Pin vendir.yml to target tag
+      - name: Pin vendir.yml to target ref
         run: |
-          # Rewrite the `ref:` line so vendir syncs the released tarball.
-          # Idempotent: re-running with the same tag is a no-op.
-          tag="${{ steps.target.outputs.tag }}"
-          python3 - "$tag" <<'PY'
+          # Rewrite the `ref:` line so vendir syncs the released tarball
+          # (mode=tag) or a specific commit (mode=sha, bootstrap-only).
+          # Idempotent: re-running with the same ref+mode is a no-op.
+          ref="${{ steps.target.outputs.ref }}"
+          mode="${{ steps.target.outputs.mode }}"
+          python3 - "$ref" "$mode" <<'PY'
           import re, sys, pathlib
-          tag = sys.argv[1]
+          ref, mode = sys.argv[1], sys.argv[2]
           path = pathlib.Path("vendir.yml")
           text = path.read_text(encoding="utf-8")
+          replacement = ref if mode == "sha" else f"refs/tags/{ref}"
           new = re.sub(
               r"(\bref:\s*)\S+",
-              lambda m: f"{m.group(1)}refs/tags/{tag}",
+              lambda m: f"{m.group(1)}{replacement}",
               text,
               count=1,
           )
@@ -109,16 +133,16 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: 'chore(blueprints): sync vendored to ${{ steps.target.outputs.tag }}'
-          title: 'chore(blueprints): sync vendored to ${{ steps.target.outputs.tag }}'
+          commit-message: 'chore(blueprints): sync vendored to ${{ steps.target.outputs.ref }}'
+          title: 'chore(blueprints): sync vendored to ${{ steps.target.outputs.ref }}'
           body: |
-            Automated sync of `vendored/blueprints/` to upstream `agent-blueprints` release **${{ steps.target.outputs.tag }}**.
+            Automated sync of `vendored/blueprints/` to upstream `agent-blueprints` ref **`${{ steps.target.outputs.ref }}`** (mode: `${{ steps.target.outputs.mode }}`).
 
             **Trigger:** `${{ github.event_name }}`
             ${{ github.event.client_payload.html_url && format('**Release:** {0}', github.event.client_payload.html_url) || '' }}
             ${{ github.event.client_payload.name && format('**Release name:** {0}', github.event.client_payload.name) || '' }}
 
             Regenerated `catalog.yaml` is included so the catalog drift CI passes.
-          branch: chore/blueprints-sync-${{ steps.target.outputs.tag }}
+          branch: chore/blueprints-sync-${{ steps.target.outputs.ref }}
           delete-branch: true
           labels: automated-sync
