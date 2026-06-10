@@ -57,4 +57,4 @@ For a hosted instance with auth: `redis://default:<password>@<host>:<port>/0` (n
 ## See also
 
 - [`docs/stack/cache-redis.md`](../stack/cache-redis.md) — full config, AOF/RDB persistence, eviction policies
-- [`docs/patterns/event-driven.md`](../patterns/event-driven.md) — Redis Streams as the event source
+- [`vendored/blueprints/patterns/event_driven/overview.md`](../../vendored/blueprints/patterns/event_driven/overview.md) — Redis Streams as the event source
