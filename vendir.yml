@@ -21,35 +21,48 @@ minimumRequiredVersion: 0.40.0
 #   - vendir.lock.yml carries the resolved commit SHA for the current ref.
 #   - CI verifies `vendir sync && git diff --exit-code` produces no diff.
 #
-# Bootstrap note:
-#   The `ref:` below currently points at `origin/main` because agent-blueprints
-#   has not cut its first release yet. The first release will be pinned via
-#   the sync workflow rewriting this to `refs/tags/v0.X.0`. After that, this
-#   file's `ref:` should always be a tag, never a branch.
+# Bootstrap note (SHA-pinned, transition to tag at first release):
+#   `ref:` below is currently a SHA pin because agent-blueprints has not cut
+#   its first release yet. SHA pinning gives us deterministic syncs during
+#   the bootstrap window without the floating-branch hazard `origin/main`
+#   carries. The moment agent-blueprints publishes `v0.1.0`, the sync
+#   workflow (`sync-blueprints.yml`) will rewrite this line to
+#   `refs/tags/v0.1.0`. From then on, `ref:` should always be a tag, never
+#   a SHA and never a branch.
 #
-# Path filters: pattern + workflow + foundations content is kept; runnable
-# code under patterns/*/code/ and workflows/*/code/ is excluded (scaffold
-# doesn't read it; would bloat the snapshot).
+# Path filters: the full 3-cohort taxonomy (patterns + primitives +
+# modifiers), foundations, composition, taxonomy.yaml, and the AI-tool
+# discovery surface (llms.txt + agents.md + meta/HOW_TO_ADD_AN_ENTRY.md)
+# are all included. Runnable code under <cohort>/*/code/ is excluded
+# (scaffold doesn't read it; would bloat the snapshot).
 directories:
   - path: vendored/blueprints
     contents:
       - path: .
         git:
           url: https://github.com/jagguvarma15/agent-blueprints
-          ref: origin/main
+          ref: dfd824d905ec28d49eea01c286ba684246dab81f
           depth: 1
         includePaths:
           - "patterns/**"
           - "workflows/**"
+          - "primitives/**"
+          - "modifiers/**"
           - "foundations/**"
           - "composition/**"
+          - "meta/HOW_TO_ADD_AN_ENTRY.md"
           - "patterns-catalog.yaml"
           - "PATTERNS_CATALOG_SCHEMA.md"
+          - "taxonomy.yaml"
+          - "agents.md"
+          - "llms.txt"
           - "README.md"
           - "LICENSE"
         excludePaths:
           - "patterns/**/code/**"
           - "workflows/**/code/**"
+          - "primitives/**/code/**"
+          - "modifiers/**/code/**"
           - "**/.DS_Store"
           - "**/__pycache__/**"
           - "**/node_modules/**"
