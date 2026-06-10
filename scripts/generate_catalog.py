@@ -79,13 +79,14 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
-GENERATOR_VERSION = "1.0.0"
+GENERATOR_VERSION = "1.1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
 
 VENDORED_BLUEPRINTS_DIR = REPO_ROOT / "vendored" / "blueprints"
 DEFAULT_BLUEPRINTS_CATALOG_URL = str(VENDORED_BLUEPRINTS_DIR / "patterns-catalog.yaml")
+VENDORED_TAXONOMY_PATH = VENDORED_BLUEPRINTS_DIR / "taxonomy.yaml"
 """Default source for the blueprints catalog. Reads the vendored snapshot at
 ``vendored/blueprints/patterns-catalog.yaml``. The vendored tree is managed
 by ``vendir`` (see ``vendir.yml``). Override via ``--blueprints-catalog-url``
@@ -115,6 +116,50 @@ _H1_RE = re.compile(r"^#\s+(.+?)\s*$", re.MULTILINE)
 DEFAULT_NON_RECIPE_STEMS = frozenset(
     ["readme", "schema", "index", "changelog", "contributing", "license", "templates"]
 )
+
+# Per-field consumer contract. Declares the minimum scaffold version each
+# catalog field requires to be parsed correctly. Older scaffold builds use
+# Pydantic's `extra: ignore` and silently drop fields beyond their declared
+# min — this map exposes the policy as a machine-readable surface so scaffold
+# can refuse to load a catalog newer than it understands at startup, instead
+# of degrading silently. Replaces the prose policy in MANIFEST_SCHEMA.md's
+# "Schema version policy" section.
+#
+# The map is intentionally hand-curated (not derived from frontmatter) — it
+# documents a contract between this repo and its consumers, and that contract
+# is what the catalog publisher is asserting, not what any individual recipe
+# declares.
+CONSUMER_CONTRACT: list[tuple[str, dict[str, Any]]] = [
+    # Recipe-level additive fields. Pre-existing fields (status, languages,
+    # required_files, recipe_dependencies, external_services, topology, roles,
+    # bootstrap_config) are covered by v0.2.x and not listed here.
+    ("recipes[].agent_pattern",     {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].primitives",        {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].modifiers",         {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].capabilities",      {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].load_list",         {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].mcp_servers",       {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].skills",            {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].guardrails",        {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].sandbox",           {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("recipes[].durable_workflow",  {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    # Top-level catalog blocks added in generator v1.1.0.
+    ("primitives",                  {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("modifiers",                   {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("primitive_docs",              {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("modifier_docs",               {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("workflow_docs",               {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("consumer_contract",           {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    # 2026-SOTA capability kinds (additive cohort beyond the v0.2 set).
+    ("capabilities[].kind=mcp",          {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("capabilities[].kind=sandbox",      {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("capabilities[].kind=durable",      {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("capabilities[].kind=memory_store", {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("capabilities[].kind=guardrail",    {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("capabilities[].kind=embedding",    {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("capabilities[].kind=live_data",    {"min_consumer_version": "0.3.0", "since_schema": 1}),
+    ("capabilities[].kind=rerank",       {"min_consumer_version": "0.3.0", "since_schema": 1}),
+]
 
 
 # ---------------------------------------------------------------------------
