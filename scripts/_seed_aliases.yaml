@@ -8,25 +8,61 @@
 # (so each doc owns its own alias list); the generator will then derive these
 # blocks from the docs and this seed file becomes empty / removable.
 #
-# Paths are repo-root-relative (e.g. `docs/patterns/react.md`), not `docs/`-relative.
+# Paths are repo-root-relative (e.g. `vendored/blueprints/patterns/react/overview.md`),
+# not `docs/`-relative.
 
 # Lowercase prose token -> doc path. Source: scaffold/src/agent_scaffold/context.py ALIAS_TABLE.
+#
+# Pattern, primitive, and modifier aliases all resolve to canonical upstream
+# overview paths under vendored/blueprints/<cohort>/<id>/overview.md (matching
+# the catalog's blueprints.directory_entry convention). The previous
+# docs/patterns/ lighter mirror has been retired; legacy kebab-case names
+# (multi-agent-flat, event-driven, ...) are kept here as alias entries that
+# point at the canonical underscored vendored id so old prose still resolves.
 aliases:
-  react: docs/patterns/react.md
-  rag: docs/patterns/rag.md
-  routing: docs/patterns/routing-tool-use.md
-  tool use: docs/patterns/routing-tool-use.md
-  tool-use: docs/patterns/routing-tool-use.md
-  routing-tool-use: docs/patterns/routing-tool-use.md
-  prompt chaining: docs/patterns/prompt-chaining.md
-  plan, execute, reflect: docs/patterns/plan-execute-reflect.md
-  multi-agent: docs/patterns/multi-agent-flat.md
-  multi-agent-flat: docs/patterns/multi-agent-flat.md
-  multi-agent-hierarchical: docs/patterns/multi-agent-hierarchical.md
-  memory: docs/patterns/memory.md
-  parallel calls: docs/patterns/parallel-calls.md
-  event driven: docs/patterns/event-driven.md
-  event-driven: docs/patterns/event-driven.md
+  # --- Patterns (agent-controlled flow) ---
+  react: vendored/blueprints/patterns/react/overview.md
+  rag: vendored/blueprints/patterns/rag/overview.md
+  agentic_rag: vendored/blueprints/patterns/agentic_rag/overview.md
+  agentic-rag: vendored/blueprints/patterns/agentic_rag/overview.md
+  routing: vendored/blueprints/patterns/routing/overview.md
+  multi_agent: vendored/blueprints/patterns/multi_agent/overview.md
+  multi-agent: vendored/blueprints/patterns/multi_agent/overview.md
+  multi-agent-flat: vendored/blueprints/patterns/multi_agent/overview.md
+  multi-agent-hierarchical: vendored/blueprints/patterns/multi_agent/overview.md
+  plan_and_execute: vendored/blueprints/patterns/plan_and_execute/overview.md
+  plan-and-execute: vendored/blueprints/patterns/plan_and_execute/overview.md
+  plan, execute, reflect: vendored/blueprints/patterns/plan_and_execute/overview.md
+  event_driven: vendored/blueprints/patterns/event_driven/overview.md
+  event-driven: vendored/blueprints/patterns/event_driven/overview.md
+  event driven: vendored/blueprints/patterns/event_driven/overview.md
+  saga: vendored/blueprints/patterns/saga/overview.md
+  reflection: vendored/blueprints/patterns/reflection/overview.md
+  long_horizon: vendored/blueprints/patterns/long_horizon/overview.md
+  long-horizon: vendored/blueprints/patterns/long_horizon/overview.md
+  # --- Workflows (code-controlled flow; same patterns/ dir, category=workflow) ---
+  prompt chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
+  prompt-chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
+  parallel calls: vendored/blueprints/patterns/parallel-calls/overview.md
+  parallel-calls: vendored/blueprints/patterns/parallel-calls/overview.md
+  orchestrator-worker: vendored/blueprints/patterns/orchestrator-worker/overview.md
+  evaluator-optimizer: vendored/blueprints/patterns/evaluator-optimizer/overview.md
+  # --- Primitives (orthogonal building blocks) ---
+  memory: vendored/blueprints/primitives/memory/overview.md
+  tool_use: vendored/blueprints/primitives/tool_use/overview.md
+  tool use: vendored/blueprints/primitives/tool_use/overview.md
+  tool-use: vendored/blueprints/primitives/tool_use/overview.md
+  routing-tool-use: vendored/blueprints/primitives/tool_use/overview.md
+  skills: vendored/blueprints/primitives/skills/overview.md
+  sub_agents: vendored/blueprints/primitives/sub_agents/overview.md
+  sub-agents: vendored/blueprints/primitives/sub_agents/overview.md
+  subagents: vendored/blueprints/primitives/sub_agents/overview.md
+  # --- Modifiers (transformations layered on a pattern) ---
+  guardrails: vendored/blueprints/modifiers/guardrails/overview.md
+  human_in_the_loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
+  human-in-the-loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
+  hitl: vendored/blueprints/modifiers/human_in_the_loop/overview.md
+  # --- Frameworks ---
   langgraph: docs/frameworks/langgraph.md
   pydantic ai: docs/frameworks/pydantic-ai.md
   pydantic-ai: docs/frameworks/pydantic-ai.md
@@ -34,6 +70,7 @@ aliases:
   vercel ai sdk: docs/frameworks/vercel-ai-sdk.md
   vercel-ai-sdk: docs/frameworks/vercel-ai-sdk.md
   mastra: docs/frameworks/mastra.md
+  # --- Stack ---
   qdrant: docs/stack/vector-qdrant.md
   vector-qdrant: docs/stack/vector-qdrant.md
   postgres: docs/stack/relational-postgres.md

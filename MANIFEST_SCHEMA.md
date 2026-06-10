@@ -86,8 +86,10 @@ blueprints:
 
 # Embedded from blueprints/patterns-catalog.yaml at CI time.
 # Pass-through — no restructuring.
-patterns:       [...]    # agent patterns (RAG, ReAct, multi-agent, ...)
-workflows:      [...]    # workflow patterns (prompt-chaining, parallel-calls, ...)
+patterns:       [...]    # flow shapes (agent + workflow via category field)
+workflows:      [...]    # derived view of patterns where category=workflow (compat)
+primitives:     [...]    # orthogonal building blocks (memory, tool_use, skills, sub_agents)
+modifiers:      [...]    # transforms layered on a pattern (guardrails, human_in_the_loop)
 compositions:   [...]    # cross-pattern composition edges from blueprints' matrix
 
 # This repo's own content.
@@ -96,7 +98,9 @@ capabilities:   [...]    # docs/capabilities/<kind>/*.md frontmatter aggregated
 frameworks:     [...]    # docs/frameworks/*.md frontmatter aggregated
 stack:          [...]    # paths only — docs/stack/*.md
 cross_cutting_docs: [...]  # paths only — docs/cross-cutting/*.md
-pattern_docs:   [...]    # paths only — docs/patterns/*.md (lighter mirror of blueprints)
+pattern_docs:   [...]    # vendored/blueprints/{patterns,workflows}/<id>/overview.md
+primitive_docs: [...]    # vendored/blueprints/primitives/<id>/overview.md
+modifier_docs:  [...]    # vendored/blueprints/modifiers/<id>/overview.md
 
 # Behavior knobs, seeded from scripts/_seed_aliases.yaml.
 aliases:        {...}    # prose-token -> doc path map (replaces scaffold's ALIAS_TABLE)
@@ -119,9 +123,13 @@ min_alias_length: 3      # safety knob against over-matching from short aliases
 
 Deliberately **no `catalog_url`** and **no `upstream_sha`** fields. Both would be environment-dependent and would make drift CI flap (the URL differs between local-dev and CI runs; the SHA changes whenever blueprints pushes to main outside this PR's control). Blueprints version tracking happens implicitly via the embedded `patterns[]` / `workflows[]` / `compositions[]` content — if blueprints changes, those blocks change, and the catalog diffs.
 
-### `patterns[]`, `workflows[]`, `compositions[]` (embedded from blueprints)
+### `patterns[]`, `workflows[]`, `primitives[]`, `modifiers[]`, `compositions[]` (embedded from blueprints)
 
 Pass-through from the blueprints catalog. See [agent-blueprints/PATTERNS_CATALOG_SCHEMA.md](https://github.com/jagguvarma15/agent-blueprints/blob/main/PATTERNS_CATALOG_SCHEMA.md) for the field-level spec. The embedded data is whatever blueprints publishes at the URL we fetched.
+
+`patterns[]` contains both agent and workflow patterns, distinguished by the per-entry `category` field. `workflows[]` is a **derived view** — same entries as `patterns[]` where `category=workflow` — preserved for older consumers that walked it directly; upstream taxonomy v3 will remove it. `primitives[]` and `modifiers[]` are the second and third cohorts in the 3-decision picker (pattern → primitives → modifiers).
+
+Recipe frontmatter references these via `agent_pattern:`, `primitives:`, and `modifiers:`; the catalog generator validates every id at build time and refuses to emit a catalog with an unresolved reference.
 
 ### `recipes[]`
 
@@ -210,9 +218,11 @@ The 2026-SOTA cohort lands without bumping `schema_version` because:
 | `versions` | object | no | `minimum`, `last_known_good`, `notes`. |
 | `extra_packages` | object[] | no | Framework-owned companion dependencies. |
 
-### `stack[]`, `cross_cutting_docs[]`, `pattern_docs[]`
+### `stack[]`, `cross_cutting_docs[]`, `pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`
 
 Flat arrays of repo-root-relative paths only. These docs are referenced by recipes (via `load_list`, prose mentions, or alias matches) but don't carry structured frontmatter the catalog needs to expose beyond their existence + path.
+
+The three blueprint-side lists (`pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`) enumerate `vendored/blueprints/<cohort>/<id>/overview.md` paths — one entry per id. `pattern_docs[]` covers both `patterns/` and `workflows/` for back-compat with older consumers that walked one combined list.
 
 ### `aliases`, `cross_cutting`, `non_recipe_stems`, `min_alias_length`
 

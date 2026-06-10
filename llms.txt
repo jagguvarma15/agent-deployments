@@ -1,0 +1,26 @@
+# agent-deployments
+
+> Production-shaped markdown specs for AI agents. The stack-decision layer of the three-repo pipeline: [agent-blueprints](https://github.com/jagguvarma15/agent-blueprints) (architecture) → **agent-deployments** (specs + stack) → [agent-scaffold](https://github.com/jagguvarma15/agent-scaffold) (generator). After you pick a cognitive pattern in blueprints, this repo tells you what to build it on.
+
+Every recipe is a full-spec markdown blueprint with frontmatter that consumers (AI tools, scaffold CLIs) parse to assemble a runnable project. The canonical machine-readable index is `catalog.yaml`.
+
+## Start here
+
+- [catalog.yaml](catalog.yaml): single source of truth — embeds the blueprints catalog (patterns + primitives + modifiers + compositions) and this repo's recipes, capabilities, frameworks, stack docs.
+- [STRUCTURE.md](STRUCTURE.md): directory map. Read this if you need orientation before walking the tree.
+- [agents.md](agents.md): how to programmatically consume the catalog. Entry shapes, resolution rules, pinning convention.
+- [MANIFEST_SCHEMA.md](MANIFEST_SCHEMA.md): catalog schema.
+- [docs/recipes/SCHEMA.md](docs/recipes/SCHEMA.md): recipe frontmatter contract.
+- [docs/capabilities/README.md](docs/capabilities/README.md): capability authoring guide.
+
+## Recipes
+
+11 production-shaped agents under [docs/recipes/](docs/recipes/). Each spans Python (FastAPI + Pydantic AI / LangGraph / CrewAI) and TypeScript (Hono + Vercel AI SDK) tracks, with the same 13-section structure.
+
+## Canonical stack
+
+Anthropic Claude · Qdrant · Postgres 16 · Redis 7 · Langfuse · DeepEval/RAGAS/Promptfoo · MCP · docker-compose. See [docs/stack/](docs/stack/).
+
+## Vendored upstream
+
+`vendored/blueprints/` is a SHA-pinned snapshot of agent-blueprints, refreshed by [vendir](https://carvel.dev/vendir/) on every upstream release. Never edit directly.
