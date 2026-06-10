@@ -1,6 +1,8 @@
 ---
 status: Blueprint (design spec)
 languages: [python, typescript]
+agent_pattern: react
+primitives: [tool_use, sub_agents, skills]
 required_files:
   - app/main.py
   - app/agent/host.py
