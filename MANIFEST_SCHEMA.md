@@ -197,10 +197,10 @@ The full capability spec (Docker fragment, ports, volumes, healthcheck, etc.) st
 
 The catalog ships 16 known kinds, in two cohorts. Scaffold's `kind` field is a free string, so unknown kinds degrade gracefully (they surface as `unresolved` rather than raising) — that's the consumer-side forward-compat story when a capability lands upstream before the consumer has been updated.
 
-| Cohort | Kinds | Purpose |
-|---|---|---|
-| **v0.2 set** | `relational`, `cache`, `vector_db`, `queue`, `obs`, `eval`, `frontend`, `host` | The original infrastructure layers. |
-| **2026-SOTA set (additive)** | `embedding`, `rerank`, `memory_store`, `live_data`, `mcp`, `sandbox`, `durable`, `guardrail` | Data-layer enrichment (embedding/rerank/memory), tool connectivity (live_data/mcp), runtime (sandbox/durable), and safety (guardrail). |
+| Cohort | Kinds | Purpose | Default impls |
+|---|---|---|---|
+| **v0.2 set** | `relational`, `cache`, `vector_db`, `queue`, `obs`, `eval`, `frontend`, `host` | The original infrastructure layers. | postgres, redis, qdrant, kafka/redis-streams, langfuse/langsmith, promptfoo, nextjs-chat/streamlit, vercel/fly/railway |
+| **2026-SOTA set (additive)** | `embedding`, `rerank`, `memory_store`, `live_data`, `mcp`, `sandbox`, `durable`, `guardrail` | Data-layer enrichment (embedding/rerank/memory), tool connectivity (live_data/mcp), runtime (sandbox/durable), and safety (guardrail). | [`openai`](docs/capabilities/embedding/openai.md), [`cohere`](docs/capabilities/rerank/cohere.md), [`zep`](docs/capabilities/memory_store/zep.md), [`tavily`](docs/capabilities/live_data/tavily.md), [`tavily`](docs/capabilities/mcp/tavily.md), [`e2b`](docs/capabilities/sandbox/e2b.md), [`temporal`](docs/capabilities/durable/temporal.md), [`llama-guard`](docs/capabilities/guardrail/llama-guard.md) |
 
 The 2026-SOTA cohort lands without bumping `schema_version` because:
 - Each kind is a free string in the catalog; older consumers ignore unknown values via `unresolved`.

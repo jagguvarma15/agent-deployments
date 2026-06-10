@@ -116,6 +116,51 @@ A recipe that supports only one track lists only that one.
 
 ---
 
+### Composition (the three orthogonal decisions)
+
+Designing an agent is three picks: one pattern + N primitives + N modifiers. Every recipe declares its three picks in frontmatter; the catalog generator validates each id against the embedded blueprints catalog and refuses to emit a catalog with an unresolved reference.
+
+#### `agent_pattern` *(required)*
+
+The cognitive flow shape this recipe implements. References `catalog.patterns[].id` (which includes both agent patterns and workflow patterns via the `category` field).
+
+- **Type:** string
+- **Allowed values:** any id in `catalog.patterns[]` — currently `agentic_rag`, `event_driven`, `evaluator-optimizer`, `long_horizon`, `multi_agent`, `orchestrator-worker`, `parallel-calls`, `plan_and_execute`, `prompt-chaining`, `rag`, `react`, `reflection`, `routing`, `saga`.
+- **Consumer:** v0.3+ (drives prompt assembly + framework template selection).
+- **Examples:** `agent_pattern: react` · `agent_pattern: routing` · `agent_pattern: event_driven`
+
+Use the canonical underscore form for ids that contain a word break (`event_driven`, `plan_and_execute`, `multi_agent`). Workflow-category ids use hyphens (`prompt-chaining`, `parallel-calls`).
+
+#### `primitives`
+
+Orthogonal building blocks the recipe uses across the chosen pattern. References `catalog.primitives[].id`.
+
+- **Type:** list of strings (may be empty or omitted)
+- **Allowed values:** any id in `catalog.primitives[]` — currently `memory`, `tool_use`, `skills`, `sub_agents`.
+- **Consumer:** v0.3+ (each primitive's overview is added to the generation context).
+- **Examples:**
+  ```yaml
+  primitives: [tool_use, memory]
+  ```
+
+Almost every recipe declares `tool_use` (most agents call at least one tool). Use `memory` for recipes whose value depends on retention across sessions; `sub_agents` for delegating supervisor/worker patterns; `skills` for recipes that ship `SKILL.md`-format reusable procedures.
+
+#### `modifiers`
+
+Transformations layered on the chosen pattern. References `catalog.modifiers[].id`.
+
+- **Type:** list of strings (may be empty or omitted)
+- **Allowed values:** any id in `catalog.modifiers[]` — currently `guardrails`, `human_in_the_loop`.
+- **Consumer:** v0.3+ (each modifier's overview is added to the generation context).
+- **Examples:**
+  ```yaml
+  modifiers: [human_in_the_loop]
+  ```
+
+Add `human_in_the_loop` when the recipe's success criterion requires an approval gate before a tool call commits (refunds, code merges, payment authorization). Add `guardrails` when the recipe's input/output surface is exposed to untrusted users and an indirect-prompt-injection defense is mandatory.
+
+---
+
 ### Generation contract
 
 #### `load_list`
@@ -459,6 +504,9 @@ Referenced by [`../cross-cutting/cost-tracking.md`](../cross-cutting/cost-tracki
 |-------|-----------|----------|------|
 | `status` | Yes | v0.2.x | |
 | `languages` | Yes | v0.2.x | |
+| `agent_pattern` | Yes | v0.3+ | Must resolve to a `catalog.patterns[].id` |
+| `primitives` | Recommended | v0.3+ | Empty list allowed; ids must resolve to `catalog.primitives[]` |
+| `modifiers` | Optional | v0.3+ | Ids must resolve to `catalog.modifiers[]` |
 | `load_list` | Recommended | v0.3+ | Falls back to prose `### Load list` when absent |
 | `required_files` | Recommended | v0.2.x | Advisory in v0.2; possibly enforced in v0.3 |
 | `recipe_dependencies` | Recommended | v0.2.x | |
@@ -504,19 +552,23 @@ The recipe body opens with `## Composes`; the load list (which files to feed an 
 A recipe under `docs/recipes/*.md` is schema-conformant when:
 
 - The first line of the file is `---` (frontmatter opens).
-- `status`, `languages` are present.
+- `status`, `languages`, `agent_pattern` are present.
 - Either `external_services` or `capabilities` (preferably both during the v0.2 → v0.3 transition) is present.
 - Every `capabilities:` id resolves to an existing file under `docs/capabilities/<kind>/<name>.md`.
+- Every `agent_pattern:` / `primitives[]` / `modifiers[]` id resolves to a `catalog.{patterns,primitives,modifiers}[].id`.
 - The body opens with `## Composes` followed by `### Load list`.
 - Section order matches the canonical sequence above.
 
 Spot-checks:
 
 ```bash
-# Frontmatter exists at line 1
+# Frontmatter exists at line 1 + agent_pattern is declared
 for f in docs/recipes/*.md; do
-  [ "$(basename "$f")" = "README.md" ] && continue
+  base=$(basename "$f")
+  [ "$base" = "README.md" ] && continue
+  [ "$base" = "SCHEMA.md" ] && continue
   head -1 "$f" | grep -q '^---$' || echo "MISSING FRONTMATTER: $f"
+  grep -q '^agent_pattern:' "$f" || echo "MISSING agent_pattern: $f"
 done
 
 # capabilities: ids resolve
@@ -526,6 +578,10 @@ for f in docs/recipes/*.md; do
     [ -f "docs/capabilities/$kind/$name.md" ] || echo "UNRESOLVED: $id in $f"
   done
 done
+
+# Full id resolution (agent_pattern, primitives, modifiers, capabilities) is
+# enforced by `uv run scripts/generate_catalog.py` — the generator refuses
+# to emit a catalog if anything fails to resolve.
 ```
 
 ## See also
