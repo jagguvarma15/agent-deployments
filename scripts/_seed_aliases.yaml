@@ -8,7 +8,8 @@
 # (so each doc owns its own alias list); the generator will then derive these
 # blocks from the docs and this seed file becomes empty / removable.
 #
-# Paths are repo-root-relative (e.g. `docs/patterns/react.md`), not `docs/`-relative.
+# Paths are repo-root-relative (e.g. `vendored/blueprints/patterns/react/overview.md`),
+# not `docs/`-relative.
 
 # Lowercase prose token -> doc path. Source: scaffold/src/agent_scaffold/context.py ALIAS_TABLE.
 #
