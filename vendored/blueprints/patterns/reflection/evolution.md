@@ -1,6 +1,6 @@
 # Evolution: Evaluator-Optimizer → Reflection
 
-This document traces how the [Reflection pattern](./overview.md) evolves from the [Evaluator-Optimizer workflow](../../workflows/evaluator-optimizer/overview.md).
+This document traces how the [Reflection pattern](./overview.md) evolves from the [Evaluator-Optimizer workflow](../evaluator-optimizer/overview.md).
 
 ## The Starting Point: Evaluator-Optimizer
 

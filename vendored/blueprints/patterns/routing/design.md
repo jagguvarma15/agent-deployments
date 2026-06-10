@@ -136,8 +136,8 @@ RouteConfig:
 
 - **+ [Multi-Agent](../multi_agent/overview.md):** Route to specialized agents instead of handlers; classifier becomes the supervisor's first decision.
 - **+ [RAG](../rag/overview.md):** One route handler uses RAG; classifier triages knowledge-grounded vs non-grounded queries.
-- **+ [Memory](../memory/overview.md):** Per-route or shared memory for continuity. Per-route is safer (no cross-route context bleed).
-- **+ [Human in the Loop](../human_in_the_loop/overview.md):** Low-confidence classifications escalate to a human queue rather than risking a wrong handler.
+- **+ [Memory](../../primitives/memory/overview.md):** Per-route or shared memory for continuity. Per-route is safer (no cross-route context bleed).
+- **+ [Human in the Loop](../../modifiers/human_in_the_loop/overview.md):** Low-confidence classifications escalate to a human queue rather than risking a wrong handler.
 - **+ [Reflection](../reflection/overview.md):** Reflect on the handler's output before returning — useful for high-stakes routes where the classifier's confidence isn't enough.
 
 ## Production concerns

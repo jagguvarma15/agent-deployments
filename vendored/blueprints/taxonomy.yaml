@@ -1,0 +1,87 @@
+# Three-tier cognitive-unit taxonomy.
+#
+# Single source of truth for what cohorts exist in this repo. Every script
+# (validator, catalog emitter, schemas test, docs generator, website-data
+# generator) reads this file. Adding a new cohort is ONE entry below + a
+# directory; nothing else needs to change.
+#
+# Schema: meta/taxonomy.schema.json
+# Consumers:
+#   - meta/validate-metadata.js
+#   - meta/generate-docs.js
+#   - meta/generate-website-data.js
+#   - tests/test_schemas_importable.py
+#
+# See meta/HOW_TO_ADD_AN_ENTRY.md for the contributor walkthrough.
+
+schema_version: 1
+
+# Bumped when patterns-catalog.yaml's shape changes. Independent of this
+# file's own schema_version (which only changes when taxonomy.yaml's own
+# shape changes).
+catalog_schema_version: 2
+generator_version: "2.0.0"
+
+# Each entry below is one cohort. The validator walks <repo>/<dir>/<entry>/
+# for every cohort and applies the per-cohort rules to each entry it finds.
+cohorts:
+  - id: patterns
+    dir: patterns
+    label: Patterns
+    label_plural: Patterns
+    description: >
+      Flow shapes (a beginning / middle / end). Can be LLM-controlled
+      (category=agent) or code-controlled (category=workflow). Picking
+      a pattern is the first orthogonal decision when designing an agent.
+    category_values: [agent, workflow]
+    # Top-level key under which entries appear in patterns-catalog.yaml.
+    catalog_key: patterns
+    # Whether each entry must ship a Pydantic state schema at schemas/state.py.
+    # `when` is a tiny expression over the entry's metadata; today we support
+    # `true`, `false`, and `category != 'X'` / `category == 'X'`.
+    requires_state_schema:
+      when: "category != 'workflow'"
+    # Cohort-specific metadata.json fields beyond the base contract.
+    extra_fields: []
+
+  - id: primitives
+    dir: primitives
+    label: Primitive
+    label_plural: Primitives
+    description: >
+      Building blocks the agent uses orthogonally to any pattern. Picking
+      primitives is the second orthogonal decision (tool use, memory,
+      skills, ...).
+    category_values: [primitive]
+    catalog_key: primitives
+    requires_state_schema:
+      when: "true"
+    extra_fields: []
+
+  - id: modifiers
+    dir: modifiers
+    label: Modifier
+    label_plural: Modifiers
+    description: >
+      Transformations layered on a pattern (human-in-the-loop approval gates,
+      audit overlays, dual-LLM filters, ...). Picking modifiers is the third
+      orthogonal decision.
+    category_values: [modifier]
+    catalog_key: modifiers
+    requires_state_schema:
+      when: "true"
+    # Modifiers declare which patterns they wrap via `appliesTo`. Either a
+    # list of pattern ids, or `[any]` for universal modifiers.
+    extra_fields: [appliesTo]
+
+# Derived views — backward-compatibility shims emitted alongside the
+# canonical cohorts. Each filter is a tiny expression like the
+# requires_state_schema.when grammar.
+derived_views:
+  - source: patterns
+    filter: "category == 'workflow'"
+    catalog_key: workflows
+    description: >
+      Legacy compatibility view. Pre-v2 consumers walked workflows[]
+      directly; v2+ consumers should walk patterns[] and filter by
+      category. The view will be removed in v3.

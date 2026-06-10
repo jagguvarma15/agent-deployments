@@ -2,7 +2,7 @@
 
 Routing uses an LLM to classify incoming requests and direct them to specialized handlers. Instead of one general-purpose processor, routing creates a system where different input types are handled by purpose-built paths — each optimized for its specific task.
 
-**Evolves from:** [Parallel Calls](../../workflows/parallel-calls/overview.md) — adds an LLM-driven classifier, route definitions, and fallback handling.
+**Evolves from:** [Parallel Calls](../parallel-calls/overview.md) — adds an LLM-driven classifier, route definitions, and fallback handling.
 
 ## Architecture
 
@@ -117,9 +117,9 @@ Both variants run the same three routes (billing / technical / general) against 
 
 ## Related Patterns
 
-- **Evolves from:** [Parallel Calls](../../workflows/parallel-calls/overview.md) — see [evolution.md](./evolution.md)
+- **Evolves from:** [Parallel Calls](../parallel-calls/overview.md) — see [evolution.md](./evolution.md)
 - **Extends into:** [Multi-Agent](../multi_agent/overview.md) (route to specialized agents instead of workflows)
-- **Combines with:** Any pattern as a handler — [ReAct](../react/overview.md), [RAG](../rag/overview.md), [Prompt Chaining](../../workflows/prompt-chaining/overview.md), etc.
+- **Combines with:** Any pattern as a handler — [ReAct](../react/overview.md), [RAG](../rag/overview.md), [Prompt Chaining](../prompt-chaining/overview.md), etc.
 
 ## Deeper Dive
 

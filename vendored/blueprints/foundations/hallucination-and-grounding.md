@@ -64,7 +64,7 @@ For classification-style outputs, include an explicit `unknown` class in the enu
 
 ### Escalation to a human
 
-The natural terminator for an uncertain agent is a human review queue, not a confident fabricated answer. See [Human in the Loop](../patterns/human_in_the_loop/overview.md). The HITL pattern is purpose-built for *"propose, wait for approval, commit"* — that flow IS the abstention mechanism for high-stakes actions.
+The natural terminator for an uncertain agent is a human review queue, not a confident fabricated answer. See [Human in the Loop](../modifiers/human_in_the_loop/overview.md). The HITL pattern is purpose-built for *"propose, wait for approval, commit"* — that flow IS the abstention mechanism for high-stakes actions.
 
 ### Refuse-list
 
@@ -84,27 +84,27 @@ See [Evals & Quality](./evals-and-quality.md) for the longer treatment of how to
 
 | Pattern | Primary grounding lever |
 |---|---|
-| [Prompt Chaining](../workflows/prompt-chaining/overview.md) | Schema-bounded outputs at each gate; validation between steps. |
-| [Parallel Calls](../workflows/parallel-calls/overview.md) | Schema-bounded outputs; aggregator validates cross-call consistency. |
-| [Orchestrator-Worker](../workflows/orchestrator-worker/overview.md) | Worker outputs schema-validated before orchestrator integrates. |
-| [Evaluator-Optimizer](../workflows/evaluator-optimizer/overview.md) | The pattern *is* a grounding mechanism — but the evaluator's own outputs need grounding. |
+| [Prompt Chaining](../patterns/prompt-chaining/overview.md) | Schema-bounded outputs at each gate; validation between steps. |
+| [Parallel Calls](../patterns/parallel-calls/overview.md) | Schema-bounded outputs; aggregator validates cross-call consistency. |
+| [Orchestrator-Worker](../patterns/orchestrator-worker/overview.md) | Worker outputs schema-validated before orchestrator integrates. |
+| [Evaluator-Optimizer](../patterns/evaluator-optimizer/overview.md) | The pattern *is* a grounding mechanism — but the evaluator's own outputs need grounding. |
 | [ReAct](../patterns/react/overview.md) | Tool-output validation; iteration caps; abstention via `unknown` action. |
 | [Plan & Execute](../patterns/plan_and_execute/overview.md) | Plan validated against an allow-listed action set; per-step grounding. |
-| [Tool Use](../patterns/tool_use/overview.md) | Schema-bounded tool calls; tool-output validation; allow-listed function set. |
-| [Memory](../patterns/memory/overview.md) | Provenance tags on stored memories; retrieval grounded over memory. |
+| [Tool Use](../primitives/tool_use/overview.md) | Schema-bounded tool calls; tool-output validation; allow-listed function set. |
+| [Memory](../primitives/memory/overview.md) | Provenance tags on stored memories; retrieval grounded over memory. |
 | [RAG](../patterns/rag/overview.md) | Retrieval grounding (the headline mechanism); citation enforcement; cite-or-refuse. |
 | [Reflection](../patterns/reflection/overview.md) | Model-graded self-check (the pattern itself); requires its own grounding for the critic. |
 | [Routing](../patterns/routing/overview.md) | Allow-listed enumeration of routes; explicit `unknown`/`escalate` path. |
 | [Multi-Agent](../patterns/multi_agent/overview.md) | Per-agent grounding plus cross-agent consistency checks. |
 | [Event-Driven](../patterns/event_driven/overview.md) | Schema-validated event payloads; idempotency keys carry provenance. |
 | [Saga](../patterns/saga/overview.md) | Saga log carries provenance; compensation triggered by validated state. |
-| [Human in the Loop](../patterns/human_in_the_loop/overview.md) | Human is the grounding mechanism for the gated action. |
+| [Human in the Loop](../modifiers/human_in_the_loop/overview.md) | Human is the grounding mechanism for the gated action. |
 
 ## Related
 
 - [Security & Safety](./security-and-safety.md) — indirect prompt injection is hallucination's adversarial cousin; the defenses overlap.
 - [Evals & Quality](./evals-and-quality.md) — what makes a hallucination test suite real.
-- [RAG](../patterns/rag/overview.md), [Reflection](../patterns/reflection/overview.md), [Human in the Loop](../patterns/human_in_the_loop/overview.md) — the three structural patterns most often deployed against hallucination.
+- [RAG](../patterns/rag/overview.md), [Reflection](../patterns/reflection/overview.md), [Human in the Loop](../modifiers/human_in_the_loop/overview.md) — the three structural patterns most often deployed against hallucination.
 
 ## What this guide deliberately doesn't cover
 

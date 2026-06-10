@@ -1,6 +1,6 @@
 # Evolution: Prompt Chaining → ReAct
 
-This document traces how the [ReAct pattern](./overview.md) evolves from the [Prompt Chaining workflow](../../workflows/prompt-chaining/overview.md). Understanding this bridge helps you decide when to make the transition and how to do it incrementally.
+This document traces how the [ReAct pattern](./overview.md) evolves from the [Prompt Chaining workflow](../prompt-chaining/overview.md). Understanding this bridge helps you decide when to make the transition and how to do it incrementally.
 
 ## The Starting Point: Prompt Chaining
 

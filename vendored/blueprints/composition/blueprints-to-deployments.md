@@ -6,31 +6,54 @@ It's the agent-blueprints-side companion to [`agent-deployments/docs/blueprint-m
 
 ## How to read this
 
-`agent-blueprints` covers *cognitive* patterns — how the agent thinks. `agent-deployments` covers *operational* patterns — how the agent survives production (auth, rate limiting, retries, idempotency, observability, tracing). Every deployment recipe inherits the operational layer; each one selects a small set of cognitive patterns from this repo.
+`agent-blueprints` covers *cognitive* shape — how the agent thinks. `agent-deployments` covers *operational* shape — how the agent survives production (auth, rate limiting, retries, idempotency, observability, tracing). Every deployment recipe inherits the operational layer; each one picks from this repo via the **three-tier taxonomy**:
 
-This page is the index. For the canonical recipe-to-pattern table with deployment links, see the [agent-deployments blueprint map](https://github.com/jagguvarma15/agent-deployments/blob/main/docs/blueprint-map.md).
+```
+recipe declares:
+  agent_pattern: <one>         # the flow shape (from patterns/)
+  primitives: [...]            # building blocks the agent uses (from primitives/)
+  modifiers: [...]             # transformations layered on the pattern (from modifiers/)
+  capabilities: [...]          # deployment provisioning (managed by agent-deployments)
+```
 
-## Reverse lookup: which deployments use this pattern?
+The first three come from this repo (cognitive). The fourth is owned by agent-deployments (operational). A recipe picks exactly one pattern + zero or more primitives + zero or more modifiers + zero or more capabilities.
 
-| Pattern | Used by deployment recipe(s) |
+This page is the index of which recipes use which cognitive units. For the canonical recipe-to-pattern table with deployment links, see the [agent-deployments blueprint map](https://github.com/jagguvarma15/agent-deployments/blob/main/docs/blueprint-map.md).
+
+## Reverse lookup: which deployments use what?
+
+### Patterns (flow shapes)
+
+| Pattern | Used by deployment recipe(s) as the `agent_pattern:` |
 |---------|------------------------------|
-| [Prompt Chaining](../workflows/prompt-chaining/overview.md) | `content-pipeline` |
-| [Parallel Calls](../workflows/parallel-calls/overview.md) | `parallel-enricher` |
-| [Orchestrator-Worker](../workflows/orchestrator-worker/overview.md) | (composed inside `code-review-agent`, `hierarchical-agent`) |
-| [Evaluator-Optimizer](../workflows/evaluator-optimizer/overview.md) | `content-pipeline` |
-| [ReAct](../patterns/react/overview.md) | `research-assistant` |
+| [Prompt Chaining](../patterns/prompt-chaining/overview.md) | `content-pipeline` |
+| [Parallel Calls](../patterns/parallel-calls/overview.md) | `parallel-enricher` |
+| [Orchestrator-Worker](../patterns/orchestrator-worker/overview.md) | (composed inside `code-review-agent`, `hierarchical-agent`) |
+| [Evaluator-Optimizer](../patterns/evaluator-optimizer/overview.md) | `content-pipeline` |
+| [ReAct](../patterns/react/overview.md) | `research-assistant`, `claude-code-subagent` |
 | [Plan & Execute](../patterns/plan_and_execute/overview.md) | `code-review-agent` |
-| [Tool Use](../patterns/tool_use/overview.md) | `customer-support-triage`, `research-assistant` |
-| [Memory](../patterns/memory/overview.md) | `memory-assistant` |
 | [RAG](../patterns/rag/overview.md) | `docs-rag-qa` |
 | [Reflection](../patterns/reflection/overview.md) | `code-review-agent` |
 | [Routing](../patterns/routing/overview.md) | `customer-support-triage` |
-| [Multi-Agent](../patterns/multi_agent/overview.md) | `ops-crew` (flat), `hierarchical-agent` (hierarchical), `restaurant-rebooking` (flat) |
+| [Multi-Agent](../patterns/multi_agent/overview.md) | `ops-crew`, `hierarchical-agent`, `restaurant-rebooking` |
 | [Event-Driven](../patterns/event_driven/overview.md) | `restaurant-rebooking` |
 | [Saga](../patterns/saga/overview.md) | (no current recipe — candidate for booking/order workflows) |
-| [Human in the Loop](../patterns/human_in_the_loop/overview.md) | (no current recipe — candidate for content moderation, code-review approval flows) |
 
-Patterns marked "no current recipe" are documented here but don't yet have a production-shaped example in `agent-deployments`. That's a contribution opportunity — see [agent-deployments contributing guide](https://github.com/jagguvarma15/agent-deployments/blob/main/CONTRIBUTING.md).
+### Primitives (building blocks)
+
+| Primitive | Used by deployment recipe(s) as a `primitives[]` entry |
+|---------|------------------------------|
+| [Tool Use](../primitives/tool_use/overview.md) | Almost every recipe — it's the default. |
+| [Memory](../primitives/memory/overview.md) | `memory-assistant`, `research-assistant`, `ops-crew`, `restaurant-rebooking` |
+| [Skills](../primitives/skills/overview.md) | `memory-assistant`, `claude-code-subagent` |
+
+### Modifiers (transforms)
+
+| Modifier | Used by deployment recipe(s) as a `modifiers[]` entry |
+|---------|------------------------------|
+| [Human in the Loop](../modifiers/human_in_the_loop/overview.md) | (no current recipe — candidate for content moderation, code-review approval flows) |
+
+Entries marked "no current recipe" are documented here but don't yet have a production-shaped example in `agent-deployments`. That's a contribution opportunity — see [agent-deployments contributing guide](https://github.com/jagguvarma15/agent-deployments/blob/main/CONTRIBUTING.md).
 
 ## Per-framework code variants
 

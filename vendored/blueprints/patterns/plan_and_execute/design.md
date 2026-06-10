@@ -150,10 +150,10 @@ PlanState:
 ## Composition
 
 - **+ [Multi-Agent](../multi_agent/overview.md):** Delegate steps to specialized worker agents instead of a generic executor. Plan owns the *what*; agents own the *how*.
-- **+ [Memory](../memory/overview.md):** Store successful plans by task fingerprint for fast retrieval on similar future tasks.
+- **+ [Memory](../../primitives/memory/overview.md):** Store successful plans by task fingerprint for fast retrieval on similar future tasks.
 - **+ [Reflection](../reflection/overview.md):** Reflect on plan quality *before execution* — catches bad plans before paying step-by-step cost.
 - **+ [Saga](../saga/overview.md):** When steps have irreversible side effects, the plan becomes a saga; each step gets a compensator.
-- **+ [Human in the Loop](../human_in_the_loop/overview.md):** Long or expensive plans surface to a human for approval before execution.
+- **+ [Human in the Loop](../../modifiers/human_in_the_loop/overview.md):** Long or expensive plans surface to a human for approval before execution.
 
 ## Production concerns
 

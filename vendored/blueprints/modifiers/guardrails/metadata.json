@@ -1,0 +1,43 @@
+{
+  "id": "guardrails",
+  "name": "Guardrails",
+  "category": "modifier",
+  "complexity": "Advanced",
+  "description": "Layered input / tool / output policy checks plus a dual-LLM split that breaks the indirect-prompt-injection path.",
+  "tiers": [
+    "overview",
+    "design",
+    "implementation",
+    "evolution",
+    "observability",
+    "cost-and-latency"
+  ],
+  "evolvesFrom": [
+    "tool_use"
+  ],
+  "appliesTo": [
+    "any"
+  ],
+  "composableWith": [
+    "human_in_the_loop",
+    "rag",
+    "multi_agent",
+    "tool_use",
+    "react"
+  ],
+  "requires": [
+    "detector-registry",
+    "policy-artifact",
+    "audit-sink"
+  ],
+  "tags": [
+    "safety",
+    "policy",
+    "dual-llm",
+    "prompt-injection",
+    "defense-in-depth",
+    "calibration"
+  ],
+  "costTier": "low-medium",
+  "latencyTier": "medium"
+}

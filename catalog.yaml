@@ -10,6 +10,71 @@ blueprints:
   url_pattern: https://github.com/{repo}/(?:tree|blob|raw)/{branch}/{path}
   directory_entry: overview.md
 patterns:
+- id: agentic_rag
+  name: Agentic RAG
+  category: agent
+  complexity: Advanced
+  description: RAG where the agent plans retrievals, decomposes queries, routes across sources, reflects on sufficiency, and enforces citation-bound answers.
+  dir: patterns/agentic_rag
+  tier_files:
+    overview: patterns/agentic_rag/overview.md
+    design: patterns/agentic_rag/design.md
+    implementation: patterns/agentic_rag/implementation.md
+    evolution: patterns/agentic_rag/evolution.md
+    observability: patterns/agentic_rag/observability.md
+    cost-and-latency: patterns/agentic_rag/cost-and-latency.md
+  evolvesFrom:
+  - rag
+  - plan_and_execute
+  composableWith:
+  - reflection
+  - react
+  - sub_agents
+  - routing
+  - memory
+  requires:
+  - retrieval
+  - source-registry
+  - citation-tracker
+  tags:
+  - retrieval
+  - grounding
+  - query-decomposition
+  - multi-source
+  - self-correcting
+  - citations
+  - rag-poisoning-defense
+  costTier: medium
+  latencyTier: medium-high
+  extras:
+    prompts: patterns/agentic_rag/prompts/
+    schemas: patterns/agentic_rag/schemas/
+- id: evaluator-optimizer
+  name: Evaluator-Optimizer
+  category: workflow
+  complexity: Intermediate
+  description: Generate-evaluate feedback loop that iteratively improves output.
+  dir: patterns/evaluator-optimizer
+  tier_files:
+    overview: patterns/evaluator-optimizer/overview.md
+    design: patterns/evaluator-optimizer/design.md
+    implementation: patterns/evaluator-optimizer/implementation.md
+    observability: patterns/evaluator-optimizer/observability.md
+    cost-and-latency: patterns/evaluator-optimizer/cost-and-latency.md
+  evolvesInto:
+  - reflection
+  composableWith:
+  - prompt-chaining
+  - rag
+  tags:
+  - feedback-loop
+  - quality
+  - iterative
+  - evaluation
+  costTier: medium-high
+  latencyTier: high
+  extras:
+    code: patterns/evaluator-optimizer/code/
 - id: event_driven
   name: Event-Driven
   category: agent
@@ -47,74 +112,46 @@ patterns:
     schemas: patterns/event_driven/schemas/
     code: patterns/event_driven/code/
     examples: patterns/event_driven/examples/
-- id: human_in_the_loop
-  name: Human in the Loop
+- id: long_horizon
+  name: Long-Horizon
   category: agent
-  complexity: Intermediate
-  description: Agent proposes an action; a human approves, denies, or modifies before the action commits.
-  dir: patterns/human_in_the_loop
+  complexity: Advanced
+  description: Multi-session agent tasks that span hours to weeks; checkpoint-and-resume across crashes, deploys, and external waits.
+  dir: patterns/long_horizon
   tier_files:
-    overview: patterns/human_in_the_loop/overview.md
-    design: patterns/human_in_the_loop/design.md
-    implementation: patterns/human_in_the_loop/implementation.md
-    evolution: patterns/human_in_the_loop/evolution.md
-    observability: patterns/human_in_the_loop/observability.md
-    cost-and-latency: patterns/human_in_the_loop/cost-and-latency.md
+    overview: patterns/long_horizon/overview.md
+    design: patterns/long_horizon/design.md
+    implementation: patterns/long_horizon/implementation.md
+    evolution: patterns/long_horizon/evolution.md
+    observability: patterns/long_horizon/observability.md
+    cost-and-latency: patterns/long_horizon/cost-and-latency.md
   evolvesFrom:
-  - tool_use
-  composableWith:
   - saga
   - event_driven
-  - tool_use
+  composableWith:
+  - sub_agents
+  - memory
+  - multi_agent
+  - human_in_the_loop
+  - saga
+  - event_driven
   requires:
-  - pause-resume
-  - approver-surface
-  - audit
+  - checkpoint-store
+  - event-log
+  - idempotency
+  - tick-worker
   tags:
-  - approval
-  - governance
-  - compliance
-  - pause-resume
-  - escalation
-  costTier: low
+  - long-running
+  - checkpointing
+  - resume
+  - deep-agents
+  - virtual-filesystem
+  - cross-session
+  costTier: medium-high
   latencyTier: very-high
   extras:
-    prompts: patterns/human_in_the_loop/prompts/
-    schemas: patterns/human_in_the_loop/schemas/
-    code: patterns/human_in_the_loop/code/
-- id: memory
-  name: Memory
-  category: agent
-  complexity: Intermediate
-  description: 'Persistent state across sessions: short-term, long-term, and semantic memory.'
-  dir: patterns/memory
-  tier_files:
-    overview: patterns/memory/overview.md
-    design: patterns/memory/design.md
-    implementation: patterns/memory/implementation.md
-    evolution: patterns/memory/evolution.md
-    observability: patterns/memory/observability.md
-    cost-and-latency: patterns/memory/cost-and-latency.md
-  evolvesFrom:
-  - prompt-chaining
-  composableWith:
-  - react
-  - rag
-  - multi_agent
-  requires:
-  - storage
-  tags:
-  - persistence
-  - personalization
-  - context
-  - sessions
-  - retrieval
-  costTier: medium
-  latencyTier: medium
-  extras:
-    prompts: patterns/memory/prompts/
-    schemas: patterns/memory/schemas/
-    code: patterns/memory/code/
+    prompts: patterns/long_horizon/prompts/
+    schemas: patterns/long_horizon/schemas/
 - id: multi_agent
   name: Multi-Agent
   category: agent
@@ -151,6 +188,61 @@ patterns:
     schemas: patterns/multi_agent/schemas/
     code: patterns/multi_agent/code/
     examples: patterns/multi_agent/examples/
+- id: orchestrator-worker
+  name: Orchestrator-Worker
+  category: workflow
+  complexity: Intermediate
+  description: LLM decomposes a task and delegates to specialized workers.
+  dir: patterns/orchestrator-worker
+  tier_files:
+    overview: patterns/orchestrator-worker/overview.md
+    design: patterns/orchestrator-worker/design.md
+    implementation: patterns/orchestrator-worker/implementation.md
+    observability: patterns/orchestrator-worker/observability.md
+    cost-and-latency: patterns/orchestrator-worker/cost-and-latency.md
+  evolvesInto:
+  - plan_and_execute
+  - multi_agent
+  composableWith:
+  - parallel-calls
+  - evaluator-optimizer
+  tags:
+  - decomposition
+  - delegation
+  - dynamic
+  - specialization
+  costTier: medium-high
+  latencyTier: medium
+  extras:
+    code: patterns/orchestrator-worker/code/
+- id: parallel-calls
+  name: Parallel Calls
+  category: workflow
+  complexity: Beginner
+  description: Concurrent LLM calls on independent inputs, aggregated at the end.
+  dir: patterns/parallel-calls
+  tier_files:
+    overview: patterns/parallel-calls/overview.md
+    design: patterns/parallel-calls/design.md
+    implementation: patterns/parallel-calls/implementation.md
+    observability: patterns/parallel-calls/observability.md
+    cost-and-latency: patterns/parallel-calls/cost-and-latency.md
+  evolvesInto:
+  - rag
+  - routing
+  composableWith:
+  - prompt-chaining
+  - orchestrator-worker
+  tags:
+  - parallel
+  - concurrent
+  - low-latency
+  - fan-out
+  - aggregation
+  costTier: medium
+  latencyTier: low
+  extras:
+    code: patterns/parallel-calls/code/
 - id: plan_and_execute
   name: Plan & Execute
   category: agent
@@ -183,6 +275,34 @@ patterns:
     schemas: patterns/plan_and_execute/schemas/
     code: patterns/plan_and_execute/code/
     examples: patterns/plan_and_execute/examples/
+- id: prompt-chaining
+  name: Prompt Chaining
+  category: workflow
+  complexity: Beginner
+  description: Sequential LLM calls with validation gates between steps.
+  dir: patterns/prompt-chaining
+  tier_files:
+    overview: patterns/prompt-chaining/overview.md
+    design: patterns/prompt-chaining/design.md
+    implementation: patterns/prompt-chaining/implementation.md
+    observability: patterns/prompt-chaining/observability.md
+    cost-and-latency: patterns/prompt-chaining/cost-and-latency.md
+  evolvesInto:
+  - react
+  - tool_use
+  - memory
+  composableWith:
+  - parallel-calls
+  - evaluator-optimizer
+  tags:
+  - sequential
+  - deterministic
+  - predictable
+  - low-latency
+  costTier: low
+  latencyTier: medium
+  extras:
+    code: patterns/prompt-chaining/code/
 - id: rag
   name: RAG
   category: agent
@@ -351,51 +471,19 @@ patterns:
     schemas: patterns/saga/schemas/
     code: patterns/saga/code/
     examples: patterns/saga/examples/
-- id: tool_use
-  name: Tool Use
-  category: agent
-  complexity: Beginner
-  description: Structured function calling with schema-validated tool dispatch.
-  dir: patterns/tool_use
-  tier_files:
-    overview: patterns/tool_use/overview.md
-    design: patterns/tool_use/design.md
-    implementation: patterns/tool_use/implementation.md
-    evolution: patterns/tool_use/evolution.md
-    observability: patterns/tool_use/observability.md
-    cost-and-latency: patterns/tool_use/cost-and-latency.md
-  evolvesFrom:
-  - prompt-chaining
-  composableWith:
-  - react
-  - rag
-  - routing
-  requires:
-  - tools
-  tags:
-  - function-calling
-  - structured
-  - schema
-  - deterministic
-  costTier: low-medium
-  latencyTier: low
-  extras:
-    prompts: patterns/tool_use/prompts/
-    schemas: patterns/tool_use/schemas/
-    code: patterns/tool_use/code/
 workflows:
 - id: evaluator-optimizer
   name: Evaluator-Optimizer
   category: workflow
   complexity: Intermediate
   description: Generate-evaluate feedback loop that iteratively improves output.
-  dir: workflows/evaluator-optimizer
+  dir: patterns/evaluator-optimizer
   tier_files:
-    overview: workflows/evaluator-optimizer/overview.md
-    design: workflows/evaluator-optimizer/design.md
-    implementation: workflows/evaluator-optimizer/implementation.md
-    observability: workflows/evaluator-optimizer/observability.md
-    cost-and-latency: workflows/evaluator-optimizer/cost-and-latency.md
+    overview: patterns/evaluator-optimizer/overview.md
+    design: patterns/evaluator-optimizer/design.md
+    implementation: patterns/evaluator-optimizer/implementation.md
+    observability: patterns/evaluator-optimizer/observability.md
+    cost-and-latency: patterns/evaluator-optimizer/cost-and-latency.md
   evolvesInto:
   - reflection
   composableWith:
@@ -409,19 +497,19 @@ workflows:
   costTier: medium-high
   latencyTier: high
   extras:
-    code: workflows/evaluator-optimizer/code/
+    code: patterns/evaluator-optimizer/code/
 - id: orchestrator-worker
   name: Orchestrator-Worker
   category: workflow
   complexity: Intermediate
   description: LLM decomposes a task and delegates to specialized workers.
-  dir: workflows/orchestrator-worker
+  dir: patterns/orchestrator-worker
   tier_files:
-    overview: workflows/orchestrator-worker/overview.md
-    design: workflows/orchestrator-worker/design.md
-    implementation: workflows/orchestrator-worker/implementation.md
-    observability: workflows/orchestrator-worker/observability.md
-    cost-and-latency: workflows/orchestrator-worker/cost-and-latency.md
+    overview: patterns/orchestrator-worker/overview.md
+    design: patterns/orchestrator-worker/design.md
+    implementation: patterns/orchestrator-worker/implementation.md
+    observability: patterns/orchestrator-worker/observability.md
+    cost-and-latency: patterns/orchestrator-worker/cost-and-latency.md
   evolvesInto:
   - plan_and_execute
   - multi_agent
@@ -436,19 +524,19 @@ workflows:
   costTier: medium-high
   latencyTier: medium
   extras:
-    code: workflows/orchestrator-worker/code/
+    code: patterns/orchestrator-worker/code/
 - id: parallel-calls
   name: Parallel Calls
   category: workflow
   complexity: Beginner
   description: Concurrent LLM calls on independent inputs, aggregated at the end.
-  dir: workflows/parallel-calls
+  dir: patterns/parallel-calls
   tier_files:
-    overview: workflows/parallel-calls/overview.md
-    design: workflows/parallel-calls/design.md
-    implementation: workflows/parallel-calls/implementation.md
-    observability: workflows/parallel-calls/observability.md
-    cost-and-latency: workflows/parallel-calls/cost-and-latency.md
+    overview: patterns/parallel-calls/overview.md
+    design: patterns/parallel-calls/design.md
+    implementation: patterns/parallel-calls/implementation.md
+    observability: patterns/parallel-calls/observability.md
+    cost-and-latency: patterns/parallel-calls/cost-and-latency.md
   evolvesInto:
   - rag
   - routing
@@ -464,19 +552,19 @@ workflows:
   costTier: medium
   latencyTier: low
   extras:
-    code: workflows/parallel-calls/code/
+    code: patterns/parallel-calls/code/
 - id: prompt-chaining
   name: Prompt Chaining
   category: workflow
   complexity: Beginner
   description: Sequential LLM calls with validation gates between steps.
-  dir: workflows/prompt-chaining
+  dir: patterns/prompt-chaining
   tier_files:
-    overview: workflows/prompt-chaining/overview.md
-    design: workflows/prompt-chaining/design.md
-    implementation: workflows/prompt-chaining/implementation.md
-    observability: workflows/prompt-chaining/observability.md
-    cost-and-latency: workflows/prompt-chaining/cost-and-latency.md
+    overview: patterns/prompt-chaining/overview.md
+    design: patterns/prompt-chaining/design.md
+    implementation: patterns/prompt-chaining/implementation.md
+    observability: patterns/prompt-chaining/observability.md
+    cost-and-latency: patterns/prompt-chaining/cost-and-latency.md
   evolvesInto:
   - react
   - tool_use
@@ -492,7 +580,7 @@ workflows:
   costTier: low
   latencyTier: medium
   extras:
-    code: workflows/prompt-chaining/code/
+    code: patterns/prompt-chaining/code/
 compositions:
 - a: evaluator-optimizer
   b: orchestrator-worker
@@ -1980,21 +2068,20 @@ cross_cutting_docs:
 - docs/cross-cutting/testing-strategy.md
 - docs/cross-cutting/validation-strategy.md
 pattern_docs:
+- vendored/blueprints/patterns/agentic_rag/overview.md
+- vendored/blueprints/patterns/evaluator-optimizer/overview.md
 - vendored/blueprints/patterns/event_driven/overview.md
-- vendored/blueprints/patterns/human_in_the_loop/overview.md
-- vendored/blueprints/patterns/memory/overview.md
+- vendored/blueprints/patterns/long_horizon/overview.md
 - vendored/blueprints/patterns/multi_agent/overview.md
+- vendored/blueprints/patterns/orchestrator-worker/overview.md
+- vendored/blueprints/patterns/parallel-calls/overview.md
 - vendored/blueprints/patterns/plan_and_execute/overview.md
+- vendored/blueprints/patterns/prompt-chaining/overview.md
 - vendored/blueprints/patterns/rag/overview.md
 - vendored/blueprints/patterns/react/overview.md
 - vendored/blueprints/patterns/reflection/overview.md
 - vendored/blueprints/patterns/routing/overview.md
 - vendored/blueprints/patterns/saga/overview.md
-- vendored/blueprints/patterns/tool_use/overview.md
-- vendored/blueprints/workflows/evaluator-optimizer/overview.md
-- vendored/blueprints/workflows/orchestrator-worker/overview.md
-- vendored/blueprints/workflows/parallel-calls/overview.md
-- vendored/blueprints/workflows/prompt-chaining/overview.md
 aliases:
   react: docs/patterns/react.md
   rag: docs/patterns/rag.md

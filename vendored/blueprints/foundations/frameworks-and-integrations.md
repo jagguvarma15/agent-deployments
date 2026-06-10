@@ -54,9 +54,9 @@ MCP is the dominant standard for tool-distribution and lives at the intersection
 
 **Where it intersects this repo's patterns:**
 
-- [Tool Use](../patterns/tool_use/overview.md) — MCP is the standardized form of the tool registry. Instead of bespoke `function_schemas`, you connect to MCP servers and the agent gets tools by reference. See `patterns/tool_use/design.md` for how this maps to the registry component.
+- [Tool Use](../primitives/tool_use/overview.md) — MCP is the standardized form of the tool registry. Instead of bespoke `function_schemas`, you connect to MCP servers and the agent gets tools by reference. See `patterns/tool_use/design.md` for how this maps to the registry component.
 - [RAG](../patterns/rag/overview.md) — A vector DB MCP server lets multiple agents share one retrieval surface without re-implementing chunking/embedding/search per agent.
-- [Memory](../patterns/memory/overview.md) — MCP resources are well-suited for cross-agent memory (one server, many readers).
+- [Memory](../primitives/memory/overview.md) — MCP resources are well-suited for cross-agent memory (one server, many readers).
 - [Multi-Agent](../patterns/multi_agent/overview.md) — Sub-agents inheriting the same MCP server set share a tool vocabulary without explicit handoff logic.
 
 **Security implications.** Because MCP servers run as separate processes outside the agent's direct control, they introduce a supply-chain surface:
@@ -72,7 +72,7 @@ These concerns deserve a fuller treatment than this map. They belong in a securi
 
 - Prefer MCP for tools that are **reused across multiple agents or hosts** (filesystem, vector DB, ticketing, observability backends).
 - Prefer **in-process tools** for tight-loop performance, single-agent specialization, or anything stateful in a way MCP doesn't model well.
-- An agent can use both: MCP for shared tools, in-process for specialized ones. The registry abstraction in [tool-use design](../patterns/tool_use/design.md) accommodates both.
+- An agent can use both: MCP for shared tools, in-process for specialized ones. The registry abstraction in [tool-use design](../primitives/tool_use/design.md) accommodates both.
 
 ## What this guide deliberately doesn't cover
 
@@ -85,5 +85,5 @@ These concerns deserve a fuller treatment than this map. They belong in a securi
 ## Related
 
 - [Choosing a Pattern](./choosing-a-pattern.md) — Pick the pattern first; the framework is the second decision.
-- [Tool Use → Design](../patterns/tool_use/design.md) — How MCP fits into the tool registry component.
+- [Tool Use → Design](../primitives/tool_use/design.md) — How MCP fits into the tool registry component.
 - [Blueprints → Deployments](../composition/blueprints-to-deployments.md) — Production recipes name their framework explicitly.

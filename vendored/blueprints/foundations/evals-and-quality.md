@@ -125,31 +125,58 @@ This is how a system stays good. Without it, every fix invites a regression that
 
 Operational rule: a fix without an eval is incomplete. Block the PR.
 
+## The reliability gap (and why cadence matters)
+
+A persistent 2026 finding across enterprise agent deployments: **task-completion benchmarks systematically overestimate production reliability**. Reports place the gap between published benchmark scores and observed production success at ~37 percentage points, with the dominant failure modes being long-horizon brittleness, tool-error compounding, and silent degradation under traffic the benchmark didn't sample.
+
+This is why offline + online evals together are not optional — and why **cadence** is the lever that matters most.
+
+| Eval cadence | Typical detection latency | What it catches |
+|---|---|---|
+| Per-PR offline suite | Minutes | Direct regressions you authored |
+| Daily online sample | Hours | Upstream-model drift, prompt-cache misses, new traffic patterns |
+| Weekly full eval cut | Days | Slow drift, long-tail regressions, cumulative behavior change |
+| Monthly only | Weeks | Mostly catches catastrophes after customers find them first |
+
+Teams that run their full eval suite weekly report meaningfully fewer production issues than teams running it monthly (one widely-cited 2026 enterprise survey put the reduction at roughly 22%). The direction matters more than the exact number: **the gap between benchmark and production closes with cadence, not with bigger one-time evals**.
+
+Practical consequences:
+
+- Treat single-run benchmark scores (AgentBench, ToolBench, API-Bank) as upper bounds, not targets. Apply a "production discount" when you cite them.
+- Include reliability axes the headline benchmarks don't measure: cost efficiency, step efficiency, plan adherence, trace consistency, refusal correctness, abstention rate. See `agent-deployments/docs/cross-cutting/observability.md` for the operational instrumentation that feeds these.
+- Long-horizon patterns (`patterns/long_horizon/`) need their own reliability lens — a "task completion rate" that ignores how many resumes a task took hides exactly the reliability gap that matters at scale. Track resumes per task, replan rate, stuck-task rate alongside completion.
+
+If your published metric and your on-call pager tell different stories, the pager is right.
+
 ## Where each eval discipline applies, by pattern
 
 | Pattern | Primary eval signal |
 |---|---|
-| [Prompt Chaining](../workflows/prompt-chaining/overview.md) | Per-step schema validity; end-to-end correctness. |
-| [Parallel Calls](../workflows/parallel-calls/overview.md) | Per-branch correctness; aggregation faithfulness. |
-| [Orchestrator-Worker](../workflows/orchestrator-worker/overview.md) | Decomposition quality (does the plan cover the task?); worker output quality. |
-| [Evaluator-Optimizer](../workflows/evaluator-optimizer/overview.md) | The pattern includes its own evaluator — but that evaluator needs evals too. |
+| [Prompt Chaining](../patterns/prompt-chaining/overview.md) | Per-step schema validity; end-to-end correctness. |
+| [Parallel Calls](../patterns/parallel-calls/overview.md) | Per-branch correctness; aggregation faithfulness. |
+| [Orchestrator-Worker](../patterns/orchestrator-worker/overview.md) | Decomposition quality (does the plan cover the task?); worker output quality. |
+| [Evaluator-Optimizer](../patterns/evaluator-optimizer/overview.md) | The pattern includes its own evaluator — but that evaluator needs evals too. |
 | [ReAct](../patterns/react/overview.md) | Tool-call correctness; iteration count distribution; final answer quality. |
 | [Plan & Execute](../patterns/plan_and_execute/overview.md) | Plan quality; per-step execution fidelity. |
-| [Tool Use](../patterns/tool_use/overview.md) | Function selection accuracy; argument schema match; refusal of unknown tools. |
-| [Memory](../patterns/memory/overview.md) | Retrieval relevance over stored memories; consistency across sessions. |
+| [Tool Use](../primitives/tool_use/overview.md) | Function selection accuracy; argument schema match; refusal of unknown tools. |
+| [Memory](../primitives/memory/overview.md) | Retrieval relevance over stored memories; consistency across sessions. |
 | [RAG](../patterns/rag/overview.md) | Retrieval recall; faithfulness to retrieved context; citation presence. |
 | [Reflection](../patterns/reflection/overview.md) | Critic accuracy; improvement rate per iteration. |
 | [Routing](../patterns/routing/overview.md) | Classification accuracy; `unknown`/`escalate` recall. |
 | [Multi-Agent](../patterns/multi_agent/overview.md) | Per-agent correctness; cross-agent consistency; orchestration overhead. |
 | [Event-Driven](../patterns/event_driven/overview.md) | Idempotency under replay; correctness over event order permutations. |
 | [Saga](../patterns/saga/overview.md) | Compensation correctness under simulated failures at each step. |
-| [Human in the Loop](../patterns/human_in_the_loop/overview.md) | Approval-rate signal; correct routing of high-stakes cases to human review. |
+| [Human in the Loop](../modifiers/human_in_the_loop/overview.md) | Approval-rate signal; correct routing of high-stakes cases to human review. |
+| [Long-Horizon](../patterns/long_horizon/overview.md) | Task completion rate AND resumes-per-task; replan rate; stuck-task rate; idempotency under retry. |
+| [Agentic RAG](../patterns/agentic_rag/overview.md) | Citation precision; cross-source consistency; abstention rate on out-of-corpus queries. |
+| [Sub-agents](../primitives/sub_agents/overview.md) | Per-role schema-result validity; cap-hit rate; tool-grant violations (must be zero). |
+| [Guardrails](../modifiers/guardrails/overview.md) | Per-detector FP rate (calibrated); shadow-mode disagreement; bypass-use audit; layer latency. |
 
 ## Related
 
 - [Testing Strategies](./testing-strategies.md) — the test pyramid this layer sits in.
 - [Hallucination & Grounding](./hallucination-and-grounding.md) — what to evaluate for; abstention is a positive signal, not a failure.
-- [Evaluator-Optimizer](../workflows/evaluator-optimizer/overview.md), [Reflection](../patterns/reflection/overview.md) — patterns that embed evaluation as part of generation.
+- [Evaluator-Optimizer](../patterns/evaluator-optimizer/overview.md), [Reflection](../patterns/reflection/overview.md) — patterns that embed evaluation as part of generation.
 - [Security & Safety](./security-and-safety.md) — adversarial eval cases.
 
 ## What this guide deliberately doesn't cover

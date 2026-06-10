@@ -24,8 +24,8 @@ A root span with paired generate → critique spans per iteration, plus optional
 sequenceDiagram
     participant Client
     participant Agent
-    participant LLM_Gen as LLM (Generator)
-    participant LLM_Crit as LLM (Critic)
+    participant LLM_Gen as LLM Generator
+    participant LLM_Crit as LLM Critic
 
     Client->>Agent: run(task)
     activate Agent

@@ -55,21 +55,25 @@ Patterns have characteristic cost profiles. Use this table to estimate before yo
 
 | Pattern | Cost shape | Where cost concentrates |
 |---|---|---|
-| [Prompt Chaining](../workflows/prompt-chaining/overview.md) | Linear in steps | Total prompt size grows if each step accumulates context. |
-| [Parallel Calls](../workflows/parallel-calls/overview.md) | N parallel + 1 aggregation | Fan-out width is the lever. |
-| [Orchestrator-Worker](../workflows/orchestrator-worker/overview.md) | 1 plan + N workers + 1 synth | Plan and synth are expensive (full context); workers are cheaper. |
-| [Evaluator-Optimizer](../workflows/evaluator-optimizer/overview.md) | 2× per iteration; multiple iterations | Cap iterations explicitly. |
+| [Prompt Chaining](../patterns/prompt-chaining/overview.md) | Linear in steps | Total prompt size grows if each step accumulates context. |
+| [Parallel Calls](../patterns/parallel-calls/overview.md) | N parallel + 1 aggregation | Fan-out width is the lever. |
+| [Orchestrator-Worker](../patterns/orchestrator-worker/overview.md) | 1 plan + N workers + 1 synth | Plan and synth are expensive (full context); workers are cheaper. |
+| [Evaluator-Optimizer](../patterns/evaluator-optimizer/overview.md) | 2× per iteration; multiple iterations | Cap iterations explicitly. |
 | [ReAct](../patterns/react/overview.md) | Variable per step; unbounded without cap | Each step appends the prior observation; context grows. |
 | [Plan & Execute](../patterns/plan_and_execute/overview.md) | 1 plan + N steps + 0–1 replan | Plan is expensive; per-step cost dominates over enough steps. |
-| [Tool Use](../patterns/tool_use/overview.md) | 1 call per tool decision | Tool execution cost (paid APIs) often exceeds LLM cost. |
-| [Memory](../patterns/memory/overview.md) | Linear in retrieved memories | Compression and summarization keep this bounded. |
+| [Tool Use](../primitives/tool_use/overview.md) | 1 call per tool decision | Tool execution cost (paid APIs) often exceeds LLM cost. |
+| [Memory](../primitives/memory/overview.md) | Linear in retrieved memories | Compression and summarization keep this bounded. |
 | [RAG](../patterns/rag/overview.md) | Retrieval (cheap) + generation (medium) | Generation cost scales with retrieved context size. |
 | [Reflection](../patterns/reflection/overview.md) | 2–N× per iteration | Iteration cap is the lever. |
 | [Routing](../patterns/routing/overview.md) | 1 classifier call + downstream pattern cost | Classifier is cheap; downstream dominates. |
 | [Multi-Agent](../patterns/multi_agent/overview.md) | Sum of agent-call costs + orchestration overhead | Supervisor + N workers; supervisor cost is per-handoff. |
 | [Event-Driven](../patterns/event_driven/overview.md) | Per-event agent cost | Event rate × per-event cost; rate-limit per partition. |
 | [Saga](../patterns/saga/overview.md) | Steps + potential compensations | Compensations amplify cost on failure. |
-| [Human in the Loop](../patterns/human_in_the_loop/overview.md) | Low LLM cost; high human-time cost | Cost shape changes; budget human review time. |
+| [Human in the Loop](../modifiers/human_in_the_loop/overview.md) | Low LLM cost; high human-time cost | Cost shape changes; budget human review time. |
+| [Long-Horizon](../patterns/long_horizon/overview.md) | Per-tick model cost + storage over task lifetime | Cost accumulates over days/weeks even when idle; recap + virtual FS are the levers. |
+| [Agentic RAG](../patterns/agentic_rag/overview.md) | Per-question: decompose + (retrieve + score + reflect) × sub-questions + compose | 3–10× baseline RAG cost; tier the loop with cheaper models for relevance scoring. |
+| [Sub-agents](../primitives/sub_agents/overview.md) | One agent loop per spawn; per-role model selection | Often *lower* total cost than a monolithic agent thanks to per-role tiering. |
+| [Guardrails](../modifiers/guardrails/overview.md) | Per-layer detectors + optional quarantined-LLM call per untrusted tool result | Paid per request, every request; dual-LLM is the dominant cost driver. |
 
 ## The latency / cost / quality triangle
 
@@ -102,7 +106,7 @@ The operational cost layer — provider-level rate limits, autoscaling policy, a
 
 ## Related
 
-- Per-pattern `cost-and-latency.md` files in each `patterns/*/` and `workflows/*/` directory specialize this with pattern-specific token counts and latency estimates.
+- Per-pattern `cost-and-latency.md` files in each `patterns/*/` and `patterns/<workflow>/` directory specialize this with pattern-specific token counts and latency estimates.
 - [Security & Safety → Denial of wallet](./security-and-safety.md) — cost guardrails are also a security control.
 - [Evals & Quality → Eval cost budgets](./evals-and-quality.md) — eval pipelines have their own cost shape.
 - [Choosing a Pattern](./choosing-a-pattern.md) — pattern selection is the first cost lever.

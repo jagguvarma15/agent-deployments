@@ -1,0 +1,37 @@
+{
+  "id": "human_in_the_loop",
+  "name": "Human in the Loop",
+  "category": "modifier",
+  "complexity": "Intermediate",
+  "description": "Agent proposes an action; a human approves, denies, or modifies before the action commits.",
+  "tiers": [
+    "overview",
+    "design",
+    "implementation",
+    "evolution",
+    "observability",
+    "cost-and-latency"
+  ],
+  "evolvesFrom": [
+    "tool_use"
+  ],
+  "composableWith": [
+    "saga",
+    "event_driven",
+    "tool_use"
+  ],
+  "requires": [
+    "pause-resume",
+    "approver-surface",
+    "audit"
+  ],
+  "tags": [
+    "approval",
+    "governance",
+    "compliance",
+    "pause-resume",
+    "escalation"
+  ],
+  "costTier": "low",
+  "latencyTier": "very-high"
+}

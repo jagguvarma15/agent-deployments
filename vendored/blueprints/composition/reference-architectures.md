@@ -17,7 +17,7 @@ graph TD
     Q([Research Question]) --> Router[Router:<br/>Classify question type]
     Router -->|"factual"| RAGAgent[RAG + ReAct Agent:<br/>Retrieve and reason]
     Router -->|"comparative"| MultiSearch[Parallel RAG:<br/>Multiple sources]
-    Router -->|"exploratory"| PlanAgent[Plan & Execute:<br/>Break down research]
+    Router -->|"exploratory"| PlanAgent["Plan & Execute:<br/>Break down research"]
     RAGAgent --> Reflect[Reflection:<br/>Check quality + citations]
     MultiSearch --> Reflect
     PlanAgent --> Reflect
@@ -410,7 +410,7 @@ graph TD
 
 **Pointers:**
 - Idempotency, retries, DLQ, distributed tracing: see [`agent-deployments/docs/cross-cutting/`](https://github.com/jagguvarma15/agent-deployments/tree/main/docs/cross-cutting).
-- Per-pattern guidance: [Event-Driven](../patterns/event_driven/overview.md), [RAG](../patterns/rag/overview.md), [Memory](../patterns/memory/overview.md), [Tool Use](../patterns/tool_use/overview.md).
+- Per-pattern guidance: [Event-Driven](../patterns/event_driven/overview.md), [RAG](../patterns/rag/overview.md), [Memory](../primitives/memory/overview.md), [Tool Use](../primitives/tool_use/overview.md).
 - Recipes that share this shape: see [`restaurant-rebooking`](https://github.com/jagguvarma15/agent-deployments/blob/main/docs/recipes/restaurant-rebooking.md) for an event-driven recipe in `agent-deployments`.
 
 ---

@@ -2,7 +2,7 @@
 
 ReAct is the foundational agent pattern: a loop where the LLM *reasons* about what to do, *acts* by calling a tool, *observes* the result, and repeats until the task is complete. The LLM controls when to act and when to stop.
 
-**Evolves from:** [Prompt Chaining](../../workflows/prompt-chaining/overview.md) — adds dynamic tool selection and LLM-controlled looping.
+**Evolves from:** [Prompt Chaining](../prompt-chaining/overview.md) — adds dynamic tool selection and LLM-controlled looping.
 
 ## Architecture
 
@@ -11,7 +11,7 @@ graph TD
     Input([User Task]) -->|"goal"| Loop[Agent Loop]
     Loop --> Think[Think:<br/>Reason about state + goal]
     Think --> Decide{Done?}
-    Decide -->|"No"| ToolCall[Select & call tool]
+    Decide -->|"No"| ToolCall["Select & call tool"]
     ToolCall -->|"tool request"| Execute[Execute tool]
     Execute -->|"observation"| Loop
     Decide -->|"Yes"| Output([Final Answer])
@@ -116,16 +116,16 @@ The reference file is the canonical control-flow doc — read it with `design.md
 
 ## When NOT to Use
 
-- When steps are known in advance — use [Prompt Chaining](../../workflows/prompt-chaining/overview.md)
+- When steps are known in advance — use [Prompt Chaining](../prompt-chaining/overview.md)
 - When the task needs upfront strategic planning — use [Plan & Execute](../plan_and_execute/overview.md)
 - When quality needs iterative self-improvement — use [Reflection](../reflection/overview.md)
 - When multiple specialized capabilities are needed — use [Multi-Agent](../multi_agent/overview.md)
 
 ## Related Patterns
 
-- **Evolves from:** [Prompt Chaining](../../workflows/prompt-chaining/overview.md) — see [evolution.md](./evolution.md)
-- **Builds on:** [Tool Use](../tool_use/overview.md) — ReAct requires tool use as a component
-- **Extends into:** [Plan & Execute](../plan_and_execute/overview.md) (add planning), [Reflection](../reflection/overview.md) (add self-critique), [RAG](../rag/overview.md) (add retrieval), [Memory](../memory/overview.md) (add persistence)
+- **Evolves from:** [Prompt Chaining](../prompt-chaining/overview.md) — see [evolution.md](./evolution.md)
+- **Builds on:** [Tool Use](../../primitives/tool_use/overview.md) — ReAct requires tool use as a component
+- **Extends into:** [Plan & Execute](../plan_and_execute/overview.md) (add planning), [Reflection](../reflection/overview.md) (add self-critique), [RAG](../rag/overview.md) (add retrieval), [Memory](../../primitives/memory/overview.md) (add persistence)
 
 ## Deeper Dive
 
@@ -135,7 +135,7 @@ The reference file is the canonical control-flow doc — read it with `design.md
 
 ## When NOT to use this pattern
 
-- Steps are predictable in advance — use a workflow ([prompt chaining](../../workflows/prompt-chaining/overview.md) or [orchestrator-worker](../../workflows/orchestrator-worker/overview.md)).
+- Steps are predictable in advance — use a workflow ([prompt chaining](../prompt-chaining/overview.md) or [orchestrator-worker](../orchestrator-worker/overview.md)).
 - Latency budget is tight — ReAct loops are unbounded by default and unpredictable.
 - You can't enforce a tool allow-list — ReAct's freedom amplifies the blast radius of any unsafe tool.
 
