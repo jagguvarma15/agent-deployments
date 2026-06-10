@@ -1,6 +1,8 @@
 ---
 status: Blueprint (design spec)
 languages: [python, typescript]
+agent_pattern: multi_agent
+primitives: [tool_use, sub_agents]
 required_files:
   - Dockerfile
   - docker-compose.yml
