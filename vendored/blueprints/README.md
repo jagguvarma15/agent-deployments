@@ -19,6 +19,17 @@ Every pattern is documented at three levels of depth. Read only what you need:
 
 ---
 
+## For AI tools
+
+If you're an AI tool (Claude Code, Cursor, GitHub Copilot, agent-scaffold, …) reading this repo, start here:
+
+- [`llms.txt`](./llms.txt) — minimal AI-tool discovery file ([llmstxt.org](https://llmstxt.org/) spec).
+- [`agents.md`](./agents.md) — how to programmatically consume the catalog (entry shapes, tier file conventions, pinning to a version).
+- [`patterns-catalog.yaml`](./patterns-catalog.yaml) — canonical machine-readable index. Schema in [`PATTERNS_CATALOG_SCHEMA.md`](./PATTERNS_CATALOG_SCHEMA.md).
+- [`meta/HOW_TO_ADD_AN_ENTRY.md`](./meta/HOW_TO_ADD_AN_ENTRY.md) — contributor walkthrough, including AI-tool prompts.
+
+---
+
 ## The three-repo ecosystem
 
 This repo is the first stop in a three-repo pipeline that takes you from pattern to running agent:
@@ -68,30 +79,57 @@ flowchart LR
 
 Workflows are orchestrated patterns where **the code controls the flow**. The developer defines the structure; the LLM fills in the content.
 
+<!-- AUTO:cohort-table cohort=patterns filter=category:workflow style=tiers base=./ -->
 | Pattern | What It Does | Overview | Design | Implementation |
-|---------|-------------|----------|--------|----------------|
-| **Prompt Chaining** | Sequential LLM calls with validation gates | [overview](./workflows/prompt-chaining/overview.md) | [design](./workflows/prompt-chaining/design.md) | [implementation](./workflows/prompt-chaining/implementation.md) |
-| **Parallel Calls** | Concurrent LLM calls on independent inputs | [overview](./workflows/parallel-calls/overview.md) | [design](./workflows/parallel-calls/design.md) | [implementation](./workflows/parallel-calls/implementation.md) |
-| **Orchestrator-Worker** | LLM decomposes task, delegates to workers | [overview](./workflows/orchestrator-worker/overview.md) | [design](./workflows/orchestrator-worker/design.md) | [implementation](./workflows/orchestrator-worker/implementation.md) |
-| **Evaluator-Optimizer** | Generate-evaluate feedback loop | [overview](./workflows/evaluator-optimizer/overview.md) | [design](./workflows/evaluator-optimizer/design.md) | [implementation](./workflows/evaluator-optimizer/implementation.md) |
+|---|---|---|---|---|
+| **Evaluator-Optimizer** | Generate-evaluate feedback loop that iteratively improves output. | [overview](./patterns/evaluator-optimizer/overview.md) | [design](./patterns/evaluator-optimizer/design.md) | [impl](./patterns/evaluator-optimizer/implementation.md) |
+| **Orchestrator-Worker** | LLM decomposes a task and delegates to specialized workers. | [overview](./patterns/orchestrator-worker/overview.md) | [design](./patterns/orchestrator-worker/design.md) | [impl](./patterns/orchestrator-worker/implementation.md) |
+| **Parallel Calls** | Concurrent LLM calls on independent inputs, aggregated at the end. | [overview](./patterns/parallel-calls/overview.md) | [design](./patterns/parallel-calls/design.md) | [impl](./patterns/parallel-calls/implementation.md) |
+| **Prompt Chaining** | Sequential LLM calls with validation gates between steps. | [overview](./patterns/prompt-chaining/overview.md) | [design](./patterns/prompt-chaining/design.md) | [impl](./patterns/prompt-chaining/implementation.md) |
+<!-- /AUTO -->
 
 ## Agent Patterns
 
 Agents are systems where **the LLM controls the flow**. The developer provides tools and constraints; the LLM decides what to do.
 
+<!-- AUTO:cohort-table cohort=patterns filter=category:agent style=tiers base=./ -->
 | Pattern | What It Does | Evolves From | Overview | Design | Implementation |
-|---------|-------------|-------------|----------|--------|----------------|
-| **ReAct** | Reason-act loop with tools | Prompt Chaining | [overview](./patterns/react/overview.md) | [design](./patterns/react/design.md) | [impl](./patterns/react/implementation.md) |
-| **Plan & Execute** | Plan first, then execute steps | Orchestrator-Worker | [overview](./patterns/plan_and_execute/overview.md) | [design](./patterns/plan_and_execute/design.md) | [impl](./patterns/plan_and_execute/implementation.md) |
-| **Tool Use** | Structured function calling | Prompt Chaining | [overview](./patterns/tool_use/overview.md) | [design](./patterns/tool_use/design.md) | [impl](./patterns/tool_use/implementation.md) |
-| **Memory** | Persistent state across sessions | Prompt Chaining | [overview](./patterns/memory/overview.md) | [design](./patterns/memory/design.md) | [impl](./patterns/memory/implementation.md) |
-| **RAG** | Retrieval-augmented generation | Parallel Calls | [overview](./patterns/rag/overview.md) | [design](./patterns/rag/design.md) | [impl](./patterns/rag/implementation.md) |
-| **Reflection** | Self-critique and refinement | Evaluator-Optimizer | [overview](./patterns/reflection/overview.md) | [design](./patterns/reflection/design.md) | [impl](./patterns/reflection/implementation.md) |
-| **Routing** | Intent classification + dispatch | Parallel Calls | [overview](./patterns/routing/overview.md) | [design](./patterns/routing/design.md) | [impl](./patterns/routing/implementation.md) |
-| **Multi-Agent** | Supervisor-worker delegation | Orchestrator-Worker + Routing | [overview](./patterns/multi_agent/overview.md) | [design](./patterns/multi_agent/design.md) | [impl](./patterns/multi_agent/implementation.md) |
-| **Event-Driven** | Agents triggered by stream/queue events | Tool Use | [overview](./patterns/event_driven/overview.md) | [design](./patterns/event_driven/design.md) | [impl](./patterns/event_driven/implementation.md) |
-| **Saga** | Long-running multi-step processes with compensation | Tool Use + Prompt Chaining | [overview](./patterns/saga/overview.md) | [design](./patterns/saga/design.md) | [impl](./patterns/saga/implementation.md) |
-| **Human in the Loop** | Agent proposes, human approves before commit | Tool Use | [overview](./patterns/human_in_the_loop/overview.md) | [design](./patterns/human_in_the_loop/design.md) | [impl](./patterns/human_in_the_loop/implementation.md) |
+|---|---|---|---|---|---|
+| **Agentic RAG** | RAG where the agent plans retrievals, decomposes queries, routes across sources, reflects on sufficiency, and enforces citation-bound answers. | RAG, Plan & Execute | [overview](./patterns/agentic_rag/overview.md) | [design](./patterns/agentic_rag/design.md) | [impl](./patterns/agentic_rag/implementation.md) |
+| **Event-Driven** | Agents triggered by queue or stream events rather than HTTP requests. | Tool Use | [overview](./patterns/event_driven/overview.md) | [design](./patterns/event_driven/design.md) | [impl](./patterns/event_driven/implementation.md) |
+| **Long-Horizon** | Multi-session agent tasks that span hours to weeks; checkpoint-and-resume across crashes, deploys, and external waits. | Saga, Event-Driven | [overview](./patterns/long_horizon/overview.md) | [design](./patterns/long_horizon/design.md) | [impl](./patterns/long_horizon/implementation.md) |
+| **Multi-Agent** | Supervisor-worker delegation across multiple autonomous agents. | Orchestrator-Worker, Routing | [overview](./patterns/multi_agent/overview.md) | [design](./patterns/multi_agent/design.md) | [impl](./patterns/multi_agent/implementation.md) |
+| **Plan & Execute** | LLM creates a full plan upfront, then executes each step sequentially. | Orchestrator-Worker | [overview](./patterns/plan_and_execute/overview.md) | [design](./patterns/plan_and_execute/design.md) | [impl](./patterns/plan_and_execute/implementation.md) |
+| **RAG** | Retrieval-augmented generation: retrieve relevant context before generating. | Parallel Calls | [overview](./patterns/rag/overview.md) | [design](./patterns/rag/design.md) | [impl](./patterns/rag/implementation.md) |
+| **ReAct** | Reason-act loop: the LLM reasons, calls a tool, observes, and repeats until done. | Prompt Chaining | [overview](./patterns/react/overview.md) | [design](./patterns/react/design.md) | [impl](./patterns/react/implementation.md) |
+| **Reflection** | LLM critiques its own output and self-improves through structured feedback. | Evaluator-Optimizer | [overview](./patterns/reflection/overview.md) | [design](./patterns/reflection/design.md) | [impl](./patterns/reflection/implementation.md) |
+| **Routing** | Intent classification dispatches inputs to specialized handlers. | Parallel Calls | [overview](./patterns/routing/overview.md) | [design](./patterns/routing/design.md) | [impl](./patterns/routing/implementation.md) |
+| **Saga** | Long-running, multi-step business processes that need compensation when an intermediate step fails. | Tool Use, Prompt Chaining | [overview](./patterns/saga/overview.md) | [design](./patterns/saga/design.md) | [impl](./patterns/saga/implementation.md) |
+<!-- /AUTO -->
+
+## Primitives
+
+Primitives are building blocks the agent uses orthogonally to any pattern. Picking primitives is the second of three decisions (pattern → primitives → modifiers) when designing an agent.
+
+<!-- AUTO:cohort-table cohort=primitives style=tiers base=./ -->
+| Pattern | What It Does | Evolves From | Overview | Design | Implementation |
+|---|---|---|---|---|---|
+| **Memory** | Persistent state across sessions: short-term, long-term, and semantic memory. | Prompt Chaining | [overview](./primitives/memory/overview.md) | [design](./primitives/memory/design.md) | [impl](./primitives/memory/implementation.md) |
+| **Skills** | File-based, agent-discovered procedural modules. Cheap to ship many; loaded on demand at runtime. | Tool Use | [overview](./primitives/skills/overview.md) | [design](./primitives/skills/design.md) | [impl](./primitives/skills/implementation.md) |
+| **Sub-agents** | Named, role-scoped agent instances spawned by a parent for delimited tasks; each has its own context window, tool grants, and (optionally) model. | Tool Use | [overview](./primitives/sub_agents/overview.md) | [design](./primitives/sub_agents/design.md) | [impl](./primitives/sub_agents/implementation.md) |
+| **Tool Use** | Structured function calling with schema-validated tool dispatch. | Prompt Chaining | [overview](./primitives/tool_use/overview.md) | [design](./primitives/tool_use/design.md) | [impl](./primitives/tool_use/implementation.md) |
+<!-- /AUTO -->
+
+## Modifiers
+
+Modifiers wrap a chosen pattern with a transformation (gates, overlays). Picking modifiers is the third decision.
+
+<!-- AUTO:cohort-table cohort=modifiers style=tiers base=./ -->
+| Pattern | What It Does | Evolves From | Overview | Design | Implementation |
+|---|---|---|---|---|---|
+| **Guardrails** | Layered input / tool / output policy checks plus a dual-LLM split that breaks the indirect-prompt-injection path. | Tool Use | [overview](./modifiers/guardrails/overview.md) | [design](./modifiers/guardrails/design.md) | [impl](./modifiers/guardrails/implementation.md) |
+| **Human in the Loop** | Agent proposes an action; a human approves, denies, or modifies before the action commits. | Tool Use | [overview](./modifiers/human_in_the_loop/overview.md) | [design](./modifiers/human_in_the_loop/design.md) | [impl](./modifiers/human_in_the_loop/implementation.md) |
+<!-- /AUTO -->
 
 ## How Workflows Become Agents
 
@@ -104,7 +142,7 @@ graph LR
     PC -->|"+ persistence"| Mem[Memory]
     PAR[Parallel Calls] -->|"+ retrieval"| RAG[RAG]
     PAR -->|"+ classification"| Route[Routing]
-    OW[Orchestrator-Worker] -->|"+ planning"| PE[Plan & Execute]
+    OW[Orchestrator-Worker] -->|"+ planning"| PE["Plan & Execute"]
     OW -->|"+ agent workers"| MA[Multi-Agent]
     Route -->|"+ agent workers"| MA
     EO[Evaluator-Optimizer] -->|"+ self-critique"| Ref[Reflection]
@@ -136,20 +174,28 @@ Each agent pattern includes an [evolution.md](./patterns/react/evolution.md) doc
 ```
 agent-blueprints/
 ├── foundations/          # Core concepts, terminology, pattern selection
-├── workflows/           # 4 pre-agent workflow patterns (3 tiers each)
-├── patterns/            # 11 agent patterns (3 tiers + evolution bridge each)
-├── composition/         # How patterns combine into production systems
-├── meta/                # Contributing, style guide, roadmap
-└── code/                # Reference implementations (per-pattern under patterns/*/code/ and workflows/*/code/)
+├── patterns/             # 12 flow shapes (8 agent + 4 workflow, distinguished
+│                           by the `category` field on each metadata.json)
+├── primitives/           # 3 building blocks the agent uses
+│                           (tool_use, memory, skills)
+├── modifiers/            # 1 transformation layered on a pattern
+│                           (human_in_the_loop)
+├── composition/          # How patterns + primitives + modifiers combine
+├── meta/                 # Contributing, style guide, roadmap
+└── code/                 # Reference implementations under
+                            patterns/*/code/, primitives/*/code/, modifiers/*/code/
 ```
+
+> **Three-tier taxonomy.** Picking an agent shape is three orthogonal decisions: one pattern + N primitives + N modifiers. See [`foundations/choosing-a-pattern.md`](./foundations/choosing-a-pattern.md) for the picker. The machine-readable index is [`patterns-catalog.yaml`](./patterns-catalog.yaml) (schema v2).
 
 ## Design Principles
 
 1. **Architecture-first** — Teach readers to design before they build
 2. **3-tier depth** — Overview → Design → Implementation. Read only what you need.
-3. **Workflows → Agents** — Workflows are the foundation. Agents build on them.
-4. **Generalized, not use-case-bound** — Patterns are abstract and composable
-5. **Framework-agnostic** — No provider lock-in. The LLM is a swappable layer.
+3. **Pattern + primitives + modifiers** — Three orthogonal decisions, not one. Patterns describe flow shape; primitives are building blocks; modifiers are transforms layered on top.
+4. **Workflows → Agents** — Workflows (code-controlled flow) are the foundation; agent patterns (LLM-controlled flow) build on them. Both live in `patterns/` distinguished by category.
+5. **Generalized, not use-case-bound** — Patterns are abstract and composable.
+6. **Framework-agnostic** — No provider lock-in. The LLM is a swappable layer.
 
 ## Contributing
 
@@ -157,7 +203,7 @@ See the [Contributing Guide](./meta/contributing.md) and [Style Guide](./meta/st
 
 ## Roadmap
 
-This is Phase 1 (documentation). Code implementations, advanced patterns, and tooling are planned for future phases. See the [full roadmap](./meta/roadmap.md).
+This is Phase 1 (documentation). Code implementations, advanced patterns, and tooling are planned for future phases. See the [full roadmap](./ROADMAP.md).
 
 ## License
 

@@ -1,8 +1,8 @@
 # Reflection (Self-Critique) — Overview
 
-Reflection enables an agent to evaluate and improve its own output by generating self-critique, then revising based on that critique. Unlike the [Evaluator-Optimizer](../../workflows/evaluator-optimizer/overview.md) workflow where evaluation is external, reflection is *self-directed* — the agent identifies its own weaknesses.
+Reflection enables an agent to evaluate and improve its own output by generating self-critique, then revising based on that critique. Unlike the [Evaluator-Optimizer](../evaluator-optimizer/overview.md) workflow where evaluation is external, reflection is *self-directed* — the agent identifies its own weaknesses.
 
-**Evolves from:** [Evaluator-Optimizer](../../workflows/evaluator-optimizer/overview.md) — adds self-generated critique, richer self-awareness, and adaptive refinement strategies.
+**Evolves from:** [Evaluator-Optimizer](../evaluator-optimizer/overview.md) — adds self-generated critique, richer self-awareness, and adaptive refinement strategies.
 
 ## Architecture
 
@@ -103,14 +103,14 @@ Both variants run the same draft → critique → revise loop with `max_iteratio
 
 - When first-pass quality is sufficient — reflection doubles the cost at minimum
 - When latency is critical — each iteration adds a full round-trip
-- When you have a reliable external evaluator — use [Evaluator-Optimizer](../../workflows/evaluator-optimizer/overview.md) instead
+- When you have a reliable external evaluator — use [Evaluator-Optimizer](../evaluator-optimizer/overview.md) instead
 - For factual retrieval tasks — reflection can't fix missing knowledge; use [RAG](../rag/overview.md)
 
 ## Related Patterns
 
-- **Evolves from:** [Evaluator-Optimizer](../../workflows/evaluator-optimizer/overview.md) — see [evolution.md](./evolution.md)
+- **Evolves from:** [Evaluator-Optimizer](../evaluator-optimizer/overview.md) — see [evolution.md](./evolution.md)
 - **Combines with:** [ReAct](../react/overview.md) (reflect on tool call results), [Plan & Execute](../plan_and_execute/overview.md) (reflect on plan quality before execution)
-- **Simpler alternative:** [Evaluator-Optimizer](../../workflows/evaluator-optimizer/overview.md) (when a score + feedback loop is sufficient)
+- **Simpler alternative:** [Evaluator-Optimizer](../evaluator-optimizer/overview.md) (when a score + feedback loop is sufficient)
 
 ## Deeper Dive
 

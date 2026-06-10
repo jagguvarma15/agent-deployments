@@ -1,6 +1,6 @@
 # Evolution: Orchestrator-Worker + Routing → Multi-Agent
 
-This document traces how the [Multi-Agent pattern](./overview.md) evolves from two workflow patterns: [Orchestrator-Worker](../../workflows/orchestrator-worker/overview.md) and [Routing](../routing/overview.md).
+This document traces how the [Multi-Agent pattern](./overview.md) evolves from two workflow patterns: [Orchestrator-Worker](../orchestrator-worker/overview.md) and [Routing](../routing/overview.md).
 
 ## The Starting Points
 

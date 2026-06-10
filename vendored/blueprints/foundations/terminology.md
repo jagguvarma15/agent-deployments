@@ -36,7 +36,7 @@ A mapping from tool names to their implementations. When the LLM requests a tool
 Information that persists across steps within a single run. Examples: the message history in a conversation, a plan being executed step-by-step, or accumulated search results. State is what makes multi-step systems "remember" what happened earlier in the current task.
 
 ### Memory
-Information that persists *across* runs. Short-term memory is state within a session. Long-term memory is information stored in an external system (database, vector store, file) and retrieved in future sessions. See the [Memory pattern](../patterns/memory/overview.md).
+Information that persists *across* runs. Short-term memory is state within a session. Long-term memory is information stored in an external system (database, vector store, file) and retrieved in future sessions. See the [Memory pattern](../primitives/memory/overview.md).
 
 ## Patterns and Architectures
 
@@ -89,4 +89,4 @@ Anchoring LLM output in factual source material. RAG is the primary grounding te
 When an LLM generates plausible but factually incorrect content. Patterns like RAG and reflection help mitigate hallucination.
 
 ### Evaluation
-Assessing the quality of LLM output against criteria. Can be automated (LLM-as-judge, rule-based checks) or human (manual review). The [evaluator-optimizer workflow](../workflows/evaluator-optimizer/overview.md) and [reflection pattern](../patterns/reflection/overview.md) build evaluation into the system loop.
+Assessing the quality of LLM output against criteria. Can be automated (LLM-as-judge, rule-based checks) or human (manual review). The [evaluator-optimizer workflow](../patterns/evaluator-optimizer/overview.md) and [reflection pattern](../patterns/reflection/overview.md) build evaluation into the system loop.

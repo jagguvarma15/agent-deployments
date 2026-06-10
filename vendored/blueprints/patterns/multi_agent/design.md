@@ -165,7 +165,7 @@ SharedState:
 | Worker raises permanent error | Choose an alternative agent or revise task; if none viable, fail upward |
 | Worker exceeds its iteration budget | Treat as partial result; supervisor decides whether to retry, replace, or proceed |
 | Supervisor loops without converging | Iteration cap forces termination; return best partial result with explicit "incomplete" signal |
-| Worker hallucinates a tool call | Tool-use registry catches it (see [tool-use](../tool_use/design.md)); worker reports error to supervisor |
+| Worker hallucinates a tool call | Tool-use registry catches it (see [tool-use](../../primitives/tool_use/design.md)); worker reports error to supervisor |
 | Shared state conflict (concurrent writes) | Last-write-wins with logged conflict; alert if conflict rate exceeds threshold |
 | Missing agent ("delegate to `legal_expert`" — not registered) | Return error with agent registry listing; supervisor re-decides |
 | Supervisor compromised by injection | Worst case — propagates to every worker. Defense is at the input boundary, not at delegation time |
@@ -194,11 +194,11 @@ The single most useful dashboard view is the **per-task delegation tree** — fo
 ## Composition
 
 - **+ [Plan & Execute](../plan_and_execute/overview.md):** Supervisor generates a plan, delegates steps to agents. The plan is the supervisor's decomposition surface; workers execute steps.
-- **+ [Memory](../memory/overview.md):** Shared long-term memory across agents — every worker reads the same context. Useful for multi-turn conversations; risky if a poisoned memory affects every agent.
+- **+ [Memory](../../primitives/memory/overview.md):** Shared long-term memory across agents — every worker reads the same context. Useful for multi-turn conversations; risky if a poisoned memory affects every agent.
 - **+ [RAG](../rag/overview.md):** Knowledge-grounded workers with a shared retrieval surface. One MCP-backed vector DB serves all agents.
 - **+ [Routing](../routing/overview.md):** A routing layer above the supervisor — classify the task, then choose which multi-agent topology handles it. Useful when the system serves multiple distinct task types.
 - **+ [Saga](../saga/overview.md):** Saga steps delegate to specialized agents; the saga coordinator owns the step list, agents own the cognition.
-- **+ [Human in the Loop](../human_in_the_loop/overview.md):** Supervisor or specific worker proposes a high-stakes action; human approves before commit. Often the right termination for multi-agent systems acting on the world.
+- **+ [Human in the Loop](../../modifiers/human_in_the_loop/overview.md):** Supervisor or specific worker proposes a high-stakes action; human approves before commit. Often the right termination for multi-agent systems acting on the world.
 
 ## Production concerns
 

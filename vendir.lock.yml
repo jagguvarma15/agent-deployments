@@ -2,8 +2,8 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: 'Merge pull request #48 from jagguvarma15/fix/repo-hygiene-cleanup...'
-      sha: 91adb9b4cc42b032d45ca696689c634568ba16c3
+      commitTitle: 'Merge pull request #55 from jagguvarma15/feat/tier-3-tooling-and-code...'
+      sha: dfd824d905ec28d49eea01c286ba684246dab81f
     path: .
   path: vendored/blueprints
 kind: LockConfig

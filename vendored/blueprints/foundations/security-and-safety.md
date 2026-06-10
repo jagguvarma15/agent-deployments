@@ -50,11 +50,11 @@ Defenses:
 
 Tools are where the agent gains real-world reach. They're also where attackers gain real-world reach if the agent is compromised.
 
-- **Allow-listed tools.** The agent has the tools you gave it — not the tools it discovers. Enforce at the dispatcher (see [tool-use design](../patterns/tool_use/design.md)).
+- **Allow-listed tools.** The agent has the tools you gave it — not the tools it discovers. Enforce at the dispatcher (see [tool-use design](../primitives/tool_use/design.md)).
 - **Least privilege.** Each tool runs with credentials scoped to exactly what it needs. A `read_user_profile` tool should not have write permissions, even if "the agent never calls it that way."
 - **Sandbox tool execution.** Code-execution tools run in sandboxes (containers, isolated VMs, ephemeral environments). Network and filesystem access whitelisted per tool.
 - **Validate tool outputs before re-feeding.** A tool that returns user-controlled or web-fetched text is a vector for indirect injection. Sanitize, structure, or tag before passing back to the model.
-- **Destructive tools require out-of-band confirmation.** *Never* let an agent commit a destructive action solely on the LLM's word. Route through human approval ([HITL](../patterns/human_in_the_loop/overview.md)) or a deterministic policy check.
+- **Destructive tools require out-of-band confirmation.** *Never* let an agent commit a destructive action solely on the LLM's word. Route through human approval ([HITL](../modifiers/human_in_the_loop/overview.md)) or a deterministic policy check.
 
 ## Secrets handling
 
@@ -89,12 +89,12 @@ MCP servers run outside the agent's process. They're a distinct supply-chain sur
 
 | Concern | Patterns most affected |
 |---|---|
-| Direct prompt injection | All patterns. Specifically dangerous in [tool-use](../patterns/tool_use/overview.md), [multi-agent](../patterns/multi_agent/overview.md), and anywhere user input drives tool calls. |
-| Indirect prompt injection | [RAG](../patterns/rag/overview.md) (retrieved content), [tool-use](../patterns/tool_use/overview.md) (tool outputs), [ReAct](../patterns/react/overview.md) (web fetches), MCP-connected anything. |
-| Tool poisoning | [tool-use](../patterns/tool_use/overview.md), [ReAct](../patterns/react/overview.md), [multi-agent](../patterns/multi_agent/overview.md). |
-| Denial of wallet | Patterns with loops: [ReAct](../patterns/react/overview.md), [Reflection](../patterns/reflection/overview.md), [Evaluator-Optimizer](../workflows/evaluator-optimizer/overview.md), [Plan & Execute](../patterns/plan_and_execute/overview.md), [Multi-Agent](../patterns/multi_agent/overview.md). |
-| Secrets leakage | All patterns; highest risk in [memory](../patterns/memory/overview.md) (long-lived state) and [multi-agent](../patterns/multi_agent/overview.md) (shared state). |
-| MCP supply chain | Any pattern using MCP servers — currently [tool-use](../patterns/tool_use/overview.md), with [RAG](../patterns/rag/overview.md) and [memory](../patterns/memory/overview.md) as common candidates. |
+| Direct prompt injection | All patterns. Specifically dangerous in [tool-use](../primitives/tool_use/overview.md), [multi-agent](../patterns/multi_agent/overview.md), and anywhere user input drives tool calls. |
+| Indirect prompt injection | [RAG](../patterns/rag/overview.md) (retrieved content), [tool-use](../primitives/tool_use/overview.md) (tool outputs), [ReAct](../patterns/react/overview.md) (web fetches), MCP-connected anything. |
+| Tool poisoning | [tool-use](../primitives/tool_use/overview.md), [ReAct](../patterns/react/overview.md), [multi-agent](../patterns/multi_agent/overview.md). |
+| Denial of wallet | Patterns with loops: [ReAct](../patterns/react/overview.md), [Reflection](../patterns/reflection/overview.md), [Evaluator-Optimizer](../patterns/evaluator-optimizer/overview.md), [Plan & Execute](../patterns/plan_and_execute/overview.md), [Multi-Agent](../patterns/multi_agent/overview.md). |
+| Secrets leakage | All patterns; highest risk in [memory](../primitives/memory/overview.md) (long-lived state) and [multi-agent](../patterns/multi_agent/overview.md) (shared state). |
+| MCP supply chain | Any pattern using MCP servers — currently [tool-use](../primitives/tool_use/overview.md), with [RAG](../patterns/rag/overview.md) and [memory](../primitives/memory/overview.md) as common candidates. |
 
 ## Iteration caps as a security control
 

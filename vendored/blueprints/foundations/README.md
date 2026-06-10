@@ -89,6 +89,7 @@ Cross-cutting concerns every production agent inherits. Not pattern-specific; sa
 - **[Hallucination & Grounding](./hallucination-and-grounding.md)** — Why agents hallucinate, grounding strategies, abstention, eval-gated deployment
 - **[Evals & Quality](./evals-and-quality.md)** — Evals as tests (not benchmarks), golden datasets, metric selection, online vs offline, regression suites
 - **[Cost & Model Selection](./cost-and-model-selection.md)** — Model tier selection, token budgets, per-pattern cost shape, the latency/cost/quality triangle, guardrails
+- **[Context Engineering](./context-engineering.md)** — Context as a finite resource, the four levers (select / compress / prune / persist), per-pattern context shape, context-window awareness, compaction
 - **[Testing Strategies](./testing-strategies.md)** — Unit tests, mock LLMs, integration tests, evaluation, and regression testing for LLM systems
 
 ### Reference and positioning

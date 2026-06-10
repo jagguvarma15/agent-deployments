@@ -2,7 +2,7 @@
 
 RAG grounds LLM responses in external knowledge by retrieving relevant documents before generating a response. Instead of relying solely on the LLM's training data, the system searches a knowledge base and injects the most relevant content into the prompt.
 
-**Evolves from:** [Parallel Calls](../../workflows/parallel-calls/overview.md) — adds a retrieval step, context injection, and relevance filtering.
+**Evolves from:** [Parallel Calls](../parallel-calls/overview.md) — adds a retrieval step, context injection, and relevance filtering.
 
 ## Architecture
 
@@ -115,12 +115,12 @@ The framework-specific files share an identical task (ingest three short documen
 - When all needed information fits in the system prompt — just include it directly
 - When the task doesn't require external knowledge (creative writing, reasoning)
 - When real-time data is needed — RAG over a static index will be stale
-- When exact database queries would be more appropriate — use [Tool Use](../tool_use/overview.md) with a DB query tool
+- When exact database queries would be more appropriate — use [Tool Use](../../primitives/tool_use/overview.md) with a DB query tool
 
 ## Related Patterns
 
-- **Evolves from:** [Parallel Calls](../../workflows/parallel-calls/overview.md) — see [evolution.md](./evolution.md)
-- **Combines with:** [ReAct](../react/overview.md) (agent decides when to retrieve), [Memory](../memory/overview.md) (shared vector store for both documents and interaction history)
+- **Evolves from:** [Parallel Calls](../parallel-calls/overview.md) — see [evolution.md](./evolution.md)
+- **Combines with:** [ReAct](../react/overview.md) (agent decides when to retrieve), [Memory](../../primitives/memory/overview.md) (shared vector store for both documents and interaction history)
 - **Advanced form:** Agentic RAG — the agent decides when, what, and how to retrieve, potentially reformulating queries or searching multiple sources
 
 ## Deeper Dive

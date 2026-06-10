@@ -1,6 +1,6 @@
 # Evolution: Prompt Chaining + Tool Use → Saga
 
-This document traces how the [Saga pattern](./overview.md) evolves from sequential [Prompt Chaining](../../workflows/prompt-chaining/overview.md) augmented with [Tool Use](../tool_use/overview.md).
+This document traces how the [Saga pattern](./overview.md) evolves from sequential [Prompt Chaining](../prompt-chaining/overview.md) augmented with [Tool Use](../../primitives/tool_use/overview.md).
 
 ## The Starting Point: Sequential Tool Use
 

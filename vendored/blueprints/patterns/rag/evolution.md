@@ -1,6 +1,6 @@
 # Evolution: Parallel Calls → RAG
 
-This document traces how the [RAG pattern](./overview.md) evolves from the [Parallel Calls workflow](../../workflows/parallel-calls/overview.md).
+This document traces how the [RAG pattern](./overview.md) evolves from the [Parallel Calls workflow](../parallel-calls/overview.md).
 
 ## The Starting Point: Parallel Calls
 

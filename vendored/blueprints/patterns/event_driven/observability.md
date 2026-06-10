@@ -28,7 +28,7 @@ Each event becomes a **root span** — the consumer is not a long-lived request;
 
 ```mermaid
 sequenceDiagram
-    participant Broker as Event Source<br/>(Redis Stream / Kafka)
+    participant Broker as Event Source
     participant Consumer
     participant Idem as Idempotency Store
     participant Agent
@@ -57,7 +57,7 @@ sequenceDiagram
             Consumer->>Idem: mark completed
             Consumer->>Broker: XACK
         else retryable
-            note over Consumer: do not ACK; redelivery follows
+            note over Consumer: do not ACK — redelivery follows
         else permanent
             Consumer->>DLQ: XADD failure envelope
             Consumer->>Broker: XACK

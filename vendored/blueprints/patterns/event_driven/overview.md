@@ -2,7 +2,7 @@
 
 Event-driven agents consume events from a queue or stream rather than responding to HTTP requests. The agent's lifecycle is: subscribe → receive event → enrich with current state via tools → decide → act → emit outcome. Triggers are external (cancellations, status changes, scheduled events), not user-initiated.
 
-**Evolves from:** [Tool Use](../tool_use/overview.md) — adds an event-source intake, idempotency requirements, and operational concerns (backpressure, retries, DLQ) that don't exist in request-driven setups.
+**Evolves from:** [Tool Use](../../primitives/tool_use/overview.md) — adds an event-source intake, idempotency requirements, and operational concerns (backpressure, retries, DLQ) that don't exist in request-driven setups.
 
 ## Architecture
 
@@ -126,8 +126,8 @@ All three variants run the same five-event smoke (two clean events, one permanen
 
 ## Related Patterns
 
-- **Evolves from:** [Tool Use](../tool_use/overview.md) — same agent reasoning loop, different trigger.
-- **Combines with:** [Multi-Agent](../multi_agent/overview.md) (one agent per event type; supervisor optional), [Routing](../routing/overview.md) (route on event type), [Memory](../memory/overview.md) (rebuild agent state from event log).
+- **Evolves from:** [Tool Use](../../primitives/tool_use/overview.md) — same agent reasoning loop, different trigger.
+- **Combines with:** [Multi-Agent](../multi_agent/overview.md) (one agent per event type; supervisor optional), [Routing](../routing/overview.md) (route on event type), [Memory](../../primitives/memory/overview.md) (rebuild agent state from event log).
 - **Often composed with:** Outbox pattern (transactional event emission) and Saga pattern (long-running multi-step workflows).
 
 ## Deeper Dive

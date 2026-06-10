@@ -45,7 +45,7 @@ One pattern runs inside another. Example: each step of a Plan & Execute agent ru
 
 ```mermaid
 graph TD
-    PE[Plan & Execute] --> Step1[Step 1]
+    PE["Plan & Execute"] --> Step1[Step 1]
     PE --> Step2[Step 2]
     Step1 --> ReAct1[ReAct Loop]
     Step2 --> ReAct2[ReAct Loop]

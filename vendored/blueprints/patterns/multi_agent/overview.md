@@ -2,7 +2,7 @@
 
 The multi-agent pattern uses multiple specialized agents coordinated by a supervisor. Each agent has its own tools, prompts, and domain expertise. The supervisor decides which agent to delegate to, interprets results, and orchestrates the overall task.
 
-**Evolves from:** [Orchestrator-Worker](../../workflows/orchestrator-worker/overview.md) + [Routing](../routing/overview.md) — adds agent-to-agent communication, shared state, and supervisor oversight.
+**Evolves from:** [Orchestrator-Worker](../orchestrator-worker/overview.md) + [Routing](../routing/overview.md) — adds agent-to-agent communication, shared state, and supervisor oversight.
 
 ## Architecture
 
@@ -124,15 +124,15 @@ All three variants run the same researcher → writer → reviewer delegation ag
 ## When NOT to Use
 
 - When a single agent with multiple tools suffices — use [ReAct](../react/overview.md)
-- When the task decomposition is static — use [Orchestrator-Worker](../../workflows/orchestrator-worker/overview.md)
+- When the task decomposition is static — use [Orchestrator-Worker](../orchestrator-worker/overview.md)
 - For simple routing without agent autonomy — use [Routing](../routing/overview.md)
 - When the overhead of multiple agents isn't justified by the task complexity
 
 ## Related Patterns
 
-- **Evolves from:** [Orchestrator-Worker](../../workflows/orchestrator-worker/overview.md) + [Routing](../routing/overview.md) — see [evolution.md](./evolution.md)
-- **Workers use:** [ReAct](../react/overview.md) (each worker runs an agent loop), [Tool Use](../tool_use/overview.md)
-- **Combines with:** [Memory](../memory/overview.md) (shared memory across agents), [Plan & Execute](../plan_and_execute/overview.md) (supervisor generates a plan, workers execute steps)
+- **Evolves from:** [Orchestrator-Worker](../orchestrator-worker/overview.md) + [Routing](../routing/overview.md) — see [evolution.md](./evolution.md)
+- **Workers use:** [ReAct](../react/overview.md) (each worker runs an agent loop), [Tool Use](../../primitives/tool_use/overview.md)
+- **Combines with:** [Memory](../../primitives/memory/overview.md) (shared memory across agents), [Plan & Execute](../plan_and_execute/overview.md) (supervisor generates a plan, workers execute steps)
 
 ## Deeper Dive
 

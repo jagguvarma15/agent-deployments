@@ -2,7 +2,7 @@
 
 Plan & Execute separates work into two distinct phases: first, the LLM generates an explicit plan (a sequence of steps); then, it executes each step using tools, with the option to replan if a step fails or new information changes the strategy.
 
-**Evolves from:** [Orchestrator-Worker](../../workflows/orchestrator-worker/overview.md) — adds LLM-generated plans, step tracking, and replanning on failure.
+**Evolves from:** [Orchestrator-Worker](../orchestrator-worker/overview.md) — adds LLM-generated plans, step tracking, and replanning on failure.
 
 ## Architecture
 
@@ -116,14 +116,14 @@ Both TS variants run the same three-step plan against the same enterprise-LLM-ad
 ## When NOT to Use
 
 - Simple tasks with fewer than 3 steps — use [ReAct](../react/overview.md)
-- When steps are known at design time — use [Orchestrator-Worker](../../workflows/orchestrator-worker/overview.md)
+- When steps are known at design time — use [Orchestrator-Worker](../orchestrator-worker/overview.md)
 - When the task is exploratory with no clear end goal — use [ReAct](../react/overview.md)
 - When each step needs deep specialization — use [Multi-Agent](../multi_agent/overview.md)
 
 ## Related Patterns
 
-- **Evolves from:** [Orchestrator-Worker](../../workflows/orchestrator-worker/overview.md) — see [evolution.md](./evolution.md)
-- **Uses internally:** [ReAct](../react/overview.md) (each plan step runs a bounded ReAct loop), [Tool Use](../tool_use/overview.md)
+- **Evolves from:** [Orchestrator-Worker](../orchestrator-worker/overview.md) — see [evolution.md](./evolution.md)
+- **Uses internally:** [ReAct](../react/overview.md) (each plan step runs a bounded ReAct loop), [Tool Use](../../primitives/tool_use/overview.md)
 - **Extends into:** [Multi-Agent](../multi_agent/overview.md) (delegate steps to specialized agents)
 
 ## Deeper Dive

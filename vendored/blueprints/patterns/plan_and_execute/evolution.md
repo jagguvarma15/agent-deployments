@@ -1,6 +1,6 @@
 # Evolution: Orchestrator-Worker → Plan & Execute
 
-This document traces how the [Plan & Execute pattern](./overview.md) evolves from the [Orchestrator-Worker workflow](../../workflows/orchestrator-worker/overview.md).
+This document traces how the [Plan & Execute pattern](./overview.md) evolves from the [Orchestrator-Worker workflow](../orchestrator-worker/overview.md).
 
 ## The Starting Point: Orchestrator-Worker
 

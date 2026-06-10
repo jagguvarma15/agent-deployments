@@ -1,0 +1,34 @@
+{
+  "id": "tool_use",
+  "name": "Tool Use",
+  "category": "primitive",
+  "complexity": "Beginner",
+  "description": "Structured function calling with schema-validated tool dispatch.",
+  "tiers": [
+    "overview",
+    "design",
+    "implementation",
+    "evolution",
+    "observability",
+    "cost-and-latency"
+  ],
+  "evolvesFrom": [
+    "prompt-chaining"
+  ],
+  "composableWith": [
+    "react",
+    "rag",
+    "routing"
+  ],
+  "requires": [
+    "tools"
+  ],
+  "tags": [
+    "function-calling",
+    "structured",
+    "schema",
+    "deterministic"
+  ],
+  "costTier": "low-medium",
+  "latencyTier": "low"
+}

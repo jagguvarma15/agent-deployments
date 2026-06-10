@@ -103,7 +103,7 @@ function build_context(chunks, max_tokens):
 
 ## State Management
 
-Ingestion is stateless (batch process). Query maintains no state between calls unless combined with [Memory](../memory/overview.md).
+Ingestion is stateless (batch process). Query maintains no state between calls unless combined with [Memory](../../primitives/memory/overview.md).
 
 ## Prompt Engineering Notes
 

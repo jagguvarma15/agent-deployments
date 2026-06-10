@@ -1,6 +1,20 @@
 # Choosing a Pattern
 
-Use this guide to select the right pattern for your use case. Start with the decision flowchart, then refine with the detailed guidance below.
+Designing an agent is **three orthogonal decisions**, not one. Use this guide in that order:
+
+```
+1. Pick a PATTERN     (one)       — what flow shape your agent follows
+2. Pick PRIMITIVES    (zero or more) — what building blocks the agent uses
+3. Pick MODIFIERS     (zero or more) — what transformations apply
+```
+
+The pattern decides the agent's *shape* (loop, plan, retrieve, classify, …). Primitives are orthogonal building blocks the agent uses inside that shape — they don't change the shape; they're things the shape consults. Modifiers wrap a chosen pattern with a transformation (a human-approval gate, an audit overlay) without changing the underlying flow.
+
+Most of this document focuses on step 1 (pattern picking) because it's the foundational choice. Steps 2 and 3 are quick checklists at the bottom.
+
+## Step 1 — Pick a pattern
+
+Use the decision flowchart, then refine with the detailed guidance below.
 
 ## Decision Flowchart
 
@@ -34,7 +48,7 @@ graph TD
     Q8 -->|"Yes"| RAG([RAG + ReAct])
 
     Q7 -->|"Yes"| Q9{Single agent<br/>sufficient?}
-    Q9 -->|"Yes"| PlanExec([Plan & Execute])
+    Q9 -->|"Yes"| PlanExec(["Plan & Execute"])
     Q9 -->|"No"| MultiAgent([Multi-Agent])
 
     style Start fill:#e3f2fd
@@ -63,21 +77,21 @@ Green intensity indicates increasing complexity. Start as light as possible.
 
 | Pattern | Type | Use When | Don't Use When |
 |---------|------|----------|----------------|
-| [Prompt Chaining](../workflows/prompt-chaining/overview.md) | Workflow | Fixed multi-step text processing | Steps depend on dynamic decisions |
-| [Parallel Calls](../workflows/parallel-calls/overview.md) | Workflow | Independent tasks that can run concurrently | Tasks depend on each other's output |
-| [Orchestrator-Worker](../workflows/orchestrator-worker/overview.md) | Workflow | Complex task needs decomposition into subtasks | Task is simple enough for one call |
-| [Evaluator-Optimizer](../workflows/evaluator-optimizer/overview.md) | Workflow | Output quality needs iterative refinement | First-pass quality is sufficient |
+| [Prompt Chaining](../patterns/prompt-chaining/overview.md) | Workflow | Fixed multi-step text processing | Steps depend on dynamic decisions |
+| [Parallel Calls](../patterns/parallel-calls/overview.md) | Workflow | Independent tasks that can run concurrently | Tasks depend on each other's output |
+| [Orchestrator-Worker](../patterns/orchestrator-worker/overview.md) | Workflow | Complex task needs decomposition into subtasks | Task is simple enough for one call |
+| [Evaluator-Optimizer](../patterns/evaluator-optimizer/overview.md) | Workflow | Output quality needs iterative refinement | First-pass quality is sufficient |
 | [ReAct](../patterns/react/overview.md) | Agent | Open-ended tasks with tool use | Steps are predictable in advance |
 | [Plan & Execute](../patterns/plan_and_execute/overview.md) | Agent | Complex tasks needing upfront strategy | Simple tasks with fewer than 3 steps |
-| [Tool Use](../patterns/tool_use/overview.md) | Agent | LLM needs to interact with external systems | No external actions needed |
-| [Memory](../patterns/memory/overview.md) | Agent | Context must persist across conversations | Single-turn interactions |
+| [Tool Use](../primitives/tool_use/overview.md) | Primitive | LLM needs to interact with external systems | No external actions needed |
+| [Memory](../primitives/memory/overview.md) | Primitive | Context must persist across conversations | Single-turn interactions |
 | [RAG](../patterns/rag/overview.md) | Agent | LLM needs external knowledge to answer | All needed knowledge fits in context |
 | [Reflection](../patterns/reflection/overview.md) | Agent | Output quality must exceed single-pass | Latency is more important than quality |
 | [Routing](../patterns/routing/overview.md) | Agent | Different inputs need different handling paths | All inputs follow the same process |
 | [Multi-Agent](../patterns/multi_agent/overview.md) | Agent | Task requires multiple specialized capabilities | Single agent can handle the scope |
 | [Event-Driven](../patterns/event_driven/overview.md) | Agent | Trigger is an external event (cancellation, status change, scheduled job) | User is waiting synchronously for a response |
 | [Saga](../patterns/saga/overview.md) | Agent | Long-running multi-step process with steps that have to be undone on failure | All steps live in one DB that supports transactions |
-| [Human in the Loop](../patterns/human_in_the_loop/overview.md) | Agent | High-stakes action must not commit without human approval | Action is low-stakes and review would be a rubber-stamp |
+| [Human in the Loop](../modifiers/human_in_the_loop/overview.md) | Agent | High-stakes action must not commit without human approval | Action is low-stakes and review would be a rubber-stamp |
 
 ## Decision Criteria
 
@@ -157,3 +171,51 @@ Jumping straight to agent patterns without considering whether a workflow would 
 
 ### Ignoring Composition
 Building one monolithic pattern instead of composing simpler ones. **Cost:** Rigid, hard to modify, hard to test. **Fix:** Design with composition in mind from the start.
+
+---
+
+## Step 2 — Pick primitives (zero or more)
+
+Primitives are the building blocks the agent uses inside whatever pattern you picked. They're orthogonal to the pattern — same questions, same answers, regardless of which flow shape you're in.
+
+<!-- AUTO:choose-primitive-table -->
+| Question | Add this |
+|---|---|
+| Does the agent need state that persists across sessions or conversations? | [`memory`](../primitives/memory/overview.md) |
+| Does the agent need codified procedural knowledge (your org's review checklist, citation format, lookup-and-summarize routine)? | [`skills`](../primitives/skills/overview.md) |
+| Is Sub-agents the right shape for your use case? | [`sub_agents`](../primitives/sub_agents/overview.md) |
+| Does the agent need to invoke functions / call APIs / interact with structured systems? | [`tool_use`](../primitives/tool_use/overview.md) |
+<!-- /AUTO -->
+
+A typical agent declares 1-3 primitives. Tool use is the default; memory and skills layer on as needed.
+
+## Step 3 — Pick modifiers (zero or more)
+
+Modifiers wrap your chosen pattern with a transformation. They don't change the flow's core shape; they overlay a concern.
+
+<!-- AUTO:choose-modifier-table -->
+| Question | Add this |
+|---|---|
+| Is Guardrails the right shape for your use case? | [`guardrails`](../modifiers/guardrails/overview.md) |
+| Does the agent take high-stakes actions that should require human approval before commit? | [`human_in_the_loop`](../modifiers/human_in_the_loop/overview.md) |
+<!-- /AUTO -->
+
+Most production agents add zero modifiers — that's fine. HITL is the canonical example for now; future modifiers (audit overlays, dual-LLM filters, etc.) will plug in here.
+
+## End-to-end example
+
+A research agent that answers questions by iteratively searching, citing, and persisting context:
+
+```yaml
+pattern:    react             # think → act → observe loop
+primitives: [tool_use, memory] # has tools; remembers across turns
+modifiers:  []                 # no human approval needed
+```
+
+A code review agent that runs LLM-emitted shell commands and asks a human to approve high-impact PRs:
+
+```yaml
+pattern:    plan_and_execute       # plan first, then execute
+primitives: [tool_use, skills]     # has tools; has review-checklist skills
+modifiers:  [human_in_the_loop]    # approval gate before destructive commits
+```

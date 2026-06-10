@@ -56,6 +56,16 @@ Below: the specific anti-compositions worth naming. None are *always* wrong. The
 
 **What to use instead:** Either skip pre-execution reflection and reflect on results, or add a post-execution reflection cycle for tasks where the plan-quality lift matters.
 
+### Reflection on Routing decisions
+
+**Symptom:** A reflection wrapper around the routing classifier — "first classify; now critique the classification; now classify again." The pipeline emits a route, the critic finds reasons to second-guess it, the router re-runs and picks a different route. The label distribution drifts over time even on identical traffic.
+
+**Why it's wrong as a default:** Routing's value depends on label *stability*: the same input class should consistently land on the same route so downstream handlers, evals, and cost models can rely on the partition. Reflection's value depends on *change*: the critic always finds something to revise (see [Anti-Pattern #3 — Reflection without measurable criteria](../foundations/anti-patterns.md#3-reflection-without-measurable-criteria)). The two goals fight. After a few passes, the critic has talked the router into using the rarer labels because they look more "considered," and the routing precision metrics quietly degrade. The combination scores `complex` in the [combination matrix](./combination-matrix.md) for exactly this reason.
+
+**When it's right:** When the route is genuinely ambiguous and the critic checks a *binary* gate (e.g., "is the confidence above 0.7 — yes / no?"). That isn't iterative reflection; it's an abstention rule. Implement it as a confidence threshold or an [`unknown`/`escalate` fallback](../patterns/routing/design.md), not a reflection loop.
+
+**What to use instead:** Two cleaner options. (a) Tighten the route descriptions so the original classifier produces stable picks (per [Anti-Pattern #9 — Overlapping route descriptions](../foundations/anti-patterns.md#9-overlapping-route-descriptions-in-routing)). (b) Add reflection *inside the chosen handler*, after routing has committed — the reflection improves the handler's output without destabilizing the partition.
+
 ### Evaluator-Optimizer + Reflection
 
 **Symptom:** Generate output → reflect → revise → evaluate → optimize → reflect → revise → evaluate...
@@ -132,6 +142,7 @@ Below: the specific anti-compositions worth naming. None are *always* wrong. The
 | RAG + ReAct without citation enforcement | Either: enforce citation; or drop RAG |
 | Memory + Multi-Agent without scopes | Per-agent memory scopes + audit log |
 | Plan + Reflection without execution feedback | Plan + Reflection + post-execution Reflection |
+| Reflection on Routing decisions | Tighten route descriptions; reflect inside the chosen handler |
 | Evaluator-Optimizer + Reflection | Pick one |
 | Routing + Multi-Agent supervisor (same classification) | One classifier |
 | Orchestrator-Worker + Plan & Execute | Decide decomposition timing; pick one |

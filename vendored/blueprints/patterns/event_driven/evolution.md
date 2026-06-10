@@ -1,6 +1,6 @@
 # Evolution: Tool Use → Event-Driven
 
-This document traces how the [Event-Driven pattern](./overview.md) evolves from the [Tool Use pattern](../tool_use/overview.md), and what it evolves into when latency, throughput, or windowing requirements grow.
+This document traces how the [Event-Driven pattern](./overview.md) evolves from the [Tool Use pattern](../../primitives/tool_use/overview.md), and what it evolves into when latency, throughput, or windowing requirements grow.
 
 ## The Starting Point: Tool Use
 
@@ -133,7 +133,7 @@ See [observability.md](./observability.md) for the full metric/log/trace shape.
 |---------|-----------------|
 | [Multi-Agent (flat)](../multi_agent/overview.md) | Multiple specialized consumers on different event types or partition keys; each one is its own event-driven agent. |
 | [Routing](../routing/overview.md) | Event type drives which consumer / which handler picks it up. |
-| [Memory](../memory/overview.md) | Long-running case state lives in shared memory, addressable by a case key carried in the event. |
+| [Memory](../../primitives/memory/overview.md) | Long-running case state lives in shared memory, addressable by a case key carried in the event. |
 | **Saga / compensation** *(planned: BP2)* | When a sequence of events spans multiple agents and one step fails, compensating events undo prior steps. |
 | **Human-in-the-Loop** *(planned: BP3)* | An event arrives that needs human approval before continuing; the consumer pauses or routes to an approval queue. |
 

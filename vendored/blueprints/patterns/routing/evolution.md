@@ -1,6 +1,6 @@
 # Evolution: Parallel Calls → Routing
 
-This document traces how the [Routing pattern](./overview.md) evolves from the [Parallel Calls workflow](../../workflows/parallel-calls/overview.md).
+This document traces how the [Routing pattern](./overview.md) evolves from the [Parallel Calls workflow](../parallel-calls/overview.md).
 
 ## The Starting Point: Parallel Calls
 

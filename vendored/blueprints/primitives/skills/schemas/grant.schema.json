@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jagguvarma15/agent-blueprints/patterns/skills/schemas/grant.schema.json",
+  "title": "Skill grant policy",
+  "description": "Per-role / per-tenant skill access control configuration. The runtime applies this BEFORE the trigger matcher runs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["roles"],
+  "properties": {
+    "roles": {
+      "type": "object",
+      "description": "Map of role name to grant rules.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "allow_all": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, every skill is allowed for this role (subject to denylist). Useful for admin / debug roles."
+          },
+          "allowed": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Explicit allowlist of skill ids. Ignored when allow_all is true."
+          },
+          "denied": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Explicit denylist. Takes precedence over allowed and allow_all."
+          }
+        }
+      }
+    },
+    "tenants": {
+      "type": "object",
+      "description": "Optional per-tenant overrides. Same shape as roles, keyed by tenant id.",
+      "additionalProperties": {
+        "$ref": "#/properties/roles/additionalProperties"
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "log_decisions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Record every allows() decision (allow + deny) to the trace."
+        },
+        "log_denials_to_console": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also surface denials to stderr (useful in dev to catch misconfigured grants)."
+        }
+      }
+    }
+  }
+}
