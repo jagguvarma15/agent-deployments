@@ -1030,6 +1030,23 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude via Claude Agent SDK — Sonnet for host, Sonnet for subagents.
+      swaps: {}
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/ask \\\n  -H 'content-type: application/json' \\\n  -d '{\"question\":\"what files are in this repo?\"}'\n"
+    assert_jq: .answer | length > 0
+  cost_profile:
+    tier: medium
+    sources:
+    - anthropic
+    typical_run_usd: 0.05
+  model_recommendation: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+  est_tokens: 4400
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1041,6 +1058,9 @@ recipes:
     source_capability: obs.langfuse
   - name: LANGFUSE_SALT
     source_capability: obs.langfuse
+  - name: APP_PORT
+    source_capability: claude-code-subagent
+    default: 8000
 - slug: code-review-agent
   path: docs/recipes/code-review-agent.md
   title: 'Recipe: Code Review Agent'
@@ -1127,6 +1147,29 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude + E2B sandbox for running test repros.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM. Sandbox stays on E2B (no fully-local alternative yet).
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/review \\\n  -H 'content-type: application/json' \\\n  -d '{\"diff_url\":\"https://example.com/test.diff\"}'\n"
+    assert_jq: .findings | length >= 0
+  cost_profile:
+    tier: medium
+    sources:
+    - anthropic
+    - e2b
+    typical_run_usd: 0.08
+  model_recommendation: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+    MAX_STEPS: 10
+  est_tokens: 4500
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1150,6 +1193,12 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: code-review-agent
+    default: 8000
+  - name: MAX_STEPS
+    source_capability: code-review-agent
+    default: 10
 - slug: content-pipeline
   path: docs/recipes/content-pipeline.md
   title: 'Recipe: Content Pipeline'
@@ -1232,6 +1281,27 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude Sonnet across all chain steps.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM serving Llama 3 70B for content steps.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/generate \\\n  -H 'content-type: application/json' \\\n  -d '{\"topic\":\"smoke test\"}'\n"
+    assert_jq: .draft | length > 0
+  cost_profile:
+    tier: low
+    sources:
+    - anthropic
+    typical_run_usd: 0.015
+  model_recommendation: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+  est_tokens: 3800
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1255,6 +1325,9 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: content-pipeline
+    default: 8000
 - slug: customer-support-triage
   path: docs/recipes/customer-support-triage.md
   title: 'Recipe: Customer Support Triage'
@@ -1367,6 +1440,31 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude — Haiku for classification, Sonnet for specialists.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM serving Llama 3 8B + 70B.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/support \\\n  -H 'content-type: application/json' \\\n  -d '{\"message\":\"I have a billing question\"}'\n"
+    assert_jq: .category | length > 0
+  cost_profile:
+    tier: low
+    sources:
+    - anthropic
+    typical_run_usd: 0.003
+  model_recommendation:
+    classifier: claude-haiku-4-5
+    billing-specialist: claude-sonnet-4-6
+    technical-specialist: claude-sonnet-4-6
+    account-specialist: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+  est_tokens: 4800
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1390,6 +1488,9 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: customer-support-triage
+    default: 8000
 - slug: docs-rag-qa
   path: docs/recipes/docs-rag-qa.md
   title: 'Recipe: docs-rag-qa'
@@ -1485,6 +1586,30 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM + BGE embeddings + BGE-reranker, no SaaS keys.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/ask \\\n  -H 'content-type: application/json' \\\n  -d '{\"question\":\"What is the canonical stack?\"}'\n"
+    assert_jq: .answer | length > 0
+  cost_profile:
+    tier: low
+    sources:
+    - anthropic
+    - openai
+    - cohere
+    typical_run_usd: 0.005
+  model_recommendation: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+    TOP_K: 5
+  est_tokens: 4200
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1512,6 +1637,12 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: docs-rag-qa
+    default: 8000
+  - name: TOP_K
+    source_capability: docs-rag-qa
+    default: 5
 - slug: hierarchical-agent
   path: docs/recipes/hierarchical-agent.md
   title: 'Recipe: Hierarchical Agent'
@@ -1627,6 +1758,31 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude — Opus for supervisor, Sonnet for specialists.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM serving Llama 3 70B for all roles.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/task \\\n  -H 'content-type: application/json' \\\n  -d '{\"task\":\"write a one-paragraph explainer about Postgres MVCC\"}'\n"
+    assert_jq: .deliverable | length > 0
+  cost_profile:
+    tier: medium
+    sources:
+    - anthropic
+    typical_run_usd: 0.06
+  model_recommendation:
+    supervisor: claude-opus-4-7
+    researcher: claude-sonnet-4-6
+    writer: claude-sonnet-4-6
+    reviewer: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+  est_tokens: 5000
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1650,6 +1806,9 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: hierarchical-agent
+    default: 8000
 - slug: memory-assistant
   path: docs/recipes/memory-assistant.md
   title: 'Recipe: Memory Assistant'
@@ -1747,6 +1906,28 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude + Zep for memory, OpenAI for embeddings.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM + Zep (OSS image). Embeddings stay on OpenAI for now.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/chat \\\n  -H 'content-type: application/json' \\\n  -d '{\"user_id\":\"smoke\",\"message\":\"remember that my favorite color is blue\"}'\n"
+    assert_jq: .reply | length > 0
+  cost_profile:
+    tier: low
+    sources:
+    - anthropic
+    - openai
+    typical_run_usd: 0.01
+  model_recommendation: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+  est_tokens: 4200
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1774,6 +1955,9 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: memory-assistant
+    default: 8000
 - slug: ops-crew
   path: docs/recipes/ops-crew.md
   title: 'Recipe: Ops Crew'
@@ -1883,6 +2067,30 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude — Sonnet for each specialist.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM serving Llama 3 70B for all specialists.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/investigate \\\n  -H 'content-type: application/json' \\\n  -d '{\"incident\":\"smoke test - DB connection pool saturated\"}'\n"
+    assert_jq: .report | length > 0
+  cost_profile:
+    tier: medium
+    sources:
+    - anthropic
+    typical_run_usd: 0.05
+  model_recommendation:
+    devops: claude-sonnet-4-6
+    security: claude-sonnet-4-6
+    database: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+  est_tokens: 4600
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1906,6 +2114,9 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: ops-crew
+    default: 8000
 - slug: parallel-enricher
   path: docs/recipes/parallel-enricher.md
   title: 'Recipe: Parallel Enricher'
@@ -1984,6 +2195,28 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude Haiku for the enrichment fan-out.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/enrich \\\n  -H 'content-type: application/json' \\\n  -d '{\"items\":[{\"id\":1,\"text\":\"smoke test\"}]}'\n"
+    assert_jq: .results | length > 0
+  cost_profile:
+    tier: low
+    sources:
+    - anthropic
+    typical_run_usd: 0.002
+  model_recommendation: claude-haiku-4-5
+  env_overrides:
+    APP_PORT: 8000
+    CONCURRENCY: 10
+  est_tokens: 3500
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -1999,6 +2232,12 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: parallel-enricher
+    default: 8000
+  - name: CONCURRENCY
+    source_capability: parallel-enricher
+    default: 10
 - slug: research-assistant
   path: docs/recipes/research-assistant.md
   title: 'Recipe: Research Assistant'
@@ -2084,6 +2323,29 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude + Tavily web search + local Postgres/Redis/Langfuse.
+      swaps: {}
+    local_only:
+      description: Self-hosted vLLM (no Anthropic key needed) + SearXNG search.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "curl -sf -X POST http://localhost:8000/research \\\n  -H 'content-type: application/json' \\\n  -d '{\"question\":\"smoke test\",\"max_steps\":2}'\n"
+    assert_jq: .answer | length > 0
+  cost_profile:
+    tier: low
+    sources:
+    - anthropic
+    - tavily
+    typical_run_usd: 0.02
+  model_recommendation: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+    MAX_STEPS: 5
+  est_tokens: 4500
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2107,6 +2369,12 @@ recipes:
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: research-assistant
+    default: 8000
+  - name: MAX_STEPS
+    source_capability: research-assistant
+    default: 5
 - slug: restaurant-rebooking
   path: docs/recipes/restaurant-rebooking.md
   title: 'Recipe: Restaurant Rebooking'
@@ -2285,6 +2553,31 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  runtime_modes:
+    default:
+      description: Anthropic Claude + Redis Streams + Postgres + Langfuse.
+      swaps: {}
+    hybrid_kafka:
+      description: Same as default but Kafka instead of Redis Streams for >10k events/sec.
+      swaps:
+        queue.redis-streams: queue.kafka
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health
+    exercise: "# Publish a synthetic cancellation event onto the input stream\ndocker compose exec -T redis redis-cli XADD reservations.cancelled '*' \\\n  reservation_id smoke-1 customer_id smoke party_size 2 cancel_window_minutes 60\n# Wait briefly for the worker to process\nsleep 2\n# Read back any rebooked-event the worker emitted\ndocker compose exec -T redis redis-cli XLEN reservations.rebooked\n"
+    assert_jq: tonumber > 0
+  cost_profile:
+    tier: medium
+    sources:
+    - anthropic
+    typical_run_usd: 0.04
+  model_recommendation:
+    intake: claude-haiku-4-5
+    eligibility: claude-haiku-4-5
+    search: claude-sonnet-4-6
+    notifier: claude-haiku-4-5
+  env_overrides:
+    APP_PORT: 8000
+  est_tokens: 5200
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -2328,6 +2621,9 @@ recipes:
     source_capability: host.vercel
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: restaurant-rebooking
+    default: 8000
 capabilities:
 - id: cache.redis
   kind: cache
@@ -2968,6 +3264,7 @@ stack:
 - docs/stack/kafka.md
 - docs/stack/kubernetes-helm.md
 - docs/stack/llm-claude.md
+- docs/stack/llm-local-vllm.md
 - docs/stack/log-aggregation.md
 - docs/stack/opentelemetry.md
 - docs/stack/prometheus-grafana.md
@@ -3026,8 +3323,290 @@ modifier_docs:
 - vendored/blueprints/modifiers/guardrails/overview.md
 - vendored/blueprints/modifiers/human_in_the_loop/overview.md
 suggestions:
-  blueprints_version: null
-  combos: []
+  blueprints_version: dfd824d
+  combos:
+  - applies_to:
+      pattern: event_driven
+      primitives:
+      - tool_use
+      modifiers: []
+    path: docs/suggestions/dfd824d/event_driven+tool_use.md
+    recommends:
+      framework: langgraph
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: queue.redis-streams
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: null
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    - from: queue.redis-streams
+      to: queue.kafka
+    est_tokens: 650
+  - applies_to:
+      pattern: multi_agent
+      primitives:
+      - sub_agents
+      - tool_use
+      modifiers: []
+    path: docs/suggestions/dfd824d/multi_agent+sub_agents+tool_use.md
+    recommends:
+      framework: crewai
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: null
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 650
+  - applies_to:
+      pattern: parallel-calls
+      primitives: []
+      modifiers: []
+    path: docs/suggestions/dfd824d/parallel-calls.md
+    recommends:
+      framework: vercel_ai_sdk
+      llm: stack/llm-claude
+      api_layer: stack/api-hono
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: null
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 500
+  - applies_to:
+      pattern: plan_and_execute
+      primitives:
+      - tool_use
+      modifiers: []
+    path: docs/suggestions/dfd824d/plan_and_execute+tool_use.md
+    recommends:
+      framework: langgraph
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: sandbox.e2b
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 600
+  - applies_to:
+      pattern: prompt-chaining
+      primitives: []
+      modifiers: []
+    path: docs/suggestions/dfd824d/prompt-chaining.md
+    recommends:
+      framework: vercel_ai_sdk
+      llm: stack/llm-claude
+      api_layer: stack/api-hono
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: null
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 500
+  - applies_to:
+      pattern: rag
+      primitives: []
+      modifiers: []
+    path: docs/suggestions/dfd824d/rag.md
+    recommends:
+      framework: langgraph
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: vector_db.qdrant
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.deepeval
+      mcp_servers: []
+      sandbox: null
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: embedding.openai
+      rerank: rerank.cohere
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 700
+  - applies_to:
+      pattern: react
+      primitives:
+      - memory
+      - tool_use
+      modifiers: []
+    path: docs/suggestions/dfd824d/react+memory+tool_use.md
+    recommends:
+      framework: pydantic_ai
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: null
+      durable: null
+      memory_store: memory_store.zep
+      guardrail: null
+      embedding: embedding.openai
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 650
+  - applies_to:
+      pattern: react
+      primitives:
+      - skills
+      - sub_agents
+      - tool_use
+      modifiers: []
+    path: docs/suggestions/dfd824d/react+skills+sub_agents+tool_use.md
+    recommends:
+      framework: claude_agent_sdk_python
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: sandbox.e2b
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps: []
+    est_tokens: 700
+  - applies_to:
+      pattern: react
+      primitives:
+      - tool_use
+      modifiers: []
+    path: docs/suggestions/dfd824d/react+tool_use.md
+    recommends:
+      framework: pydantic_ai
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers:
+      - mcp.tavily
+      sandbox: null
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 600
+  - applies_to:
+      pattern: routing
+      primitives:
+      - tool_use
+      modifiers: []
+    path: docs/suggestions/dfd824d/routing+tool_use.md
+    recommends:
+      framework: langgraph
+      llm: stack/llm-claude
+      api_layer: stack/api-fastapi
+      relational: relational.postgres
+      cache: cache.redis
+      vector_db: null
+      retrieval: null
+      queue: null
+      obs: obs.langfuse
+      eval: eval.promptfoo
+      mcp_servers: []
+      sandbox: null
+      durable: null
+      memory_store: null
+      guardrail: null
+      embedding: null
+      rerank: null
+    local_only_swaps:
+    - from: stack/llm-claude
+      to: stack/llm-local-vllm
+    est_tokens: 550
 aliases:
   react: vendored/blueprints/patterns/react/overview.md
   rag: vendored/blueprints/patterns/rag/overview.md
