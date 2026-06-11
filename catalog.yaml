@@ -2,7 +2,24 @@
 # Edit source docs (their YAML frontmatter) or the upstream blueprints
 # catalog, then regenerate.
 schema_version: 1
-generator_version: 1.1.0
+generator_version: 1.2.0
+LAYER_ORDER:
+- id: infrastructure
+  description: Stateful services with own healthchecks (Postgres, Redis, Kafka, vector DBs, Temporal).
+- id: schema
+  description: Schema migrations + initial DDL on the infrastructure layer (alembic upgrade head, prisma migrate deploy).
+- id: data
+  description: Data-shape provisioning (vector collections, kafka topics, redis streams). Reads bootstrap_inputs from upstream caps.
+- id: identity
+  description: User / tenant / service-account provisioning. Empty in MVP recipes; reserved for auth provider bootstrap.
+- id: observability
+  description: 'Tracing + log-aggregation backends (Langfuse, Langsmith, Grafana stack). Often `requires: [relational]`.'
+- id: eval
+  description: Eval harnesses (promptfoo, deepeval, ragas) — config + golden datasets prepped before the agent boots.
+- id: agent
+  description: The agent process itself. Last to boot; first to be smoke-tested.
+- id: frontend
+  description: User-facing UI / chat surface. Optional; only present when the recipe declares a frontend capability.
 blueprints:
   repo: jagguvarma15/agent-blueprints
   branch: main
@@ -942,6 +959,10 @@ recipes:
   - typescript
   topology: single
   agent_pattern: react
+  primitives:
+  - tool_use
+  - sub_agents
+  - skills
   required_files:
   - app/main.py
   - app/agent/host.py
@@ -1009,6 +1030,13 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
 - slug: code-review-agent
   path: docs/recipes/code-review-agent.md
   title: 'Recipe: Code Review Agent'
@@ -1018,6 +1046,8 @@ recipes:
   - typescript
   topology: chain
   agent_pattern: plan_and_execute
+  primitives:
+  - tool_use
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1093,6 +1123,25 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: content-pipeline
   path: docs/recipes/content-pipeline.md
   title: 'Recipe: Content Pipeline'
@@ -1175,6 +1224,25 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: customer-support-triage
   path: docs/recipes/customer-support-triage.md
   title: 'Recipe: Customer Support Triage'
@@ -1184,6 +1252,8 @@ recipes:
   - typescript
   topology: multi-agent-hierarchical
   agent_pattern: routing
+  primitives:
+  - tool_use
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1285,6 +1355,25 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: docs-rag-qa
   path: docs/recipes/docs-rag-qa.md
   title: 'Recipe: docs-rag-qa'
@@ -1380,6 +1469,29 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: QDRANT_URL
+    source_capability: vector_db.qdrant
+  - name: QDRANT_API_KEY
+    source_capability: vector_db.qdrant
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: hierarchical-agent
   path: docs/recipes/hierarchical-agent.md
   title: 'Recipe: Hierarchical Agent'
@@ -1389,6 +1501,9 @@ recipes:
   - typescript
   topology: multi-agent-hierarchical
   agent_pattern: multi_agent
+  primitives:
+  - tool_use
+  - sub_agents
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1492,6 +1607,25 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: memory-assistant
   path: docs/recipes/memory-assistant.md
   title: 'Recipe: Memory Assistant'
@@ -1501,6 +1635,9 @@ recipes:
   - typescript
   topology: single
   agent_pattern: react
+  primitives:
+  - tool_use
+  - memory
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1586,6 +1723,29 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: QDRANT_URL
+    source_capability: vector_db.qdrant
+  - name: QDRANT_API_KEY
+    source_capability: vector_db.qdrant
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: ops-crew
   path: docs/recipes/ops-crew.md
   title: 'Recipe: Ops Crew'
@@ -1595,6 +1755,9 @@ recipes:
   - typescript
   topology: multi-agent-flat
   agent_pattern: multi_agent
+  primitives:
+  - tool_use
+  - sub_agents
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1692,6 +1855,25 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: parallel-enricher
   path: docs/recipes/parallel-enricher.md
   title: 'Recipe: Parallel Enricher'
@@ -1770,6 +1952,17 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: research-assistant
   path: docs/recipes/research-assistant.md
   title: 'Recipe: Research Assistant'
@@ -1779,6 +1972,8 @@ recipes:
   - typescript
   topology: single
   agent_pattern: react
+  primitives:
+  - tool_use
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1853,6 +2048,25 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 - slug: restaurant-rebooking
   path: docs/recipes/restaurant-rebooking.md
   title: 'Recipe: Restaurant Rebooking'
@@ -1862,6 +2076,8 @@ recipes:
   - typescript
   topology: multi-agent-flat
   agent_pattern: event_driven
+  primitives:
+  - tool_use
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -2029,6 +2245,45 @@ recipes:
     required: false
   - path: ../cross-cutting/prompt-management.md
     required: false
+  env_contract:
+  - name: REDIS_URL
+    source_capability: cache.redis
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: QDRANT_URL
+    source_capability: vector_db.qdrant
+  - name: QDRANT_API_KEY
+    source_capability: vector_db.qdrant
+  - name: LANGFUSE_HOST
+    source_capability: obs.langfuse
+  - name: LANGFUSE_PUBLIC_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: GRAFANA_URL
+    source_capability: obs.grafana-stack
+  - name: GRAFANA_ADMIN_PASSWORD
+    source_capability: obs.grafana-stack
+  - name: PROMETHEUS_URL
+    source_capability: obs.grafana-stack
+  - name: TEMPO_URL
+    source_capability: obs.grafana-stack
+  - name: NEXT_PUBLIC_AGENT_URL
+    source_capability: frontend.nextjs-chat
+  - name: VERCEL_TOKEN
+    source_capability: host.vercel
+  - name: VERCEL_ORG_ID
+    source_capability: host.vercel
+  - name: VERCEL_PROJECT_ID
+    source_capability: host.vercel
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
 capabilities:
 - id: cache.redis
   kind: cache
@@ -2369,6 +2624,9 @@ primitive_docs:
 modifier_docs:
 - vendored/blueprints/modifiers/guardrails/overview.md
 - vendored/blueprints/modifiers/human_in_the_loop/overview.md
+suggestions:
+  blueprints_version: null
+  combos: []
 aliases:
   react: vendored/blueprints/patterns/react/overview.md
   rag: vendored/blueprints/patterns/rag/overview.md

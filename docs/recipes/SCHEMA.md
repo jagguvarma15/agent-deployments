@@ -498,6 +498,131 @@ Referenced by [`../cross-cutting/cost-tracking.md`](../cross-cutting/cost-tracki
 
 ---
 
+### Local-bringup contract
+
+The five fields below let a consumer (scaffold CLI, AI tool) produce a working local project from a recipe spec without inventing domain logic. Every required field is enforced by the catalog generator.
+
+#### `runtime_modes` *(required)*
+
+Named runtime modes the recipe supports, each declaring concrete capability swaps applied when the consumer selects that mode.
+
+- **Type:** map of `<mode-name>` → `{description: string, swaps: map<from-id, to-id>}`
+- **Consumer:** v0.3+ (drives capability resolution + .env generation).
+- **Required keys:** at minimum a `default` mode with `swaps: {}`.
+- **Examples:**
+  ```yaml
+  runtime_modes:
+    default:
+      description: "Anthropic Claude + SaaS rerank/search + local Postgres/Redis/Langfuse."
+      swaps: {}
+    local_only:
+      description: "Self-hosted vLLM + BGE rerank + SearXNG. No SaaS keys needed."
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+        rerank.cohere: rerank.bge-local
+        live_data.tavily: live_data.searxng
+    hybrid:
+      description: "Default + Langsmith for hosted observability."
+      swaps:
+        obs.langfuse: obs.langsmith
+  ```
+
+The catalog generator validates each swap's `from` and `to` ids resolve to a capability id or `docs/stack/<x>.md` path-style reference.
+
+#### `smoke_test` *(required)*
+
+Shell-string commands the consumer runs after `docker compose up` + bootstrap to verify the recipe is locally healthy.
+
+- **Type:** object with three required keys:
+  - `ready` *(string)*: shell command (`curl -sf`, `pg_isready`, etc.) that exits 0 when the app's HTTP / health surface is ready.
+  - `exercise` *(string)*: shell command that submits one representative agent request.
+  - `assert_jq` *(string)*: a `jq` expression evaluated against `exercise`'s stdout that must evaluate to a truthy value (`true`, non-empty string, non-zero number).
+- **Consumer:** v0.3+ (`make smoke` target runs these in order).
+- **Examples:**
+  ```yaml
+  smoke_test:
+    ready: "curl -sf http://localhost:8000/health"
+    exercise: |
+      curl -sf -X POST http://localhost:8000/research \
+        -H 'content-type: application/json' \
+        -d '{"question":"smoke test","max_steps":2}'
+    assert_jq: '.answer | length > 0'
+  ```
+
+The generator validates all three keys are present.
+
+#### `cost_profile` *(required)*
+
+Per-recipe cost surface the consumer renders before running.
+
+- **Type:** object with:
+  - `tier` *(required, enum)*: `free` | `low` | `medium` | `high`.
+  - `sources` *(required, list of strings)*: provider names that incur cost (e.g. `[anthropic, tavily]`).
+  - `typical_run_usd` *(optional, number)*: an order-of-magnitude estimate of one representative agent invocation.
+- **Consumer:** v0.3+ (rendered in the wizard preview).
+- **Examples:**
+  ```yaml
+  cost_profile:
+    tier: low
+    sources: [anthropic, tavily]
+    typical_run_usd: 0.02
+  ```
+
+`tier: free` is reserved for recipes whose `default` runtime_mode has `cost_profile.sources: []` (all-local stack). The generator validates `tier` and `sources`.
+
+#### `model_recommendation` *(optional)*
+
+The recommended LLM model id per role for multi-agent recipes, or a single string for single-agent recipes.
+
+- **Type:** string (single-agent) or map `<role-name>` → `<model-id>` (multi-agent).
+- **Consumer:** v0.3+ (passed to the generation prompt).
+- **Examples:**
+  ```yaml
+  # Single-agent recipe
+  model_recommendation: claude-sonnet-4-6
+
+  # Multi-agent recipe
+  model_recommendation:
+    intake: claude-haiku-4-5
+    eligibility: claude-sonnet-4-6
+    rebooker: claude-sonnet-4-6
+    notifier: claude-haiku-4-5
+  ```
+
+When set, the recipe's `roles[].model_hint` becomes informational (the recommendation wins).
+
+#### `env_overrides` *(optional)*
+
+Recipe-specific env-var defaults or additions that override / augment the generator's auto-derived `env_contract`.
+
+- **Type:** map `<VAR_NAME>` → `<default-value>`.
+- **Consumer:** v0.3+ (merged into the emitted `.env.example`).
+- **Examples:**
+  ```yaml
+  env_overrides:
+    APP_PORT: 8000
+    MAX_STEPS: 5
+    LOG_LEVEL: info
+  ```
+
+Used for app-level vars the capabilities don't own (`APP_PORT`, `MAX_STEPS`) and for pinning capability defaults the recipe wants different from the capability's default.
+
+#### `env_contract` *(auto-derived, do not author)*
+
+The catalog generator emits this block per recipe by walking each `capabilities[]`, collecting every capability's `env_vars`, deduping, and annotating with source-capability + `env_overrides` defaults. Authors must NOT include this in their frontmatter — the generator raises if it's hand-authored.
+
+Consumers read `catalog.recipes[].env_contract` to render the canonical `.env.example` without re-walking the capability set.
+
+#### `est_tokens` *(recommended)*
+
+Coarse estimate of the recipe's whole-file token cost. Lets a consumer budget its context window.
+
+- **Type:** integer.
+- **Consumer:** v0.3+ (informational; surfaces in the wizard preview).
+- **Example:** `est_tokens: 4200`
+
+---
+
 ## Required vs. recommended summary
 
 | Field | Required? | Consumer | Note |
@@ -520,6 +645,13 @@ Referenced by [`../cross-cutting/cost-tracking.md`](../cross-cutting/cost-tracki
 | `guardrails` | Optional | v0.3+ | Recipes requiring safety / policy enforcement |
 | `sandbox` | Conditional | v0.3+ | Required for recipes whose agents execute LLM-emitted code |
 | `durable_workflow` | Optional | v0.3+ | Recipes whose success criterion spans hours/days |
+| `runtime_modes` | Yes | v0.3+ | At minimum a `default` mode; each swap's ids must resolve |
+| `smoke_test` | Yes | v0.3+ | All three keys (`ready`, `exercise`, `assert_jq`) required |
+| `cost_profile` | Yes | v0.3+ | `tier` + `sources` required |
+| `model_recommendation` | Recommended | v0.3+ | String (single-agent) or per-role map (multi-agent) |
+| `env_overrides` | Optional | v0.3+ | Merged into the emitted `.env.example` on top of `env_contract` |
+| `env_contract` | Auto-derived | v0.3+ | Generator emits; do NOT author |
+| `est_tokens` | Recommended | v0.3+ | Whole-file token estimate |
 
 ## Section ordering convention
 

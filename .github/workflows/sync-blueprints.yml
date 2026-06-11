@@ -117,6 +117,43 @@ jobs:
       - name: Install generator dependencies
         run: pip install -r scripts/requirements.txt
 
+      - name: Purge stale suggestions directories
+        run: |
+          # docs/suggestions/<blueprints-version>/ tracks the current upstream
+          # pin one-for-one. When the sync workflow bumps to a new upstream
+          # tag, the prior version's combo files no longer reflect the active
+          # taxonomy — purge them so the catalog generator's single-version
+          # invariant holds and so the new version dir can be populated by
+          # follow-up authoring PRs.
+          ref="${{ steps.target.outputs.ref }}"
+          mode="${{ steps.target.outputs.mode }}"
+          python3 - "$ref" "$mode" <<'PY'
+          import pathlib, shutil, sys
+          ref, mode = sys.argv[1], sys.argv[2]
+          # Strip refs/tags/ when ref came from a tag; for SHA mode just trim
+          # to the canonical 7-char short SHA so the dir name stays human-readable.
+          if mode == "tag":
+              target = ref.split("/")[-1] if "/" in ref else ref
+          else:
+              target = ref[:7]
+          root = pathlib.Path("docs/suggestions")
+          if not root.is_dir():
+              print("docs/suggestions/ not present — nothing to purge")
+              sys.exit(0)
+          purged = []
+          for entry in sorted(root.iterdir()):
+              if not entry.is_dir() or entry.name.startswith("."):
+                  continue
+              if entry.name == target:
+                  continue
+              shutil.rmtree(entry)
+              purged.append(entry.name)
+          if purged:
+              print(f"Purged stale suggestions dirs: {purged}")
+          else:
+              print(f"No stale suggestions dirs (target={target!r})")
+          PY
+
       - name: Regenerate catalog
         run: python scripts/generate_catalog.py
 
