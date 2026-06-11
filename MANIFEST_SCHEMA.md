@@ -73,7 +73,7 @@ Recipes' `agent_pattern:` frontmatter field uses these canonical ids. The `alias
 
 ```yaml
 schema_version: 1
-generator_version: 1.0.0
+generator_version: 1.2.0
 
 # Pointer + convention block that lets consumers reach blueprints content
 # without hardcoding repo names, branches, URL patterns, or entry conventions.
@@ -84,6 +84,19 @@ blueprints:
   url_pattern: "https://github.com/{repo}/(?:tree|blob|raw)/{branch}/{path}"
   directory_entry: overview.md
 
+# Ordered list of bootstrap layers + one-sentence definitions. Each capability
+# declares which layer it belongs to via `layer:` in its frontmatter; consumers
+# run bootstrap steps layer-by-layer in this order.
+LAYER_ORDER:
+  - {id: infrastructure, description: "Stateful services with own healthchecks (Postgres, Redis, Kafka, vector DBs, Temporal)."}
+  - {id: schema,         description: "Schema migrations + initial DDL on the infrastructure layer (alembic upgrade head, prisma migrate deploy)."}
+  - {id: data,           description: "Data-shape provisioning (vector collections, kafka topics, redis streams). Reads bootstrap_inputs from upstream caps."}
+  - {id: identity,       description: "User / tenant / service-account provisioning. Empty in MVP recipes; reserved for auth provider bootstrap."}
+  - {id: observability,  description: "Tracing + log-aggregation backends (Langfuse, Langsmith, Grafana stack). Often `requires: [relational]`."}
+  - {id: eval,           description: "Eval harnesses (promptfoo, deepeval, ragas) — config + golden datasets prepped before the agent boots."}
+  - {id: agent,          description: "The agent process itself. Last to boot; first to be smoke-tested."}
+  - {id: frontend,       description: "User-facing UI / chat surface. Optional; only present when the recipe declares a frontend capability."}
+
 # Embedded from blueprints/patterns-catalog.yaml at CI time.
 # Pass-through — no restructuring.
 patterns:       [...]    # flow shapes (agent + workflow via category field)
@@ -93,7 +106,7 @@ modifiers:      [...]    # transforms layered on a pattern (guardrails, human_in
 compositions:   [...]    # cross-pattern composition edges from blueprints' matrix
 
 # This repo's own content.
-recipes:        [...]    # docs/recipes/*.md frontmatter aggregated
+recipes:        [...]    # docs/recipes/*.md frontmatter aggregated (+ auto-derived env_contract)
 capabilities:   [...]    # docs/capabilities/<kind>/*.md frontmatter aggregated
 frameworks:     [...]    # docs/frameworks/*.md frontmatter aggregated
 stack:          [...]    # paths only — docs/stack/*.md
@@ -101,6 +114,13 @@ cross_cutting_docs: [...]  # paths only — docs/cross-cutting/*.md
 pattern_docs:   [...]    # vendored/blueprints/{patterns,workflows}/<id>/overview.md
 primitive_docs: [...]    # vendored/blueprints/primitives/<id>/overview.md
 modifier_docs:  [...]    # vendored/blueprints/modifiers/<id>/overview.md
+
+# Stack-pick recommendations scoped to the current upstream blueprints release.
+# Exactly one blueprints_version's worth of combo files exists on disk at any
+# time. See docs/suggestions/README.md for the cohort contract.
+suggestions:
+  blueprints_version: v0.1.0
+  combos:        [...]    # docs/suggestions/<version>/*.md frontmatter aggregated
 
 # Behavior knobs, seeded from scripts/_seed_aliases.yaml.
 aliases:        {...}    # prose-token -> doc path map (replaces scaffold's ALIAS_TABLE)
@@ -110,6 +130,19 @@ min_alias_length: 3      # safety knob against over-matching from short aliases
 ```
 
 ## Field semantics
+
+### `LAYER_ORDER` (the bootstrap-sequencing contract)
+
+Ordered list of `{id, description}` objects naming the layers a consumer runs in order during `docker compose up + bootstrap`. Every capability's `layer:` field must resolve to one of these ids.
+
+Consumers walk `LAYER_ORDER` from top to bottom; for each layer they:
+1. Bring up every capability with `layer: <this layer>` whose docker block is set (via `docker compose up <services>`, gated by Compose's `depends_on: condition: service_healthy`).
+2. Run each capability's `bootstrap_step` in declaration order, passing the `bootstrap_inputs` declared on the capability.
+3. Block on the next layer until this layer's smoke probes pass.
+
+Layers are explicit (not derived from a topological sort of `requires:`) for two reasons. First, layer-membership is a coarser semantic intention than fine-grained dependency edges; declaring a layer is faster and clearer than tracing edges. Second, the layer model maps directly to recipe troubleshooting categories — when a recipe fails to come up, the operator can identify which layer broke and read the targeted diagnostics.
+
+`requires:` is still validated and surfaced — it lets consumers detect within-layer ordering needs (e.g. `obs.langfuse` declares `requires: [relational.postgres]` even though both live in adjacent layers; the edge documents the dependency for diagnostics and lets a strict consumer enforce intra-layer ordering).
 
 ### `blueprints` (the dependency declaration)
 
@@ -155,8 +188,75 @@ Recipe frontmatter references these via `agent_pattern:`, `primitives:`, and `mo
 | `guardrails` | string[] | no | Capability ids (`kind: guardrail`) wrapping the agent's tool-call surface. |
 | `sandbox` | string \| null | no | Capability id (`kind: sandbox`) for the code-execution environment LLM-emitted code runs in. |
 | `durable_workflow` | string \| null | no | Capability id (`kind: durable`) for the workflow engine when the agent's success criterion is long-running. |
+| `runtime_modes` | object | yes (v0.3+) | Named runtime modes with concrete capability swaps; at minimum a `default` mode. Generator validates each swap's `from`/`to` resolve. |
+| `smoke_test` | object | yes (v0.3+) | `{ready, exercise, assert_jq}` shell-string commands. All three keys required. |
+| `cost_profile` | object | yes (v0.3+) | `{tier, sources[], typical_run_usd?}`. `tier` and `sources` required. |
+| `model_recommendation` | string \| object | no | Single model id (single-agent) or per-role map (multi-agent). |
+| `env_overrides` | object | no | App-level env var defaults merged on top of the auto-derived `env_contract`. |
+| `env_contract` | object | **auto-derived** | Generator-emitted dedup of every selected capability's `env_vars` with source annotations. Authors do NOT include this in frontmatter. |
+| `est_tokens` | int | no | Coarse whole-file token estimate; consumer's context-window budget hint. |
 
 All optional fields are passed through verbatim from the recipe's frontmatter. New optional fields can be added in source recipes without bumping `schema_version` (consumers use forward-compat parsing).
+
+### Local-bringup contract (the v0.3 additions in detail)
+
+#### `recipes[].runtime_modes`
+
+Map of `<mode-name>` → `{description, swaps}`. Every swap's `from` and `to` is an id that must resolve to either a capability id (`<kind>.<name>`) or a stack-doc path-style reference (`stack/<id>`). The catalog generator validates resolution; unknown ids fail loud with the recipe path and the offending id.
+
+The `default` mode is required. Common additional modes: `local_only` (all-docker swaps, no SaaS keys needed) and `hybrid` (a mix). Consumers pass a mode name at generation time; the resolver applies the swaps to the recipe's `capabilities[]` before emitting the project.
+
+#### `recipes[].smoke_test`
+
+Three shell-string commands the consumer runs after `docker compose up + bootstrap`:
+
+1. `ready` — succeeds (exit 0) once the agent's HTTP surface is healthy.
+2. `exercise` — submits one representative agent request, returns the response on stdout.
+3. `assert_jq` — a `jq` expression evaluated against `exercise`'s stdout that must be truthy.
+
+The generator validates all three keys are non-empty strings.
+
+#### `recipes[].cost_profile`
+
+`{tier: free|low|medium|high, sources: [provider-name, …], typical_run_usd?: number}`. `tier: free` is reserved for recipes whose `default` mode's `sources: []` (an all-local stack). Consumers render this in the wizard preview before the user commits to generation.
+
+#### `recipes[].env_contract` (auto-derived)
+
+The generator's `build_catalog` walks each recipe's `capabilities[]`, collects every capability's `env_vars`, dedupes (case-insensitive on the var name), and emits a list of `{name, source_capability, default?}` entries. `env_overrides` is merged on top (recipe-author defaults win over capability-author defaults). The result is what a consumer renders into `.env.example`.
+
+Authors must not hand-author `env_contract:` in recipe frontmatter — the generator raises if it's present at parse time.
+
+### Capability fields (the v0.3 additions in detail)
+
+#### `capabilities[].layer`
+
+Required. One of `catalog.LAYER_ORDER[].id`. The generator validates the value; consumers walk capabilities layer-by-layer when sequencing bootstrap.
+
+#### `capabilities[].requires`
+
+Optional list of other capability ids this capability depends on. Generator validates each id resolves to a locally-collected capability. Used by consumers for diagnostics (when bootstrap fails, surface the dependency chain) and for optional intra-layer ordering enforcement.
+
+#### `capabilities[].bootstrap_inputs`
+
+Optional free-form map of values this capability's `bootstrap_step` expects from its `requires` dependencies. Common shape: `{database_name: langfuse, schema_name: public}`. The map is pass-through; consumers interpret keys per the bootstrap step's contract.
+
+#### `capabilities[].card`
+
+Required. MCP-Server-Card-style discovery metadata: `{name, description, capabilities_provided[], required_credentials[]}`. The generator validates `name` and `description` are non-empty strings.
+
+This block lets external indexers (and the AI tools that walk them) discover what this capability provides without reading the body. The convention mirrors the proposed 2026 [MCP Server Card spec](https://www.anthropic.com/engineering/code-execution-with-mcp) at a capability-doc granularity.
+
+#### `capabilities[].cost_tier`
+
+Required. One of `free` | `fixed-monthly` | `per-call`. Consumers aggregate per-capability tiers into recipe-level `cost_profile.tier` heuristics.
+
+#### `capabilities[].provisioning_time`
+
+Optional coarse string (`instant`, `~10s`, `~60s`, `~5min`). Consumers render this as a progress estimate during bootstrap.
+
+#### `capabilities[].est_tokens`
+
+Optional integer estimate of the doc's whole-file token cost. Lets a consumer budget its context window when whole-file-loading capability docs into LLM context.
 
 ### Advanced recipe fields
 
@@ -223,6 +323,38 @@ The 2026-SOTA cohort lands without bumping `schema_version` because:
 Flat arrays of repo-root-relative paths only. These docs are referenced by recipes (via `load_list`, prose mentions, or alias matches) but don't carry structured frontmatter the catalog needs to expose beyond their existence + path.
 
 The three blueprint-side lists (`pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`) enumerate `vendored/blueprints/<cohort>/<id>/overview.md` paths — one entry per id. `pattern_docs[]` covers both `patterns/` and `workflows/` for back-compat with older consumers that walked one combined list.
+
+### `suggestions` (per-combo stack recommendations)
+
+Pinned to a single upstream blueprints release at a time. Generator walks `docs/suggestions/<blueprints-version>/*.md` and emits:
+
+```yaml
+suggestions:
+  blueprints_version: v0.1.0      # matches the single <version>/ dir under docs/suggestions/
+  combos:
+    - applies_to: {pattern: react, primitives: [tool_use], modifiers: []}
+      path: docs/suggestions/v0.1.0/react+tool_use.md
+      recommends:
+        framework: pydantic_ai
+        llm: stack/llm-claude
+        relational: relational.postgres
+        cache: cache.redis
+        obs: obs.langfuse
+        eval: eval.promptfoo
+        mcp_servers: [mcp.tavily]
+      local_only_swaps:
+        - {from: stack/llm-claude, to: stack/llm-local-vllm}
+      est_tokens: 600
+```
+
+Combo file authoring contract is in [`docs/suggestions/README.md`](docs/suggestions/README.md). The generator raises if:
+- More than one `docs/suggestions/<version>/` directory exists on disk.
+- A combo file's `blueprints_version:` doesn't match the directory name.
+- Any `recommends:` or `local_only_swaps[].from`/`to` value fails to resolve (capability id or `stack/<id>` path).
+
+The `.github/workflows/sync-blueprints.yml` workflow purges the prior `<version>/` directory when bumping the upstream pin, keeping the single-version invariant.
+
+Consumers (scaffold CLIs, AI tools) read `catalog.suggestions.combos[]` to find the right combo file for a recipe's `agent_pattern` + `primitives` + `modifiers`, then load that combo file's body for the recommended-stack rationale.
 
 ### `aliases`, `cross_cutting`, `non_recipe_stems`, `min_alias_length`
 
