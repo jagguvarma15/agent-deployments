@@ -1,6 +1,7 @@
 ---
 id: obs.grafana-stack
 kind: obs
+layer: observability
 provides: [metrics, tracing, dashboards, alerting]
 env_vars: [GRAFANA_URL, GRAFANA_ADMIN_PASSWORD, PROMETHEUS_URL, TEMPO_URL]
 docker:
@@ -19,6 +20,14 @@ docker:
     retries: 5
 probe: grafana_health
 bootstrap_step: bootstrap_observability
+provisioning_time: ~30s
+cost_tier: free
+est_tokens: 950
+card:
+  name: Grafana stack (Grafana + Prometheus + Tempo)
+  description: "Metrics + traces + dashboards for the full agent stack via OpenTelemetry."
+  capabilities_provided: [metrics, distributed_tracing, dashboards, alerting]
+  required_credentials: []
 emit_files:
   - source: templates/grafana-stack/prometheus.yml
     dest: ops/prometheus/prometheus.yml
@@ -29,24 +38,20 @@ emit_files:
   - source: templates/grafana-stack/dashboards/infra.json
     dest: ops/grafana/dashboards/infra.json
 docs: |
-  Grafana + Prometheus + Tempo. Bootstrap step provisions the datasources and
-  uploads dashboards after the containers are healthy. Prometheus + Tempo run
-  as additional compose services — the emit_files plumbs their configs.
+  Grafana + Prometheus + Tempo. Bootstrap step provisions datasources and
+  uploads dashboards after the containers are healthy. Prometheus + Tempo
+  run as additional compose services via emit_files.
 ---
 
 # Capability: obs.grafana-stack
 
 > Deep reference: [`stack/prometheus-grafana.md`](../../stack/prometheus-grafana.md) and [`stack/opentelemetry.md`](../../stack/opentelemetry.md).
 
-**Used for:** metrics (Prometheus), distributed traces (Tempo), dashboards + alerting (Grafana). The full OTel-style observability stack.
-
-## Why pick this
-
-When the observability target spans more than LLM calls — HTTP latency, queue depth, DB connection pool saturation, custom counters. Plays well with apps that already emit OTel telemetry. Higher ops cost than `obs.langsmith`; the dashboards make the trade worthwhile once the system has more than three moving parts.
+**Used for:** metrics (Prometheus), distributed traces (Tempo), dashboards + alerting (Grafana). The OpenTelemetry-native observability stack.
 
 ## Local setup
 
-This capability emits **three** compose services (grafana + prometheus + tempo) via fragments merged into `docker-compose.yml`. Only `grafana` is in this capability's frontmatter `docker:` block; the other two land via `emit_files` (Phase 1b's resolver also walks emit_files for adjacent compose snippets — see capability authoring docs).
+This capability emits **three** compose services (grafana + prometheus + tempo). Grafana lives in this capability's frontmatter `docker:` block; the other two land via `emit_files` (the resolver walks emit_files for adjacent compose snippets).
 
 Web UIs after `docker compose up`:
 - Grafana: `http://localhost:3002` (anonymous viewer; admin login via `admin` / `$GRAFANA_ADMIN_PASSWORD`)
@@ -86,17 +91,63 @@ Stdlib only — no new client dep.
 | `PROMETHEUS_URL` | `http://prometheus:9090` (compose) | Datasource URL Grafana uses |
 | `TEMPO_URL` | `http://tempo:3200` (compose) | Tempo datasource URL |
 
+## Client integration
+
+**Python (OpenTelemetry):**
+
+```python
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+provider = TracerProvider()
+provider.add_span_processor(BatchSpanProcessor(
+    OTLPSpanExporter(endpoint=f"{os.environ['TEMPO_URL']}/v1/traces")
+))
+trace.set_tracer_provider(provider)
+
+tracer = trace.get_tracer(__name__)
+with tracer.start_as_current_span("agent.research"):
+    response = await run_agent(question)
+```
+
+**TypeScript (@opentelemetry/sdk-node):**
+
+```ts
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({ url: `${process.env.TEMPO_URL}/v1/traces` }),
+});
+sdk.start();
+
+import { trace } from "@opentelemetry/api";
+const tracer = trace.getTracer("agent");
+await tracer.startActiveSpan("agent.research", async (span) => {
+  const response = await runAgent(question);
+  span.end();
+});
+```
+
 ## Cloud / production
 
-- **Grafana Cloud** — managed Grafana + Prometheus + Tempo. Set `GRAFANA_URL` to the stack URL and use a service account token instead of admin password.
-- **Self-hosted** — put Grafana behind SSO (OAuth/SAML), persist `grafana_data` to a managed volume, separate Prometheus retention from Tempo retention.
+- **Grafana Cloud** — managed Grafana + Prometheus + Tempo. Set `GRAFANA_URL` to the stack URL and use a service-account token instead of admin password.
+- **Self-hosted** — Grafana behind SSO (OAuth/SAML), persist `grafana_data` to a managed volume, separate Prometheus retention from Tempo retention.
 
-## When to swap it
+## Troubleshoot
 
-- **→ `obs.langsmith`** or **`obs.langfuse`** for LLM-only observability.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Datasources not added | Grafana healthcheck passed but admin auth failed | Verify `GRAFANA_ADMIN_PASSWORD` env matches what compose set; default is `admin` |
+| Tempo shows no traces | OTLP exporter pointed at wrong endpoint | Use `${TEMPO_URL}/v1/traces` (HTTP path); gRPC port is different |
+| Prometheus scrape targets down | `prometheus.yml` references compose service names | Confirm app and Prometheus are on the same compose network |
+| Dashboard import returns 412 | Same `uid` already imported with different schema | Bump dashboard `version:` and re-import; or delete via API first |
 
 ## See also
 
-- `stack/prometheus-grafana.md` — Prometheus + Grafana setup
-- `stack/opentelemetry.md` — OTel instrumentation for the agent
-- `cross-cutting/observability.md` — strategy doc
+- [`stack/prometheus-grafana.md`](../../stack/prometheus-grafana.md) — Prometheus + Grafana setup
+- [`stack/opentelemetry.md`](../../stack/opentelemetry.md) — OTel instrumentation
+- [`cross-cutting/observability.md`](../../cross-cutting/observability.md) — strategy
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics
