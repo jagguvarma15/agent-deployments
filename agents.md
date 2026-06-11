@@ -43,6 +43,19 @@ Older scaffold versions parse with `extra: ignore` — any unknown top-level key
 
 The catalog generator validates steps 2–5 at build time — if your fetched catalog parses cleanly, every id in every recipe resolves. You can trust the references without re-checking.
 
+## Bringing a recipe up locally
+
+After generation, a consumer that wants `docker compose up && make smoke` to pass uses these catalog reads:
+
+1. **Pick a runtime mode.** Read `catalog.recipes[].runtime_modes` for the target recipe; pick one (`default` always exists; `local_only` and `hybrid` may also be present). Apply the mode's `swaps:` map to the recipe's `capabilities[]` before going further.
+2. **Look up combo recommendations.** Read `catalog.suggestions.combos[]`; find the entry whose `applies_to` matches `(agent_pattern, primitives, modifiers)`. Its `recommends:` map names the canonical framework + stack-doc picks for this combo at the current upstream blueprints version.
+3. **Sequence bootstrap by layer.** Read `catalog.LAYER_ORDER` (an ordered list). For each layer, gather the recipe's capabilities whose `layer:` matches; bring them up via Compose; run each capability's `bootstrap_step` in declaration order, passing the values declared in `bootstrap_inputs:` from any `requires:` dependencies.
+4. **Render `.env.example`.** Read `catalog.recipes[].env_contract` (auto-derived by the generator). Each entry carries `{name, source_capability, default?}`. Merge `catalog.recipes[].env_overrides` on top (recipe wins over capability default). Emit the canonical block.
+5. **Surface cost preview.** Read `catalog.recipes[].cost_profile` (`tier`, `sources[]`, `typical_run_usd?`). Render before the user commits to generation.
+6. **Run the smoke test.** Read `catalog.recipes[].smoke_test` (`{ready, exercise, assert_jq}`). Run `ready` until exit 0 (with timeout). Then run `exercise`, capture stdout. Then evaluate `assert_jq` against that stdout; succeed if truthy.
+
+Steps 1-6 use only fields validated by the catalog generator. If the catalog parses, the contract holds.
+
 ## The three-decision composition
 
 Every recipe declares (or will declare) three orthogonal fields:
