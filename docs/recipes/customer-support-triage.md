@@ -3,6 +3,33 @@ status: Blueprint (validated)
 languages: [python, typescript]
 agent_pattern: routing
 primitives: [tool_use]
+runtime_modes:
+  default:
+    description: "Anthropic Claude — Haiku for classification, Sonnet for specialists."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM serving Llama 3 8B + 70B."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/support \
+      -H 'content-type: application/json' \
+      -d '{"message":"I have a billing question"}'
+  assert_jq: '.category | length > 0'
+cost_profile:
+  tier: low
+  sources: [anthropic]
+  typical_run_usd: 0.003
+model_recommendation:
+  classifier: claude-haiku-4-5
+  billing-specialist: claude-sonnet-4-6
+  technical-specialist: claude-sonnet-4-6
+  account-specialist: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+est_tokens: 4800
 required_files:
   - Dockerfile
   - docker-compose.yml
