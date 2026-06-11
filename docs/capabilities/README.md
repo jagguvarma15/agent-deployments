@@ -65,8 +65,11 @@ The dotted capability id always matches the path: `vector_db.qdrant` ⇄ `vector
 ```yaml
 ---
 id: vector_db.qdrant                 # required — dotted: <kind>.<name>; must match file path
-kind: vector_db                      # required — one of: vector_db | cache | relational | queue | obs | eval | frontend | host
+kind: vector_db                      # required — one of 16 known kinds (see "Capability kinds" below)
+layer: data                          # required — one of catalog.LAYER_ORDER; drives bootstrap sequencing
 provides: [embeddings_store]         # optional — free-form capability tags used for substitution / dedup
+requires: []                         # optional — other capability ids this one depends on (id-resolved)
+bootstrap_inputs: {}                 # optional — map of values this capability's bootstrap step expects from its requires deps
 env_vars: [QDRANT_URL, QDRANT_API_KEY]   # canonical env var names the generated app must reference
 docker:                              # optional — omit for managed-only services
   service: qdrant                    # service name in the merged docker-compose.yml
@@ -81,8 +84,16 @@ docker:                              # optional — omit for managed-only servic
     retries: 5
 probe: qdrant_collections            # name of a probe in agent_scaffold.probes.PROBES (Phase 2 may add it)
 bootstrap_step: bootstrap_vector_db  # orchestrator step that initializes the service post docker_up
+provisioning_time: ~10s              # coarse estimate ("instant", "~10s", "~60s", "~5min")
+cost_tier: free                      # one of: free | fixed-monthly | per-call
+est_tokens: 450                      # coarse estimate of doc's whole-file token cost
 emit_files: []                       # paths under templates/ to copy verbatim into project (frontend caps mainly)
 deploy_configs: []                   # for host.* capabilities only — see "Host capability shape" below
+card:                                # required — MCP-Server-Card-style discovery metadata
+  name: Qdrant
+  description: "Self-hosted vector database with first-class HTTP/gRPC clients and named collections."
+  capabilities_provided: [vector_search, hybrid_search, payload_filtering]
+  required_credentials: []           # for hosted/SaaS capabilities, list env vars carrying secrets
 docs: |                              # short markdown block injected into the LLM context tier
   Free-form. One paragraph max — depth lives in the body below the frontmatter
   and in the linked stack/ doc.
@@ -94,17 +105,27 @@ docs: |                              # short markdown block injected into the LL
 | Field | Notes |
 |-------|-------|
 | `id` | Dotted `<kind>.<name>`. Lowercase, `_` separator inside each part allowed (`vector_db.pgvector`). Must equal the file path under `capabilities/`. |
-| `kind` | One of the 8 enumerated kinds. Adding a new kind needs an `agent-scaffold` change too (Phase 1b enum) — coordinate before introducing. |
+| `kind` | One of the 16 known kinds. Adding a new kind is additive — the generator's `kind` field is a free string and unknown kinds degrade gracefully on older consumers. |
+| `layer` | One of `catalog.LAYER_ORDER`. The catalog generator validates this; the value drives bootstrap-step sequencing across capabilities. |
 | `env_vars` | List of canonical environment variable names. The generated app and `.env.example` must use exactly these names. |
+| `card.name` | Human-readable display name. |
+| `card.description` | One-sentence neutral description — what the tool is, not why to pick it. |
+| `cost_tier` | One of `free`, `fixed-monthly`, `per-call`. Drives the recipe-level `cost_profile:` aggregation. |
 
 ### Optional fields
 
 | Field | When to set it |
 |-------|----------------|
 | `provides` | Use for capability dedup. Two capabilities providing `embeddings_store` are treated as substitutes (resolver picks the first declared on the recipe). |
+| `requires` | List of other capability ids this one depends on. Generator validates each id resolves. E.g. `obs.langfuse` declares `requires: [relational.postgres]` because Langfuse stores its state on Postgres. |
+| `bootstrap_inputs` | Free-form map of inputs this capability's `bootstrap_step` reads from its `requires:` dependencies — e.g. `{database_name: langfuse}` indicates Langfuse expects a database named `langfuse` to exist on the Postgres instance before it boots. |
 | `docker` | Whenever the service can run locally in compose. Omit for purely managed services (e.g. some `host.*` and `obs.langsmith`). |
 | `probe` | Name of a probe function. If the probe doesn't yet exist in agent-scaffold, leave a comment in the brief — Phase 2 fills in any gaps. |
 | `bootstrap_step` | Required when post-`docker_up` initialization is needed (creating collections, topics, datasources). Omit for "compose up is sufficient" services like Redis. |
+| `provisioning_time` | Coarse string (`instant`, `~10s`, `~60s`, `~5min`). Lets scaffold render progress estimates during `docker compose up + bootstrap`. |
+| `est_tokens` | Coarse integer estimate of the doc's whole-file token cost. Lets a consumer budget its context window when whole-file-loading capability docs into LLM context. |
+| `card.capabilities_provided` | Free-form tags an external indexer can match against (the MCP Server Card discovery convention). |
+| `card.required_credentials` | Env-var names carrying secrets the consumer must prompt for. For hosted/SaaS capabilities. |
 | `emit_files` | List of `{source, dest}` pairs. `source` is relative to the capability's directory; `dest` is relative to project root. Glob `**` supported. |
 | `deploy_configs` | Only for `kind: host`. See below. |
 
@@ -156,17 +177,41 @@ The `target` string matches what `agent-scaffold deploy --target <name>` expects
 
 The catalog has no schema version field today. The Phase 1b loader treats unknown keys as warnings (not errors) so additive fields can land without breaking older scaffolds. If a breaking change is needed, add `schema_version: 2` to the affected files and coordinate a scaffold release.
 
+## Capability kinds
+
+16 known kinds across two cohorts. The catalog's `kind:` field is a free string, so unknown values degrade gracefully (older consumers surface `unresolved`).
+
+| Cohort | Kinds | Purpose |
+|---|---|---|
+| **v0.2 set** | `relational`, `cache`, `vector_db`, `queue`, `obs`, `eval`, `frontend`, `host` | Original infrastructure layers. |
+| **2026-SOTA set** | `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` | Tool connectivity (`mcp` / `live_data`), runtime (`sandbox` / `durable`), agent-native data layer (`memory_store` / `embedding` / `rerank`), safety (`guardrail`). |
+
+## Neutrality rule
+
+Capability docs describe **what the tool is** and **how to wire it** — they do not editorialize choice.
+
+- **Do** describe the tool's defining traits in one or two neutral sentences (e.g. "Tavily is a managed web-search API tuned for agent loops with snippet-ranked results and follow-up question hints").
+- **Do** include `## Client integration` (Python + TypeScript snippets), `## Troubleshoot` (4-row symptom-cause-fix table), and `## See also` (cross-link to the stack/ deep-reference + getting-started screen).
+- **Do not** include `## Why pick this`, `## When to swap it`, or comparative prose about other capabilities. Choice rationale belongs in [`../suggestions/<blueprints-version>/<combo>.md`](../suggestions/) — scoped to a specific pattern × primitives × modifier combination and a specific blueprints release.
+- **Do not** list pricing in marketing terms. The `cost_tier:` frontmatter field is the structured cost surface; depth (concrete per-call pricing) belongs in the linked stack/ doc.
+
+This keeps the catalog's capability layer small, machine-readable, and amenable to whole-file LLM consumption. A scaffold that loads `docs/capabilities/<kind>/<name>.md` gets exactly what it needs to provision and wire that capability — nothing about whether to pick it.
+
 ## Authoring checklist
 
 When adding or updating a capability:
 
 - [ ] `id` exactly matches the file path under `capabilities/`
-- [ ] `kind` is one of the 8 enumerated kinds
+- [ ] `kind` is one of the 16 known kinds (or a new one — additive change)
+- [ ] `layer` is one of `catalog.LAYER_ORDER`
 - [ ] `env_vars` are CANONICAL (no project-specific prefixes) — the generated app uses these names verbatim
 - [ ] If `docker:` is set, image tag is pinned (no `:latest`)
-- [ ] If a sibling exists under `stack/<x>.md`, cross-link both directions (one-line `Capability:` header on the stack doc; "See also: stack/x.md" line in the capability body)
-- [ ] Body has: H1 title, 1-paragraph "Why pick this", "Local setup" (compose snippet quoted from frontmatter or expanded), "Production / cloud" pointer, "Env vars" table, "When to swap it" (1–2 sentences)
-- [ ] Body stays under ~120 lines — depth lives in `stack/`
+- [ ] `card.name` + `card.description` populated (neutral one-sentence description)
+- [ ] `cost_tier` set (`free` / `fixed-monthly` / `per-call`)
+- [ ] `requires:` declared if this capability needs another capability up before it boots; `bootstrap_inputs:` declared if the bootstrap step reads values from the dependency
+- [ ] Body has: H1 title, one-paragraph factual intro, `## Client integration` (Python + TS), `## Troubleshoot` (table), `## See also` (cross-link to stack/ + getting-started)
+- [ ] Body does NOT include `## Why pick this` or `## When to swap it`
+- [ ] Body stays under ~120 lines — depth lives in `stack/`; choice rationale lives in `suggestions/`
 
 ## Recipe usage
 
