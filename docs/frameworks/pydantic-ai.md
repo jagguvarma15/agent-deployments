@@ -81,6 +81,50 @@ Pydantic AI exports OpenTelemetry traces natively when the OTel SDK is configure
 - **Prompt Chaining** — Sequential `agent.run()` calls with different `output_type` per stage. Type safety between stages.
 - **Parallel Calls** — `asyncio.gather()` with multiple `agent.run()` calls. Async-first design makes this natural.
 
+## MCP integration
+
+Pydantic AI ships first-class MCP client support via `pydantic_ai.mcp.MCPServerStreamableHTTP` and `MCPServerStdio`. Tools discovered from connected MCP servers join the agent's tool surface alongside `@agent.tool` Python-decorated tools.
+
+**Streamable HTTP transport (the `mcp.tavily` capability):**
+
+```python
+import os
+from pydantic_ai import Agent
+from pydantic_ai.mcp import MCPServerStreamableHTTP
+
+tavily = MCPServerStreamableHTTP(
+    url="https://mcp.tavily.com/mcp/",
+    headers={"Authorization": f"Bearer {os.environ['TAVILY_API_KEY']}"},
+)
+
+agent = Agent(
+    "anthropic:claude-sonnet-4-6",
+    mcp_servers=[tavily],
+    system_prompt="You are a research assistant.",
+)
+
+async with agent.run_mcp_servers():
+    result = await agent.run("Compare GraphQL vs gRPC for streaming workloads.")
+    print(result.output)
+```
+
+`agent.run_mcp_servers()` opens transports, discovers tools, registers them; the surrounding `async with` handles lifecycle.
+
+**Stdio transport (locally-spawned servers):**
+
+```python
+from pydantic_ai.mcp import MCPServerStdio
+
+postgres = MCPServerStdio(
+    "npx",
+    args=["-y", "@modelcontextprotocol/server-postgres", os.environ["DATABASE_URL"]],
+)
+
+agent = Agent("anthropic:claude-sonnet-4-6", mcp_servers=[tavily, postgres])
+```
+
+Tools are exposed under their MCP-declared names; reference them by that name in system prompts.
+
 ## Version notes
 
 The `>=0.1.0` floor is what stabilizes the agent + `output_type` (renamed from `result_type`) surface the recipes rely on; treat the 0.0.x line as legacy.
