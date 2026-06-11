@@ -46,11 +46,7 @@ jobs:
         run: pip install -r scripts/requirements.txt
 
       - name: Regenerate catalog against live blueprints
-        # --allow-missing-required is set for the v0.3 migration window so
-        # the bump cron doesn't fail on existing capability + recipe content
-        # that hasn't yet been updated to the schema. Remove the flag once
-        # the migration completes.
-        run: python scripts/generate_catalog.py --allow-missing-required
+        run: python scripts/generate_catalog.py
 
       - name: Check for changes
         id: changes

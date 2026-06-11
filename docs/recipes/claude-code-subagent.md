@@ -3,6 +3,25 @@ status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: react
 primitives: [tool_use, sub_agents, skills]
+runtime_modes:
+  default:
+    description: "Anthropic Claude via Claude Agent SDK — Sonnet for host, Sonnet for subagents."
+    swaps: {}
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/ask \
+      -H 'content-type: application/json' \
+      -d '{"question":"what files are in this repo?"}'
+  assert_jq: '.answer | length > 0'
+cost_profile:
+  tier: medium
+  sources: [anthropic]
+  typical_run_usd: 0.05
+model_recommendation: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+est_tokens: 4400
 required_files:
   - app/main.py
   - app/agent/host.py

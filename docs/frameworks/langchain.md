@@ -397,6 +397,46 @@ How the patterns in [`../patterns/`](../patterns/) map to LangChain vs LangGraph
 | [Event-driven](../patterns/event-driven.md) | Wrap executor in your own consumer loop | Explicit graph per event | LangGraph wins; the per-event state machine is exactly what it's for |
 | [Memory](../patterns/memory.md) | `RunnableWithMessageHistory` + backend | Checkpointer + state | LangChain for plain chat history; LangGraph when memory crosses runs |
 
+## MCP integration
+
+LangChain (post-0.3) uses `langchain-mcp-adapters` — the same package as LangGraph. Tools surface as `BaseTool` instances and plug into `create_tool_calling_agent` + `AgentExecutor`.
+
+**Streamable HTTP transport (the `mcp.tavily` capability):**
+
+```python
+import os
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_anthropic import ChatAnthropic
+from langchain_core.prompts import ChatPromptTemplate
+
+client = MultiServerMCPClient({
+    "tavily": {
+        "transport": "streamable_http",
+        "url": "https://mcp.tavily.com/mcp/",
+        "headers": {"Authorization": f"Bearer {os.environ['TAVILY_API_KEY']}"},
+    },
+})
+tools = await client.get_tools()
+
+llm = ChatAnthropic(model="claude-sonnet-4-6")
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a research assistant."),
+    ("placeholder", "{chat_history}"),
+    ("human", "{input}"),
+    ("placeholder", "{agent_scratchpad}"),
+])
+agent = create_tool_calling_agent(llm, tools, prompt)
+executor = AgentExecutor(agent=agent, tools=tools, max_iterations=5)
+
+result = await executor.ainvoke({"input": "Compare GraphQL vs gRPC for streaming workloads."})
+print(result["output"])
+```
+
+**Stdio transport:** identical shape with `"transport": "stdio"` and a `"command"` / `"args"` config instead of `url`.
+
+For richer graph orchestration over the same tool set, prefer LangGraph's `create_react_agent` (see [`langgraph.md`](langgraph.md)).
+
 ## Version notes
 
 One-line summary: 0.3.x consolidated agents under `langchain.agents`; earlier versions split between `langchain` and `langchain-experimental`. `>=0.4` may break the `@tool` decorator surface — pin tight. (Matches frontmatter `versions.notes`.)

@@ -3,6 +3,30 @@ status: Blueprint (validated)
 languages: [python, typescript]
 agent_pattern: react
 primitives: [tool_use]
+runtime_modes:
+  default:
+    description: "Anthropic Claude + Tavily web search + local Postgres/Redis/Langfuse."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM (no Anthropic key needed) + SearXNG search."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/research \
+      -H 'content-type: application/json' \
+      -d '{"question":"smoke test","max_steps":2}'
+  assert_jq: '.answer | length > 0'
+cost_profile:
+  tier: low
+  sources: [anthropic, tavily]
+  typical_run_usd: 0.02
+model_recommendation: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+  MAX_STEPS: 5
+est_tokens: 4500
 required_files:
   - Dockerfile
   - docker-compose.yml

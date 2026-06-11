@@ -3,6 +3,37 @@ status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: event_driven
 primitives: [tool_use]
+runtime_modes:
+  default:
+    description: "Anthropic Claude + Redis Streams + Postgres + Langfuse."
+    swaps: {}
+  hybrid_kafka:
+    description: "Same as default but Kafka instead of Redis Streams for >10k events/sec."
+    swaps:
+      queue.redis-streams: queue.kafka
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    # Publish a synthetic cancellation event onto the input stream
+    docker compose exec -T redis redis-cli XADD reservations.cancelled '*' \
+      reservation_id smoke-1 customer_id smoke party_size 2 cancel_window_minutes 60
+    # Wait briefly for the worker to process
+    sleep 2
+    # Read back any rebooked-event the worker emitted
+    docker compose exec -T redis redis-cli XLEN reservations.rebooked
+  assert_jq: 'tonumber > 0'
+cost_profile:
+  tier: medium
+  sources: [anthropic]
+  typical_run_usd: 0.04
+model_recommendation:
+  intake: claude-haiku-4-5
+  eligibility: claude-haiku-4-5
+  search: claude-sonnet-4-6
+  notifier: claude-haiku-4-5
+env_overrides:
+  APP_PORT: 8000
+est_tokens: 5200
 required_files:
   - Dockerfile
   - docker-compose.yml

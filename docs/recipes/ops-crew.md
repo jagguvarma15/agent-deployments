@@ -3,6 +3,32 @@ status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: multi_agent
 primitives: [tool_use, sub_agents]
+runtime_modes:
+  default:
+    description: "Anthropic Claude — Sonnet for each specialist."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM serving Llama 3 70B for all specialists."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/investigate \
+      -H 'content-type: application/json' \
+      -d '{"incident":"smoke test - DB connection pool saturated"}'
+  assert_jq: '.report | length > 0'
+cost_profile:
+  tier: medium
+  sources: [anthropic]
+  typical_run_usd: 0.05
+model_recommendation:
+  devops: claude-sonnet-4-6
+  security: claude-sonnet-4-6
+  database: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+est_tokens: 4600
 required_files:
   - Dockerfile
   - docker-compose.yml

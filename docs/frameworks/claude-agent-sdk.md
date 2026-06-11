@@ -379,6 +379,50 @@ OpenTelemetry — start an OTel span in PreToolUse, end it in PostToolUse, link 
 
 For self-hosted trace UI, see [`../stack/tracing-langfuse.md`](../stack/tracing-langfuse.md); the hook payload shape above drops into Langfuse's generic event ingestion.
 
+## MCP integration
+
+The Claude Agent SDK is MCP-native — MCP servers are configured at the harness level and tools surface to the agent automatically. There is no separate "discover tools" step in user code; the SDK handles discovery during the session handshake.
+
+**Streamable HTTP transport (the `mcp.tavily` capability):**
+
+```python
+import os
+from claude_agent_sdk import ClaudeAgentClient, ClaudeAgentOptions, McpServerConfig
+
+options = ClaudeAgentOptions(
+    mcp_servers={
+        "tavily": McpServerConfig(
+            type="http",
+            url="https://mcp.tavily.com/mcp/",
+            headers={"Authorization": f"Bearer {os.environ['TAVILY_API_KEY']}"},
+        ),
+    },
+    allowed_tools=["tavily_search", "tavily_extract"],
+    system_prompt="You are a research assistant.",
+)
+
+async with ClaudeAgentClient(options=options) as client:
+    response = await client.query("Compare GraphQL vs gRPC for streaming workloads.")
+    print(response.text)
+```
+
+**Stdio transport (subprocess-spawned servers):**
+
+```python
+options = ClaudeAgentOptions(
+    mcp_servers={
+        "postgres": McpServerConfig(
+            type="stdio",
+            command="npx",
+            args=["-y", "@modelcontextprotocol/server-postgres", os.environ["DATABASE_URL"]],
+        ),
+    },
+    allowed_tools=["postgres_query"],
+)
+```
+
+`allowed_tools` is the gate — the SDK only exposes tools whose names appear there. Omitting `allowed_tools` exposes every tool the server advertises (use cautiously).
+
 ## Version notes
 
 One-line summary: API surface still evolving on both language tracks; pin tight and re-verify on every minor bump. (Matches frontmatter `versions.notes` on both files.)

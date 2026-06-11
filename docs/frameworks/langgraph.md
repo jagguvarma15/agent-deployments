@@ -159,6 +159,54 @@ Why a graph at all for a single event? For one event you could call the LLM dire
 - **Observability matters.** LangGraph's tracing logs each node entry/exit — easy to correlate with the event ID in your logger context.
 - **You want checkpointing.** Pausing mid-event for human-in-the-loop (e.g. high-stakes notifications requiring approval) is one line: add a `Checkpointer`.
 
+## MCP integration
+
+LangGraph integrates MCP via `langchain-mcp-adapters`. MCP-discovered tools convert to LangChain tool objects and load into a `ToolNode` or a prebuilt ReAct agent.
+
+**Streamable HTTP transport (the `mcp.tavily` capability):**
+
+```python
+import os
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.prebuilt import create_react_agent
+from langchain_anthropic import ChatAnthropic
+
+client = MultiServerMCPClient({
+    "tavily": {
+        "transport": "streamable_http",
+        "url": "https://mcp.tavily.com/mcp/",
+        "headers": {"Authorization": f"Bearer {os.environ['TAVILY_API_KEY']}"},
+    },
+})
+
+tools = await client.get_tools()
+
+llm = ChatAnthropic(model="claude-sonnet-4-6")
+agent = create_react_agent(llm, tools)
+
+result = await agent.ainvoke({"messages": [
+    {"role": "user", "content": "Compare GraphQL vs gRPC for streaming workloads."}
+]})
+print(result["messages"][-1].content)
+```
+
+**Wiring tools into a custom graph (when prebuilt isn't enough):**
+
+```python
+from langgraph.graph import StateGraph, MessagesState
+from langgraph.prebuilt import ToolNode, tools_condition
+
+graph = StateGraph(MessagesState)
+graph.add_node("agent", llm.bind_tools(tools))
+graph.add_node("tools", ToolNode(tools))
+graph.add_conditional_edges("agent", tools_condition)
+graph.add_edge("tools", "agent")
+graph.set_entry_point("agent")
+compiled = graph.compile()
+```
+
+Multi-server setups list each server in `MultiServerMCPClient({...})`; `get_tools()` flattens all discovered tools across servers.
+
 ## Version notes
 
 0.3.x is the recipe-validated floor; pin tight because the checkpointer + prebuilt agent surface still shifts between minors.

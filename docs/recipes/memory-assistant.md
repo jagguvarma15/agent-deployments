@@ -3,6 +3,29 @@ status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: react
 primitives: [tool_use, memory]
+runtime_modes:
+  default:
+    description: "Anthropic Claude + Zep for memory, OpenAI for embeddings."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM + Zep (OSS image). Embeddings stay on OpenAI for now."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/chat \
+      -H 'content-type: application/json' \
+      -d '{"user_id":"smoke","message":"remember that my favorite color is blue"}'
+  assert_jq: '.reply | length > 0'
+cost_profile:
+  tier: low
+  sources: [anthropic, openai]
+  typical_run_usd: 0.01
+model_recommendation: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+est_tokens: 4200
 required_files:
   - Dockerfile
   - docker-compose.yml

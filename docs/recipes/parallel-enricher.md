@@ -2,6 +2,30 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: parallel-calls
+runtime_modes:
+  default:
+    description: "Anthropic Claude Haiku for the enrichment fan-out."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/enrich \
+      -H 'content-type: application/json' \
+      -d '{"items":[{"id":1,"text":"smoke test"}]}'
+  assert_jq: '.results | length > 0'
+cost_profile:
+  tier: low
+  sources: [anthropic]
+  typical_run_usd: 0.002
+model_recommendation: claude-haiku-4-5
+env_overrides:
+  APP_PORT: 8000
+  CONCURRENCY: 10
+est_tokens: 3500
 required_files:
   - Dockerfile
   - docker-compose.yml

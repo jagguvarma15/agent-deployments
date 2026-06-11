@@ -2,6 +2,29 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: prompt-chaining
+runtime_modes:
+  default:
+    description: "Anthropic Claude Sonnet across all chain steps."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM serving Llama 3 70B for content steps."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/generate \
+      -H 'content-type: application/json' \
+      -d '{"topic":"smoke test"}'
+  assert_jq: '.draft | length > 0'
+cost_profile:
+  tier: low
+  sources: [anthropic]
+  typical_run_usd: 0.015
+model_recommendation: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+est_tokens: 3800
 required_files:
   - Dockerfile
   - docker-compose.yml

@@ -103,6 +103,52 @@ CrewAI exposes per-task callbacks (`task.callback=fn`) where `fn` receives the t
 - **Prompt Chaining** — Sequential task execution where each task's output feeds the next.
 - **ReAct** — Individual agents use a ReAct loop internally when they have tools.
 
+## MCP integration
+
+CrewAI accepts MCP tools through `crewai_tools.mcp.MCPToolset`, which wraps a connected MCP client and exposes each discovered tool as a CrewAI `BaseTool`.
+
+**Streamable HTTP transport (the `mcp.tavily` capability):**
+
+```python
+import os
+from crewai import Agent, Task, Crew
+from crewai_tools.mcp import MCPToolset
+
+tavily_toolset = MCPToolset.from_streamable_http(
+    url="https://mcp.tavily.com/mcp/",
+    headers={"Authorization": f"Bearer {os.environ['TAVILY_API_KEY']}"},
+)
+
+researcher = Agent(
+    role="Web Researcher",
+    goal="Search and synthesize information on technical topics.",
+    backstory="A senior researcher familiar with distributed-systems trade-offs.",
+    tools=tavily_toolset.tools,
+    llm="anthropic/claude-sonnet-4-6",
+)
+
+task = Task(
+    description="Compare GraphQL vs gRPC for streaming workloads.",
+    agent=researcher,
+    expected_output="A structured comparison with citations.",
+)
+
+crew = Crew(agents=[researcher], tasks=[task])
+result = crew.kickoff()
+print(result)
+```
+
+**Stdio transport (subprocess-spawned servers):**
+
+```python
+postgres_toolset = MCPToolset.from_stdio(
+    command="npx",
+    args=["-y", "@modelcontextprotocol/server-postgres", os.environ["DATABASE_URL"]],
+)
+```
+
+For multi-agent crews where different roles need different MCP servers, instantiate one `MCPToolset` per server and attach selectively to each agent's `tools=` parameter.
+
 ## Version notes
 
 `>=0.70.0` is the floor at which the kwargs-only `Crew()` constructor + the split-out memory module are stable; older drops break in unobvious ways.

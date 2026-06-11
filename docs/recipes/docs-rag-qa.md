@@ -2,6 +2,30 @@
 status: Blueprint (validated)
 languages: [python, typescript]
 agent_pattern: rag
+runtime_modes:
+  default:
+    description: "Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM + BGE embeddings + BGE-reranker, no SaaS keys."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/ask \
+      -H 'content-type: application/json' \
+      -d '{"question":"What is the canonical stack?"}'
+  assert_jq: '.answer | length > 0'
+cost_profile:
+  tier: low
+  sources: [anthropic, openai, cohere]
+  typical_run_usd: 0.005
+model_recommendation: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+  TOP_K: 5
+est_tokens: 4200
 required_files:
   - Dockerfile
   - docker-compose.yml
