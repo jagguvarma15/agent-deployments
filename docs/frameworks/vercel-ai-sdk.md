@@ -88,6 +88,54 @@ OpenTelemetry support is built in — set `experimental_telemetry: { isEnabled: 
 - **Prompt Chaining** — Sequential `generateObject()` / `generateText()` calls. Each stage is a function call.
 - **Parallel Calls** — `Promise.all()` with multiple `generateText()` calls. Standard TS async.
 
+## MCP integration
+
+The Vercel AI SDK provides `experimental_createMCPClient` for connecting to MCP servers and surfacing their tools to `generateText` / `streamText`.
+
+**Streamable HTTP transport (the `mcp.tavily` capability):**
+
+```ts
+import { generateText, experimental_createMCPClient as createMCPClient } from "ai";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { anthropic } from "@ai-sdk/anthropic";
+
+const tavily = await createMCPClient({
+  transport: new StreamableHTTPClientTransport(
+    new URL("https://mcp.tavily.com/mcp/"),
+    { requestInit: { headers: { Authorization: `Bearer ${process.env.TAVILY_API_KEY}` } } }
+  ),
+});
+
+const tools = await tavily.tools();
+
+try {
+  const result = await generateText({
+    model: anthropic("claude-sonnet-4-6"),
+    prompt: "Compare GraphQL vs gRPC for streaming workloads.",
+    tools,
+    maxSteps: 5,
+  });
+  console.log(result.text);
+} finally {
+  await tavily.close();
+}
+```
+
+**Stdio transport (subprocess-spawned servers):**
+
+```ts
+import { Experimental_StdioMCPTransport } from "ai/mcp-stdio";
+
+const local = await createMCPClient({
+  transport: new Experimental_StdioMCPTransport({
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-postgres", process.env.DATABASE_URL!],
+  }),
+});
+```
+
+Tools returned by `client.tools()` are first-class AI SDK tools — they pass straight into `generateText` / `streamText` `tools:` without manual schema mapping.
+
 ## Version notes
 
 The `^4.0.0` major rewrote `streamText` / `generateText` / `generateObject` and is the recipe-validated line; 3.x is incompatible, 5.x untested.
