@@ -1,18 +1,25 @@
 ---
 id: rerank.cohere
 kind: rerank
+layer: agent
 provides: [search_result_reranking]
 env_vars: [COHERE_API_KEY]
 model: rerank-v3.5
 docker: null
 probe: cohere_rerank_ping
 bootstrap_step: null
+provisioning_time: instant
+cost_tier: per-call
+est_tokens: 500
+card:
+  name: Cohere Rerank v3.5
+  description: "Late-stage rerank step that re-orders retrieval results by relevance to the query."
+  capabilities_provided: [search_result_reranking, multilingual_rerank]
+  required_credentials: [COHERE_API_KEY]
 emit_files: []
 docs: |
-  Cohere Rerank v3.5 — late-stage rerank step that re-orders retrieval
-  results by relevance to the query. Plugs into RAG recipes between vector
-  search and the LLM prompt. Recipes wire it via `capabilities: [rerank.cohere]`;
-  the scaffold emits a rerank step in the retrieval pipeline.
+  Cohere Rerank v3.5 — plugs into RAG recipes between vector search and the
+  LLM prompt to lift recall@5 by 20-40 points on benchmark datasets.
 ---
 
 # Capability: rerank.cohere
@@ -20,12 +27,6 @@ docs: |
 > First-run setup: [`getting-started/cohere.md`](../../getting-started/cohere.md). Vendor: https://docs.cohere.com/docs/rerank-overview.
 
 **Used for:** Improving RAG retrieval quality by reranking top-k vector hits with a dedicated relevance model.
-
-## Why pick this
-
-Vector search is fast but coarse; rerank is slow but precise. Putting rerank between retrieval and generation typically lifts recall@5 by 20-40 points on benchmark datasets — biggest win for agentic_rag recipes whose answers depend on getting the right passage to the LLM.
-
-Cohere's hosted rerank is the strongest commercial option; v3.5 is multilingual and handles longer contexts than v2. Self-hosted alternative: `rerank.bge-reranker-v2` (planned, TEI-served).
 
 ## Wiring
 
@@ -43,17 +44,59 @@ The scaffold inserts a rerank step in the retrieval pipeline: vector search retu
 |-----|---------|---------|
 | `COHERE_API_KEY` | *(prompted)* | Cohere API key — stored via keyring |
 
+## Client integration
+
+**Python (cohere):**
+
+```python
+from cohere import AsyncClient
+
+client = AsyncClient(api_key=os.environ["COHERE_API_KEY"])
+
+# After vector search returns top-50 hits:
+response = await client.rerank(
+    model="rerank-v3.5",
+    query="streaming GraphQL APIs",
+    documents=[hit["content"] for hit in vector_hits],
+    top_n=5,
+)
+
+# Map back to the original metadata
+top5 = [vector_hits[r.index] for r in response.results]
+```
+
+**TypeScript (cohere-ai):**
+
+```ts
+import { CohereClient } from "cohere-ai";
+
+const client = new CohereClient({ token: process.env.COHERE_API_KEY! });
+
+const response = await client.v2.rerank({
+  model: "rerank-v3.5",
+  query: "streaming GraphQL APIs",
+  documents: vectorHits.map((h) => h.content),
+  topN: 5,
+});
+
+const top5 = response.results.map((r) => vectorHits[r.index]);
+```
+
 ## Probe
 
 `cohere_rerank_ping` reranks `["doc a", "doc b"]` against the query `"smoke"` and asserts the response shape.
 
-## When to swap it
+## Troubleshoot
 
-- **→ `rerank.bge-reranker-v2`** — self-hosted under TEI.
-- **→ `rerank.voyage-rerank-2`** — Voyage AI's offering.
-- **Skip rerank** — for low-stakes RAG, raw vector search may be enough.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `401 Unauthorized` | Trial key / wrong workspace | Recreate at https://dashboard.cohere.com |
+| `429 Too Many Requests` | Trial rate limit | Upgrade to production key, or add backoff |
+| `model not found` | Cohere rotated model id | Check https://docs.cohere.com/docs/rerank-overview; update the capability's model reference |
+| Reranked results worse than raw | Query/doc lang mismatch | v3.5 is multilingual but pin model to a Cohere version matching your locale |
 
 ## See also
 
-- [`vendored/blueprints/patterns/agentic_rag/overview.md`](../../../vendored/blueprints/patterns/agentic_rag/overview.md) — primary consumer pattern.
-- [`vector_db/qdrant.md`](../vector_db/qdrant.md) — typical upstream of the rerank step.
+- [`vendored/blueprints/patterns/agentic_rag/overview.md`](../../../vendored/blueprints/patterns/agentic_rag/overview.md) — primary consumer pattern
+- [`capabilities/vector_db/qdrant.md`](../vector_db/qdrant.md) — typical upstream of the rerank step
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

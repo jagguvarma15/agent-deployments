@@ -1,11 +1,20 @@
 ---
 id: eval.promptfoo
 kind: eval
+layer: eval
 provides: [llm_eval, regression_check]
 env_vars: [ANTHROPIC_API_KEY]
 docker: null
 probe: null
 bootstrap_step: bootstrap_evals
+provisioning_time: instant
+cost_tier: per-call
+est_tokens: 700
+card:
+  name: Promptfoo
+  description: "YAML-first LLM evaluation harness with provider matrix, LLM-judge grading, and CI gating."
+  capabilities_provided: [llm_eval, regression_check, ci_gating]
+  required_credentials: [ANTHROPIC_API_KEY]
 emit_files:
   - source: templates/promptfoo/**
     dest: evals/
@@ -22,10 +31,6 @@ docs: |
 
 **Used for:** declarative LLM regression evals — provider × prompt × cases matrix, pass/fail + LLM-judge scoring, baseline tracking across runs.
 
-## Why pick this
-
-Promptfoo is YAML-first, provider-agnostic, and runs locally via `npx` (no daemon, no service to host). It's the right default when you want to commit a small set of evals to the repo and run them in CI alongside unit tests. Pick a heavier harness (`eval.deepeval`, `eval.ragas`) only when you need RAG-specific metrics or programmatic test composition beyond what YAML expresses.
-
 ## Contract
 
 The capability emits three files into the generated project under `evals/`:
@@ -33,12 +38,10 @@ The capability emits three files into the generated project under `evals/`:
 | Emitted file | Role |
 |---|---|
 | `evals/promptfooconfig.yaml` | Top-level config: providers, tests file pointer, output path, retry policy. |
-| `evals/cases.yaml` | Three recipe-agnostic starter cases (greeting, refusal, tool-call). Always present. |
+| `evals/cases.yaml` | Three recipe-agnostic starter cases (greeting, refusal, tool-call). |
 | `evals/README.md` | One-page operator guide: how to run locally, expected env vars, where to add domain cases. |
 
-Recipe-specific cases land in a sibling **`evals/cases.recipe.yaml`** — the LLM emits it from the recipe's golden dataset during generation. `promptfooconfig.yaml` references both files under `tests:` so the two sets compose without either side editing the other.
-
-The `tests:` block resolves its provider line from project env (`ANTHROPIC_API_KEY` is the only required var). The `bootstrap_evals` step runs an initial eval on first `agent-scaffold up` and writes the baseline summary to the project manifest so subsequent runs detect regressions (pass-rate drop, per-case status change).
+Recipe-specific cases land in a sibling `evals/cases.recipe.yaml` (LLM emits during generation from the recipe's golden dataset).
 
 ## Local run
 
@@ -48,24 +51,56 @@ npx promptfoo eval
 npx promptfoo view   # opens the result viewer in a browser
 ```
 
-`npx promptfoo eval` writes `evals/last-run.json`; the bootstrap step diffs new runs against this file's stored baseline (after `agent-scaffold up` succeeds, the current pass-rate becomes the baseline). To re-baseline intentionally, delete `evals/last-run.json` and re-run.
+`npx promptfoo eval` writes `evals/last-run.json`; `bootstrap_evals` diffs new runs against this file's stored baseline. To re-baseline, delete `evals/last-run.json` and re-run.
+
+## Bootstrap
+
+`bootstrap_evals` runs an initial eval on first `agent-scaffold up`, capturing pass-rate as the baseline.
 
 ## Env vars
 
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `ANTHROPIC_API_KEY` | — | Provider credential. Required; the eval skips with a clear message if absent. |
+| `ANTHROPIC_API_KEY` | — | Provider credential. Eval skips with a clear message if absent. |
+
+## Client integration
+
+**Shell (the canonical entry point):**
+
+```bash
+cd evals
+npx promptfoo eval --config promptfooconfig.yaml --output last-run.json
+```
+
+**CI gate (GitHub Actions):**
+
+```yaml
+- name: Run evals
+  run: |
+    cd evals
+    npx promptfoo eval --output last-run.json
+    pass_rate=$(jq '[.results.results[] | select(.success)] | length / ([.results.results | length]) * 100' last-run.json)
+    if (( $(echo "$pass_rate < 90" | bc -l) )); then
+      echo "Pass rate $pass_rate% below 90% threshold"
+      exit 1
+    fi
+```
 
 ## Cloud / production
 
-Promptfoo is a dev/CI tool — there is no "production" deployment. In CI, run `npx promptfoo eval --output evals/last-run.json` and fail the job if the pass-rate drops below the manifest baseline. For richer dashboards, push results to [Promptfoo Cloud](https://promptfoo.dev/) or self-host their viewer separately.
+Dev/CI tool — no production deployment. For richer dashboards, push results to [Promptfoo Cloud](https://promptfoo.dev/) or self-host the viewer.
 
-## When to swap it
+## Troubleshoot
 
-- **→ [`eval.deepeval`](deepeval.md)** for RAG-specific metrics (faithfulness, answer relevancy, contextual precision).
-- **→ [`eval.ragas`](ragas.md)** for academic RAG benchmarking with Python-native composition.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Missing API key for provider 'anthropic'` | `ANTHROPIC_API_KEY` not in env | `export ANTHROPIC_API_KEY=sk-ant-...` or load via direnv |
+| LLM-judge cases all fail | Judge model unavailable / rate-limited | Reduce concurrency in `promptfooconfig.yaml` `defaultTest.options.maxConcurrency` |
+| Pass-rate drop unrelated to changes | Model provider drift between runs | Pin `model: claude-sonnet-4-6` exactly; do not use floating aliases |
+| `npx` slow on first run | Promptfoo not cached | One-time install: `pnpm add -D promptfoo` in the project root |
 
 ## See also
 
-- `cross-cutting/testing-strategy.md` — three-tier test strategy (unit / integration / eval).
-- `docs/recipes/restaurant-rebooking.md` — first recipe to declare `eval.promptfoo`.
+- [`cross-cutting/testing-strategy.md`](../../cross-cutting/testing-strategy.md) — three-tier test strategy
+- [`docs/recipes/restaurant-rebooking.md`](../../recipes/restaurant-rebooking.md) — recipe that declares `eval.promptfoo`
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

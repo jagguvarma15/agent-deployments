@@ -1,6 +1,7 @@
 ---
 id: queue.kafka
 kind: queue
+layer: infrastructure
 provides: [event_source, durable_log, replay]
 env_vars: [KAFKA_BOOTSTRAP_SERVERS, KAFKA_CLIENT_ID]
 docker:
@@ -19,11 +20,19 @@ docker:
     ALLOW_PLAINTEXT_LISTENER: "yes"
 probe: kafka_topic_list
 bootstrap_step: bootstrap_kafka
+provisioning_time: ~30s
+cost_tier: free
+est_tokens: 950
+card:
+  name: Apache Kafka
+  description: "Kafka 3.x in KRaft mode (no ZooKeeper) for high-throughput durable event log."
+  capabilities_provided: [event_source, durable_log, replay, consumer_groups]
+  required_credentials: []
 emit_files: []
 docs: |
-  Apache Kafka 3.x in KRaft mode (no ZooKeeper). Bootstrap step creates the
-  topics declared by the recipe via `KafkaAdminClient`. For lower throughput
-  (≤10k events/sec) prefer `queue.redis-streams`.
+  Apache Kafka 3.x in KRaft mode. Bootstrap step creates the topics declared
+  by the recipe via `KafkaAdminClient`. Pair with `queue.redis-streams`
+  instead for ≤10k events/sec workloads.
 ---
 
 # Capability: queue.kafka
@@ -32,17 +41,13 @@ docs: |
 
 **Used for:** high-throughput event source (>10k events/sec per topic), durable replay (days-to-weeks retention), multi-consumer fan-out.
 
-## Why pick this
-
-When the event-source throughput or retention requirement outgrows Redis Streams. Single-binary alternative: switch the `image:` to `redpanda/redpanda` — same capability id and bootstrap step, smaller ops footprint, slightly smaller ecosystem.
-
 ## Local setup
 
-The KRaft fragment above runs Kafka without ZooKeeper. Single broker, single port — fine for local dev, not production. The probe (`kafka_topic_list`) hits `KafkaAdminClient.list_topics()` to confirm the broker accepts admin connections.
+The KRaft fragment above runs Kafka without ZooKeeper. Single broker, single port — fine for local dev. The probe (`kafka_topic_list`) hits `KafkaAdminClient.list_topics()` to confirm the broker accepts admin connections.
 
 ## Bootstrap (post docker_up)
 
-`bootstrap_kafka` reads the recipe's [`bootstrap_config.kafka_topics`](../../recipes/SCHEMA.md#bootstrap_configkafka_topics) block (or per-capability defaults) and idempotently creates each topic:
+`bootstrap_kafka` reads the recipe's [`bootstrap_config.kafka_topics`](../../recipes/SCHEMA.md#bootstrap_configkafka_topics) block and idempotently creates each topic:
 
 ```python
 from kafka.admin import KafkaAdminClient, NewTopic
@@ -65,17 +70,61 @@ Optional dep in the generated project: `aiokafka` (Python) or `kafkajs` (TypeScr
 | `KAFKA_BOOTSTRAP_SERVERS` | `kafka:9092` (in compose) / `localhost:9092` (from host) | Broker list, comma-separated |
 | `KAFKA_CLIENT_ID` | `<project>-agent` | Producer/consumer client id for monitoring |
 
+## Client integration
+
+**Python (aiokafka):**
+
+```python
+from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
+producer = AIOKafkaProducer(bootstrap_servers=os.environ["KAFKA_BOOTSTRAP_SERVERS"])
+await producer.start()
+await producer.send_and_wait("events.in", json.dumps({"id": 1}).encode())
+
+consumer = AIOKafkaConsumer(
+    "events.in",
+    bootstrap_servers=os.environ["KAFKA_BOOTSTRAP_SERVERS"],
+    group_id="agent-worker",
+)
+await consumer.start()
+async for msg in consumer:
+    process(json.loads(msg.value))
+```
+
+**TypeScript (kafkajs):**
+
+```ts
+import { Kafka } from "kafkajs";
+const kafka = new Kafka({
+  clientId: process.env.KAFKA_CLIENT_ID!,
+  brokers: process.env.KAFKA_BOOTSTRAP_SERVERS!.split(","),
+});
+
+const producer = kafka.producer();
+await producer.connect();
+await producer.send({ topic: "events.in", messages: [{ value: JSON.stringify({ id: 1 }) }] });
+
+const consumer = kafka.consumer({ groupId: "agent-worker" });
+await consumer.subscribe({ topic: "events.in" });
+await consumer.run({ eachMessage: async ({ message }) => process(JSON.parse(message.value!.toString())) });
+```
+
 ## Cloud / production
 
 - **Managed** — Confluent Cloud, AWS MSK, Aiven Kafka. Set `KAFKA_BOOTSTRAP_SERVERS` to the broker list + SASL credentials.
 - **Self-hosted** — replication factor 3, `min.insync.replicas=2`, ACLs from day one, monitoring via Kafka Lag Exporter → Prometheus.
 
-## When to swap it
+## Troubleshoot
 
-- **→ `queue.redis-streams`** if sustained throughput is ≤5k events/sec/stream and hours-of-retention is enough. Less infra, same agent shape.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `NoBrokersAvailable` | Broker not advertising the host the client can reach | Confirm `KAFKA_CFG_ADVERTISED_LISTENERS` matches the network the client uses (compose: `kafka:9092`; host: `localhost:9092`) |
+| Topics never appear after bootstrap | `bootstrap_kafka` ran before broker was ready | Re-run `bootstrap_kafka`; raise broker healthcheck `retries:` for slow boots |
+| `UnknownTopicOrPartitionError` | Topic created in the wrong cluster | Verify producer + consumer point at the same bootstrap servers |
+| Slow consumer lag | Single broker, single partition | Add partitions (>=3) on topic recreate; scale consumers within the group |
 
 ## See also
 
-- `stack/kafka.md` — full reference including partition keys, idempotency, DLQ patterns
-- `cross-cutting/schema-evolution.md` — schema_version discipline for cross-team topics
-- `cross-cutting/dlq-operations.md` — DLQ runbook
+- [`stack/kafka.md`](../../stack/kafka.md) — full reference: partition keys, idempotency, DLQ patterns
+- [`cross-cutting/schema-evolution.md`](../../cross-cutting/schema-evolution.md) — schema_version discipline for cross-team topics
+- [`cross-cutting/dlq-operations.md`](../../cross-cutting/dlq-operations.md) — DLQ runbook
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

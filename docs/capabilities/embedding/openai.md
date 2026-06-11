@@ -1,6 +1,7 @@
 ---
 id: embedding.openai
 kind: embedding
+layer: agent
 provides: [text_embeddings]
 env_vars: [OPENAI_API_KEY]
 model: text-embedding-3-small
@@ -8,13 +9,20 @@ dimensions: 1536
 docker: null
 probe: openai_embedding_ping
 bootstrap_step: null
+provisioning_time: instant
+cost_tier: per-call
+est_tokens: 500
+card:
+  name: OpenAI Embeddings
+  description: "OpenAI text-embedding-3-small (1536 dim) for RAG ingestion and query encoding."
+  capabilities_provided: [text_embeddings]
+  required_credentials: [OPENAI_API_KEY]
 emit_files: []
 docs: |
   OpenAI's `text-embedding-3-small` as the default embedding provider for
-  RAG recipes. 1536-dim output matches the recipe-side `vector_collections`
+  RAG recipes. 1536-dim output matches recipe-side `vector_collections`
   defaults. Note: this is OpenAI for embeddings only — the primary LLM in
-  this stack remains Anthropic Claude (`stack/llm-claude.md`). Separate
-  vendors for separate jobs.
+  this stack remains Anthropic Claude.
 ---
 
 # Capability: embedding.openai
@@ -23,11 +31,12 @@ docs: |
 
 **Used for:** Generating text embeddings for vector-DB ingestion and query-side encoding.
 
-## Why pick this
+## Local setup
 
-`text-embedding-3-small` is the best-quality-per-dollar embedding model as of 2026, and 1536 dimensions matches what every recipe-side `vector_collections:` block defaults to. Cheap enough to use freely; fast enough that batch indexing is rarely the bottleneck.
+No container — the API is hosted. Add the OpenAI SDK to the generated project:
 
-The canonical stack uses Anthropic Claude for generation and OpenAI for embeddings — splitting vendors here trades a second credential for picking the best tool per job. Alternative impls swap embedding providers without affecting generation.
+- Python: `openai`
+- TypeScript: `openai`
 
 ## Wiring
 
@@ -39,21 +48,63 @@ Capabilities of `kind: embedding` are resolved by the recipe's RAG layer when `c
 |-----|---------|---------|
 | `OPENAI_API_KEY` | *(prompted)* | OpenAI API key — stored via keyring |
 
-## Probe
-
-`openai_embedding_ping` calls `/v1/embeddings` with the literal string `"healthcheck"` and asserts a 1536-dim vector comes back. Run by `agent-scaffold doctor`.
-
 ## Dimensions
 
 Pin `dimensions: 1536` end-to-end. Any `vector_db.*` capability the recipe uses must be configured with the same vector size in `bootstrap_config.vector_collections[].vector_size`.
 
-## When to swap it
+## Client integration
 
-- **→ `embedding.openai-large`** — `text-embedding-3-large` for higher recall at 3× cost; bump vector_size to 3072.
-- **→ `embedding.voyage-3`** — Voyage AI's 2026 model; competitive quality, different cost curve.
-- **→ `embedding.local-bge`** — self-hosted BGE-M3 under TEI; for offline / compliance use.
+**Python (openai):**
+
+```python
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+# Single
+resp = await client.embeddings.create(
+    model="text-embedding-3-small",
+    input="passage text",
+)
+embedding = resp.data[0].embedding  # 1536 floats
+
+# Batch (up to 2048 inputs)
+resp = await client.embeddings.create(
+    model="text-embedding-3-small",
+    input=["passage 1", "passage 2", "passage 3"],
+)
+embeddings = [d.embedding for d in resp.data]
+```
+
+**TypeScript (openai):**
+
+```ts
+import OpenAI from "openai";
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+const resp = await client.embeddings.create({
+  model: "text-embedding-3-small",
+  input: ["passage 1", "passage 2"],
+});
+const embeddings = resp.data.map((d) => d.embedding);
+```
+
+## Probe
+
+`openai_embedding_ping` calls `/v1/embeddings` with the literal string `"healthcheck"` and asserts a 1536-dim vector comes back.
+
+## Troubleshoot
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `401 Unauthorized` | Wrong key / wrong org | Recreate key in the right OpenAI org (Settings → API Keys) |
+| Embeddings dimension mismatch with vector DB | Vector DB collection created at different dim | Drop + recreate collection at 1536; or override model dim via `dimensions=512` parameter |
+| `429 Too Many Requests` | Tier rate limit | Add backoff (`tenacity`), or batch up to 2048 inputs per call |
+| Token limit exceeded on long passages | `text-embedding-3-small` cap is 8191 tokens | Chunk passages to <8000 tokens before embedding |
 
 ## See also
 
-- [`stack/llm-claude.md`](../../stack/llm-claude.md) — primary generation LLM (separate vendor).
-- [`vector_db/qdrant.md`](../vector_db/qdrant.md) — typical paired vector store.
+- [`stack/llm-claude.md`](../../stack/llm-claude.md) — primary generation LLM (separate vendor)
+- [`capabilities/vector_db/qdrant.md`](../vector_db/qdrant.md) — typical paired vector store
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

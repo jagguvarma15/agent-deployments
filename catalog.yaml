@@ -1037,6 +1037,10 @@ recipes:
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
     source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
+    source_capability: obs.langfuse
 - slug: code-review-agent
   path: docs/recipes/code-review-agent.md
   title: 'Recipe: Code Review Agent'
@@ -1140,6 +1144,10 @@ recipes:
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
     source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
+    source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
 - slug: content-pipeline
@@ -1240,6 +1248,10 @@ recipes:
   - name: LANGFUSE_PUBLIC_KEY
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
@@ -1372,6 +1384,10 @@ recipes:
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
     source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
+    source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
 - slug: docs-rag-qa
@@ -1489,6 +1505,10 @@ recipes:
   - name: LANGFUSE_PUBLIC_KEY
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
@@ -1624,6 +1644,10 @@ recipes:
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
     source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
+    source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
 - slug: memory-assistant
@@ -1743,6 +1767,10 @@ recipes:
   - name: LANGFUSE_PUBLIC_KEY
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
@@ -1872,6 +1900,10 @@ recipes:
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
     source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
+    source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
 - slug: parallel-enricher
@@ -1960,6 +1992,10 @@ recipes:
   - name: LANGFUSE_PUBLIC_KEY
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
@@ -2064,6 +2100,10 @@ recipes:
   - name: LANGFUSE_PUBLIC_KEY
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
+    source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
     source_capability: obs.langfuse
   - name: ANTHROPIC_API_KEY
     source_capability: eval.promptfoo
@@ -2266,6 +2306,10 @@ recipes:
     source_capability: obs.langfuse
   - name: LANGFUSE_SECRET_KEY
     source_capability: obs.langfuse
+  - name: LANGFUSE_NEXTAUTH_SECRET
+    source_capability: obs.langfuse
+  - name: LANGFUSE_SALT
+    source_capability: obs.langfuse
   - name: GRAFANA_URL
     source_capability: obs.grafana-stack
   - name: GRAFANA_ADMIN_PASSWORD
@@ -2288,107 +2332,311 @@ capabilities:
 - id: cache.redis
   kind: cache
   path: docs/capabilities/cache/redis.md
+  layer: infrastructure
   env_vars:
   - REDIS_URL
   docker_service: redis
   probe: redis_ping
+  provisioning_time: instant
+  cost_tier: free
+  est_tokens: 650
+  card:
+    name: Redis
+    description: Redis 7 in-memory key-value store with Streams, hashes, and pub/sub.
+    capabilities_provided:
+    - cache
+    - session_store
+    - rate_limit_backend
+    - event_source
+    required_credentials: []
 - id: durable.temporal
   kind: durable
   path: docs/capabilities/durable/temporal.md
+  layer: agent
+  requires:
+  - relational.postgres
+  bootstrap_inputs:
+    database_name: temporal
+    namespace_name: default
   env_vars:
   - TEMPORAL_HOST
   - TEMPORAL_NAMESPACE
   docker_service: temporal
   bootstrap_step: bootstrap_temporal
   probe: temporal_health
+  provisioning_time: ~60s
+  cost_tier: free
+  est_tokens: 750
+  card:
+    name: Temporal OSS
+    description: Durable-execution workflow engine for long-horizon agent tasks with checkpoint-resume, signals, and visibility.
+    capabilities_provided:
+    - durable_workflow
+    - checkpoint_resume
+    - signal_handling
+    - retry_with_dedup
+    required_credentials: []
 - id: embedding.openai
   kind: embedding
   path: docs/capabilities/embedding/openai.md
+  layer: agent
   env_vars:
   - OPENAI_API_KEY
   probe: openai_embedding_ping
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 500
+  card:
+    name: OpenAI Embeddings
+    description: OpenAI text-embedding-3-small (1536 dim) for RAG ingestion and query encoding.
+    capabilities_provided:
+    - text_embeddings
+    required_credentials:
+    - OPENAI_API_KEY
 - id: eval.deepeval
   kind: eval
   path: docs/capabilities/eval/deepeval.md
+  layer: eval
   env_vars:
   - ANTHROPIC_API_KEY
   - OPENAI_API_KEY
   bootstrap_step: bootstrap_evals
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 600
+  card:
+    name: DeepEval
+    description: Python-native LLM/RAG eval framework with pytest integration and built-in RAG metrics.
+    capabilities_provided:
+    - rag_eval
+    - pytest_runner
+    - llm_judge_scoring
+    required_credentials:
+    - ANTHROPIC_API_KEY
+    - OPENAI_API_KEY
 - id: eval.promptfoo
   kind: eval
   path: docs/capabilities/eval/promptfoo.md
+  layer: eval
   env_vars:
   - ANTHROPIC_API_KEY
   bootstrap_step: bootstrap_evals
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 700
+  card:
+    name: Promptfoo
+    description: YAML-first LLM evaluation harness with provider matrix, LLM-judge grading, and CI gating.
+    capabilities_provided:
+    - llm_eval
+    - regression_check
+    - ci_gating
+    required_credentials:
+    - ANTHROPIC_API_KEY
 - id: eval.ragas
   kind: eval
   path: docs/capabilities/eval/ragas.md
+  layer: eval
   env_vars:
   - ANTHROPIC_API_KEY
   - OPENAI_API_KEY
   bootstrap_step: bootstrap_evals
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 600
+  card:
+    name: RAGAS
+    description: Academic-style RAG benchmarking against a labeled dataset with answer/context metrics.
+    capabilities_provided:
+    - rag_eval
+    - batch_benchmark
+    - dataset_aggregation
+    required_credentials:
+    - ANTHROPIC_API_KEY
+    - OPENAI_API_KEY
 - id: frontend.nextjs-chat
   kind: frontend
   path: docs/capabilities/frontend/nextjs-chat.md
+  layer: frontend
   env_vars:
   - NEXT_PUBLIC_AGENT_URL
+  provisioning_time: ~10s
+  cost_tier: free
+  est_tokens: 650
+  card:
+    name: Next.js Chat UI
+    description: Next.js 14 (App Router) chat template wired for Vercel AI SDK streaming responses.
+    capabilities_provided:
+    - chat_ui
+    - sse_streaming
+    - tool_call_rendering
+    required_credentials: []
 - id: frontend.streamlit
   kind: frontend
   path: docs/capabilities/frontend/streamlit.md
+  layer: frontend
   env_vars:
   - AGENT_URL
+  provisioning_time: ~5s
+  cost_tier: free
+  est_tokens: 500
+  card:
+    name: Streamlit Chat UI
+    description: Single-file Streamlit chat template for Python-only stacks.
+    capabilities_provided:
+    - chat_ui
+    - sse_streaming
+    required_credentials: []
 - id: guardrail.llama-guard
   kind: guardrail
   path: docs/capabilities/guardrail/llama-guard.md
+  layer: agent
   env_vars:
   - TOGETHER_API_KEY
   probe: llama_guard_classify
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 600
+  card:
+    name: Llama Guard 3 (via Together AI)
+    description: Meta's Llama Guard 3 (8B) safety classifier for input/output policy enforcement and jailbreak detection.
+    capabilities_provided:
+    - safety_classification
+    - jailbreak_detection
+    - dual_llm_split
+    required_credentials:
+    - TOGETHER_API_KEY
 - id: host.fly
   kind: host
   path: docs/capabilities/host/fly.md
+  layer: frontend
   env_vars:
   - FLY_API_TOKEN
   - FLY_APP_NAME
   bootstrap_step: emit_deploy_configs
+  provisioning_time: ~60s
+  cost_tier: fixed-monthly
+  est_tokens: 500
+  card:
+    name: Fly.io
+    description: Container-hosted backend with per-region rollout and Fly Machines API for fine-grained scaling.
+    capabilities_provided:
+    - container_hosting
+    - global_edge
+    - multi_region
+    - ci_deploy
+    required_credentials:
+    - FLY_API_TOKEN
 - id: host.railway
   kind: host
   path: docs/capabilities/host/railway.md
+  layer: frontend
   env_vars:
   - RAILWAY_TOKEN
   - RAILWAY_PROJECT_ID
   bootstrap_step: emit_deploy_configs
+  provisioning_time: ~60s
+  cost_tier: fixed-monthly
+  est_tokens: 500
+  card:
+    name: Railway
+    description: Container-hosted backend with managed Postgres + Redis from one platform.
+    capabilities_provided:
+    - container_hosting
+    - managed_postgres
+    - managed_redis
+    - ci_deploy
+    required_credentials:
+    - RAILWAY_TOKEN
 - id: host.vercel
   kind: host
   path: docs/capabilities/host/vercel.md
+  layer: frontend
   env_vars:
   - VERCEL_TOKEN
   - VERCEL_ORG_ID
   - VERCEL_PROJECT_ID
   bootstrap_step: emit_deploy_configs
+  provisioning_time: ~30s
+  cost_tier: fixed-monthly
+  est_tokens: 550
+  card:
+    name: Vercel
+    description: Edge-hosted serverless deploy target with native Next.js + streaming-response support.
+    capabilities_provided:
+    - edge_hosting
+    - ci_deploy
+    - preview_envs
+    required_credentials:
+    - VERCEL_TOKEN
 - id: live_data.tavily
   kind: live_data
   path: docs/capabilities/live_data/tavily.md
+  layer: agent
   env_vars:
   - TAVILY_API_KEY
   probe: tavily_search_ping
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 500
+  card:
+    name: Tavily (Direct API)
+    description: Tavily web search via direct REST API — same vendor as mcp.tavily without MCP framing.
+    capabilities_provided:
+    - web_search
+    - web_extract
+    required_credentials:
+    - TAVILY_API_KEY
 - id: mcp.tavily
   kind: mcp
   path: docs/capabilities/mcp/tavily.md
+  layer: agent
   env_vars:
   - TAVILY_API_KEY
   probe: tavily_mcp_ping
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 550
+  card:
+    name: Tavily (MCP)
+    description: Tavily web search exposed as an MCP server over streamable_http transport.
+    capabilities_provided:
+    - web_search
+    - web_extract
+    required_credentials:
+    - TAVILY_API_KEY
 - id: memory_store.zep
   kind: memory_store
   path: docs/capabilities/memory_store/zep.md
+  layer: data
+  requires:
+  - relational.postgres
+  bootstrap_inputs:
+    database_name: zep
   env_vars:
   - ZEP_API_URL
   - ZEP_API_KEY
+  - ZEP_AUTH_SECRET
   docker_service: zep
   bootstrap_step: bootstrap_zep
   probe: zep_health
+  provisioning_time: ~30s
+  cost_tier: free
+  est_tokens: 700
+  card:
+    name: Zep
+    description: Long-term agent memory store with conversation summarization, session/user scoping, and semantic recall.
+    capabilities_provided:
+    - long_term_memory
+    - semantic_recall
+    - conversation_summarization
+    - session_scoping
+    required_credentials:
+    - ZEP_API_KEY
 - id: obs.grafana-stack
   kind: obs
   path: docs/capabilities/obs/grafana-stack.md
+  layer: observability
   env_vars:
   - GRAFANA_URL
   - GRAFANA_ADMIN_PASSWORD
@@ -2397,18 +2645,53 @@ capabilities:
   docker_service: grafana
   bootstrap_step: bootstrap_observability
   probe: grafana_health
+  provisioning_time: ~30s
+  cost_tier: free
+  est_tokens: 950
+  card:
+    name: Grafana stack (Grafana + Prometheus + Tempo)
+    description: Metrics + traces + dashboards for the full agent stack via OpenTelemetry.
+    capabilities_provided:
+    - metrics
+    - distributed_tracing
+    - dashboards
+    - alerting
+    required_credentials: []
 - id: obs.langfuse
   kind: obs
   path: docs/capabilities/obs/langfuse.md
+  layer: observability
+  requires:
+  - relational.postgres
+  bootstrap_inputs:
+    database_name: langfuse
   env_vars:
   - LANGFUSE_HOST
   - LANGFUSE_PUBLIC_KEY
   - LANGFUSE_SECRET_KEY
+  - LANGFUSE_NEXTAUTH_SECRET
+  - LANGFUSE_SALT
   docker_service: langfuse
+  bootstrap_step: bootstrap_langfuse
   probe: langfuse_health
+  provisioning_time: ~30s
+  cost_tier: free
+  est_tokens: 800
+  card:
+    name: Langfuse
+    description: Self-hosted LLM observability with traces, scores, and dataset-backed evaluations.
+    capabilities_provided:
+    - llm_tracing
+    - tool_call_tracing
+    - scoring
+    - eval_datasets
+    required_credentials:
+    - LANGFUSE_PUBLIC_KEY
+    - LANGFUSE_SECRET_KEY
 - id: obs.langsmith
   kind: obs
   path: docs/capabilities/obs/langsmith.md
+  layer: observability
   env_vars:
   - LANGCHAIN_API_KEY
   - LANGCHAIN_TRACING_V2
@@ -2416,25 +2699,65 @@ capabilities:
   - LANGCHAIN_ENDPOINT
   bootstrap_step: bootstrap_langsmith
   probe: langsmith_workspace
+  provisioning_time: instant
+  cost_tier: fixed-monthly
+  est_tokens: 650
+  card:
+    name: LangSmith
+    description: Hosted LLM observability for LangChain / LangGraph apps. Auto-instruments via env vars.
+    capabilities_provided:
+    - llm_tracing
+    - tool_call_tracing
+    - dataset_eval
+    required_credentials:
+    - LANGCHAIN_API_KEY
 - id: queue.kafka
   kind: queue
   path: docs/capabilities/queue/kafka.md
+  layer: infrastructure
   env_vars:
   - KAFKA_BOOTSTRAP_SERVERS
   - KAFKA_CLIENT_ID
   docker_service: kafka
   bootstrap_step: bootstrap_kafka
   probe: kafka_topic_list
+  provisioning_time: ~30s
+  cost_tier: free
+  est_tokens: 950
+  card:
+    name: Apache Kafka
+    description: Kafka 3.x in KRaft mode (no ZooKeeper) for high-throughput durable event log.
+    capabilities_provided:
+    - event_source
+    - durable_log
+    - replay
+    - consumer_groups
+    required_credentials: []
 - id: queue.redis-streams
   kind: queue
   path: docs/capabilities/queue/redis-streams.md
+  layer: infrastructure
+  requires:
+  - cache.redis
   env_vars:
   - REDIS_URL
   bootstrap_step: bootstrap_kafka
   probe: redis_ping
+  provisioning_time: instant
+  cost_tier: free
+  est_tokens: 550
+  card:
+    name: Redis Streams
+    description: Redis Streams as the event source — log-shaped data type with consumer groups and ACK.
+    capabilities_provided:
+    - event_source
+    - consumer_groups
+    - replay_within_retention
+    required_credentials: []
 - id: relational.postgres
   kind: relational
   path: docs/capabilities/relational/postgres.md
+  layer: infrastructure
   env_vars:
   - DATABASE_URL
   - POSTGRES_USER
@@ -2442,21 +2765,59 @@ capabilities:
   - POSTGRES_DB
   docker_service: postgres
   probe: postgres_select_one
+  provisioning_time: ~10s
+  cost_tier: free
+  est_tokens: 850
+  card:
+    name: PostgreSQL
+    description: Postgres 16 with JSONB, transactions, and pgvector extension support.
+    capabilities_provided:
+    - relational_store
+    - transactions
+    - json_store
+    - schema_evolution
+    required_credentials: []
 - id: rerank.cohere
   kind: rerank
   path: docs/capabilities/rerank/cohere.md
+  layer: agent
   env_vars:
   - COHERE_API_KEY
   probe: cohere_rerank_ping
+  provisioning_time: instant
+  cost_tier: per-call
+  est_tokens: 500
+  card:
+    name: Cohere Rerank v3.5
+    description: Late-stage rerank step that re-orders retrieval results by relevance to the query.
+    capabilities_provided:
+    - search_result_reranking
+    - multilingual_rerank
+    required_credentials:
+    - COHERE_API_KEY
 - id: sandbox.e2b
   kind: sandbox
   path: docs/capabilities/sandbox/e2b.md
+  layer: agent
   env_vars:
   - E2B_API_KEY
   probe: e2b_session_open
+  provisioning_time: ~5s
+  cost_tier: per-call
+  est_tokens: 550
+  card:
+    name: E2B Code Interpreter
+    description: Hosted sandbox running LLM-emitted code in an isolated container with file artifacts.
+    capabilities_provided:
+    - code_execution
+    - isolated_runtime
+    - file_artifacts
+    required_credentials:
+    - E2B_API_KEY
 - id: vector_db.chroma
   kind: vector_db
   path: docs/capabilities/vector_db/chroma.md
+  layer: data
   env_vars:
   - CHROMA_URL
   - CHROMA_TENANT
@@ -2464,22 +2825,62 @@ capabilities:
   docker_service: chroma
   bootstrap_step: bootstrap_vector_db
   probe: chroma_heartbeat
+  provisioning_time: ~10s
+  cost_tier: free
+  est_tokens: 600
+  card:
+    name: Chroma
+    description: Open-source vector DB with single-container deploy and HTTP-only API.
+    capabilities_provided:
+    - vector_search
+    - collection_init
+    required_credentials: []
 - id: vector_db.pgvector
   kind: vector_db
   path: docs/capabilities/vector_db/pgvector.md
+  layer: data
+  requires:
+  - relational.postgres
+  bootstrap_inputs:
+    vector_extension: vector
+    default_table_name: chunks
+    default_vector_size: 1536
   env_vars:
   - DATABASE_URL
   bootstrap_step: bootstrap_vector_db
   probe: postgres_select_one
+  provisioning_time: ~5s
+  cost_tier: free
+  est_tokens: 600
+  card:
+    name: pgvector
+    description: Postgres extension adding a `vector` data type with cosine/euclidean/dot-product distance operators.
+    capabilities_provided:
+    - vector_search
+    - sql_join_on_vectors
+    required_credentials: []
 - id: vector_db.qdrant
   kind: vector_db
   path: docs/capabilities/vector_db/qdrant.md
+  layer: data
   env_vars:
   - QDRANT_URL
   - QDRANT_API_KEY
   docker_service: qdrant
   bootstrap_step: bootstrap_vector_db
   probe: qdrant_collections
+  provisioning_time: ~10s
+  cost_tier: free
+  est_tokens: 750
+  card:
+    name: Qdrant
+    description: Self-hosted vector DB with REST + gRPC endpoints, named collections, and payload filtering.
+    capabilities_provided:
+    - vector_search
+    - hybrid_search
+    - payload_filtering
+    - collection_init
+    required_credentials: []
 frameworks:
 - id: claude_agent_sdk_python
   language: python

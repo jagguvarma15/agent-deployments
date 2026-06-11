@@ -1,11 +1,20 @@
 ---
 id: host.railway
 kind: host
+layer: frontend
 provides: [container_hosting, managed_postgres, managed_redis]
 env_vars: [RAILWAY_TOKEN, RAILWAY_PROJECT_ID]
 docker: null
 probe: null
 bootstrap_step: emit_deploy_configs
+provisioning_time: ~60s
+cost_tier: fixed-monthly
+est_tokens: 500
+card:
+  name: Railway
+  description: "Container-hosted backend with managed Postgres + Redis from one platform."
+  capabilities_provided: [container_hosting, managed_postgres, managed_redis, ci_deploy]
+  required_credentials: [RAILWAY_TOKEN]
 emit_files:
   - source: templates/railway/railway.json
     dest: railway.json
@@ -17,10 +26,10 @@ deploy_configs:
     dashboard_url: "https://railway.app/dashboard"
     config_file: railway.json
 docs: |
-  Railway as the cloud host. Strong fit when the project ships both a backend
-  service and managed Postgres/Redis. The emit_deploy_configs step writes
-  `railway.json`; `agent-scaffold deploy --target railway` runs `railway up`
-  (dry-run by default).
+  Railway as the cloud host. Pairs backend + managed Postgres/Redis in one
+  platform. The emit_deploy_configs step writes `railway.json`;
+  `agent-scaffold deploy --target railway` runs `railway up` (dry-run by
+  default).
 ---
 
 # Capability: host.railway
@@ -28,10 +37,6 @@ docs: |
 > Vendor docs: https://docs.railway.app. CLI install: `brew install railway` or `npm i -g @railway/cli`.
 
 **Used for:** container-hosted backend + managed Postgres/Redis from one platform.
-
-## Why pick this
-
-When the project has a Python or Node backend AND wants managed Postgres/Redis without provisioning them separately. Railway's UX for stacking services is one of the smoothest in the platform-as-a-service space. Trade-off: pricier per-resource than DIY Fly/Render at scale.
 
 ## Local setup
 
@@ -56,12 +61,34 @@ agent-scaffold deploy --target railway --yes        # runs `railway up`
 | `RAILWAY_TOKEN` | *(secret)* | API token from `railway login` — stored via keyring |
 | `RAILWAY_PROJECT_ID` | *(per project)* | Set by `railway link`; lives in `.railway/config.json` |
 
-## When to swap it
+## Client integration
 
-- **→ `host.vercel`** if the project is frontend-only.
-- **→ `host.fly`** for global edge with finer-grained pricing at scale.
+Railway is a deploy target — no runtime client wiring. The CLI surface:
+
+```bash
+# Provision managed Postgres:
+railway add --plugin postgres
+
+# Wire its connection string into your service:
+railway variables --service backend --set DATABASE_URL='${{Postgres.DATABASE_URL}}'
+
+# Deploy + tail:
+railway up
+railway logs --service backend
+```
+
+Railway's `${{ServiceName.VAR}}` syntax wires inter-service vars automatically — DATABASE_URL from the Postgres plugin lands in the backend service without manual paste.
+
+## Troubleshoot
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Build failed: Dockerfile not found` | `railway.json` builder set to Dockerfile but file is missing | Ensure `Dockerfile` is committed at the path railway.json declares (default: project root) |
+| Postgres plugin not visible to service | Plugin added but not wired | `railway variables --service backend --set DATABASE_URL='${{Postgres.DATABASE_URL}}'` |
+| Cold-start latency for first request | Free tier sleeps idle services | Upgrade to a paid plan or use a health-check pinger |
+| Logs cut off mid-line | Default log retention | `railway logs --service backend --json` exports the full structured log; archive externally |
 
 ## See also
 
-- agent-scaffold Phase 4 brief — deploy verb internals
-- `capabilities/relational/postgres.md` — Railway-managed Postgres uses the same `DATABASE_URL` shape
+- [`capabilities/relational/postgres.md`](../relational/postgres.md) — Railway-managed Postgres uses the same `DATABASE_URL` shape
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

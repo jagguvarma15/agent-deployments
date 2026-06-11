@@ -1,11 +1,20 @@
 ---
 id: eval.ragas
 kind: eval
+layer: eval
 provides: [eval_runner, rag_metrics, benchmark]
 env_vars: [ANTHROPIC_API_KEY, OPENAI_API_KEY]
 docker: null
 probe: null
 bootstrap_step: bootstrap_evals
+provisioning_time: instant
+cost_tier: per-call
+est_tokens: 600
+card:
+  name: RAGAS
+  description: "Academic-style RAG benchmarking against a labeled dataset with answer/context metrics."
+  capabilities_provided: [rag_eval, batch_benchmark, dataset_aggregation]
+  required_credentials: [ANTHROPIC_API_KEY, OPENAI_API_KEY]
 emit_files: []
 docs: |
   RAGAS for academic-style RAG benchmarking — reference-answer comparison,
@@ -18,12 +27,6 @@ docs: |
 > Deep reference: [`stack/eval-deepeval-ragas-promptfoo.md`](../../stack/eval-deepeval-ragas-promptfoo.md). This page is the provisioning contract.
 
 **Used for:** RAG evaluation against a labeled dataset with academic metrics (answer correctness, semantic similarity, context precision/recall, faithfulness).
-
-## Why pick this
-
-RAGAS is the right fit when you have a *labeled* dataset (question + reference answer) and want metrics aligned with academic RAG benchmarks. It runs as a batch job, scores every `(question, retrieved-context, generated-answer)` tuple, and aggregates per-dataset. [`eval.deepeval`](deepeval.md) is closer to a unit-test shape; RAGAS is closer to a benchmark shape.
-
-Pick this when reporting eval results externally, comparing against published benchmarks, or when your test set has hundreds of cases (RAGAS amortizes overhead better than per-case runners).
 
 ## Local setup
 
@@ -38,25 +41,54 @@ The labeled dataset typically lives at `tests/eval/dataset.jsonl` with one JSON 
 
 ## Bootstrap (post docker_up)
 
-`bootstrap_evals` (shared with `eval.promptfoo` and `eval.deepeval`) runs the initial benchmark on the labeled dataset and stores the per-metric averages in `manifest.answers["eval_baseline"]`. CI compares subsequent runs against these baselines.
+`bootstrap_evals` runs the initial benchmark and stores per-metric averages in `manifest.answers["eval_baseline"]`. CI compares subsequent runs against the baselines.
 
 ## Env vars
 
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `ANTHROPIC_API_KEY` | — | The model under test |
-| `OPENAI_API_KEY` | — | Required for RAGAS's reference-comparison metrics (semantic similarity, answer correctness) |
+| `OPENAI_API_KEY` | — | Required for RAGAS's reference-comparison metrics |
+
+## Client integration
+
+**Python (batch benchmark):**
+
+```python
+from ragas import evaluate
+from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
+from datasets import Dataset
+
+# Load labeled dataset
+rows = [json.loads(line) for line in open("tests/eval/dataset.jsonl")]
+ds = Dataset.from_dict({
+    "question":     [r["question"] for r in rows],
+    "answer":       [run_agent(r["question"]) for r in rows],
+    "contexts":     [r["contexts"] for r in rows],
+    "ground_truth": [r["ground_truth"] for r in rows],
+})
+
+result = evaluate(ds, metrics=[
+    faithfulness, answer_relevancy, context_precision, context_recall,
+])
+print(result.to_pandas().describe())
+```
 
 ## Cloud / production
 
-Dev/CI tool. No production deployment. Reports are written as JSON; CI gates on per-metric thresholds set in the eval config (typical: `answer_correctness >= baseline - 0.05`, `faithfulness >= 0.9`).
+Dev/CI tool — no production deployment. Reports written as JSON; CI gates on per-metric thresholds set in the eval config.
 
-## When to swap it
+## Troubleshoot
 
-- **→ [`eval.promptfoo`](promptfoo.md)** for non-RAG or grid-shaped evaluation.
-- **→ [`eval.deepeval`](deepeval.md)** for `pytest`-shaped per-case evaluation without a labeled dataset.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Missing field 'contexts'` | Dataset row lacks the contexts list | Every row needs `question`, `answer`, `contexts[]`, `ground_truth` — re-emit dataset |
+| Eval takes hours | Sequential scorer calls | Set `evaluate(..., raise_exceptions=False, max_workers=8)` for parallelism |
+| `answer_correctness` consistently low | Reference answers too specific | RAGAS uses semantic similarity; broader ground-truth phrasing improves scores |
+| Out-of-memory on large datasets | All rows loaded in memory | Stream via `Dataset.from_generator` or batch into chunks of 100 |
 
 ## See also
 
-- `stack/eval-deepeval-ragas-promptfoo.md` — depth on the three-eval compound pick.
-- `cross-cutting/testing-strategy.md` — three-tier test strategy.
+- [`stack/eval-deepeval-ragas-promptfoo.md`](../../stack/eval-deepeval-ragas-promptfoo.md) — depth on the three-eval pick
+- [`cross-cutting/testing-strategy.md`](../../cross-cutting/testing-strategy.md) — three-tier test strategy
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics
