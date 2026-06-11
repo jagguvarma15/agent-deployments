@@ -1,6 +1,7 @@
 ---
 id: cache.redis
 kind: cache
+layer: infrastructure
 provides: [cache, session_store, rate_limit_backend]
 env_vars: [REDIS_URL]
 docker:
@@ -15,10 +16,18 @@ docker:
     retries: 5
 probe: redis_ping
 bootstrap_step: null
+provisioning_time: instant
+cost_tier: free
+est_tokens: 650
+card:
+  name: Redis
+  description: "Redis 7 in-memory key-value store with Streams, hashes, and pub/sub."
+  capabilities_provided: [cache, session_store, rate_limit_backend, event_source]
+  required_credentials: []
 emit_files: []
 docs: |
-  Redis 7 for cache, session storage, and rate-limit counters. No post-up
-  bootstrap needed — `docker compose up` is sufficient.
+  Redis 7 for cache, session storage, rate-limit counters, and (via Streams)
+  low-throughput event source. No post-up bootstrap needed.
 ---
 
 # Capability: cache.redis
@@ -27,17 +36,13 @@ docs: |
 
 **Used for:** rate-limit backend, session cache, transient agent state, optional event source via Streams.
 
-## Why pick this
-
-Default cache pick. One container, one port, one volume. Doubles as a rate-limit backend (slowapi / express-rate-limit), a session store, and — via Streams — a low-throughput event source. Most agents that need any kind of ephemeral key-value state want this.
-
 ## Local setup
 
 The docker fragment above is merged into `docker-compose.yml`. Redis-cli probe runs `PING` on the container.
 
 ## Bootstrap
 
-None. Redis needs no post-up initialization for cache / session-store workloads. If you're using Redis Streams as the event source, pair this capability with `queue.redis-streams`, which adds stream + consumer-group creation.
+None. Redis needs no post-up initialization for cache / session-store workloads. For Streams as an event source, pair this capability with [`queue.redis-streams`](../queue/redis-streams.md), which adds stream + consumer-group creation.
 
 ## Env vars
 
@@ -45,19 +50,44 @@ None. Redis needs no post-up initialization for cache / session-store workloads.
 |-----|---------|---------|
 | `REDIS_URL` | `redis://localhost:6379` | Connection string used by all clients |
 
+## Client integration
+
+**Python (redis-py async):**
+
+```python
+import redis.asyncio as redis
+r = redis.from_url(os.environ["REDIS_URL"], decode_responses=True)
+
+await r.set("session:abc123", json.dumps({"user_id": 42}), ex=3600)
+session = json.loads(await r.get("session:abc123"))
+```
+
+**TypeScript (ioredis):**
+
+```ts
+import Redis from "ioredis";
+const r = new Redis(process.env.REDIS_URL!);
+
+await r.set("session:abc123", JSON.stringify({ userId: 42 }), "EX", 3600);
+const session = JSON.parse((await r.get("session:abc123"))!);
+```
+
 ## Cloud / production
 
 - **Managed** — Upstash, Redis Enterprise Cloud, AWS ElastiCache. Same `REDIS_URL` shape.
 - **Self-hosted at scale** — Redis Sentinel for HA; Redis Cluster for sharded throughput. Enable `appendonly yes` if you cannot tolerate event loss on restart.
 
-## When to swap it
+## Troubleshoot
 
-- **→ Valkey** drop-in (Redis fork, MIT-licensed) — same env var, same client libraries.
-- **→ DragonflyDB** for higher-throughput single-node workloads.
-
-Capability id stays `cache.redis` for both — substitution happens at image-tag level in a recipe override, not at capability level.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `connection refused 6379` | Container not up yet | `docker compose logs redis` — wait for "Ready to accept connections" |
+| `OOM command not allowed when used memory > 'maxmemory'` | Memory cap reached | Bump `maxmemory` via Compose env; review TTLs and eviction policy |
+| `NOAUTH Authentication required` | `REDIS_URL` missing password component | Add `:password@` segment to the URL (cloud Redis usually requires it) |
+| `WRONGTYPE Operation against a key holding the wrong kind of value` | Same key reused across data types | Use distinct key prefixes per type (`session:*`, `stream:*`, `cache:*`) |
 
 ## See also
 
-- `stack/cache-redis.md` — full reference including Redis Streams operations
-- `capabilities/queue/redis-streams.md` — Streams as an event source
+- [`stack/cache-redis.md`](../../stack/cache-redis.md) — full reference, Streams operations
+- [`capabilities/queue/redis-streams.md`](../queue/redis-streams.md) — Streams as an event source
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics
