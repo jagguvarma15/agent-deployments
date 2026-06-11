@@ -1,30 +1,34 @@
 ---
 id: frontend.streamlit
 kind: frontend
+layer: frontend
 provides: [chat_ui]
 env_vars: [AGENT_URL]
 docker: null
 probe: null
 bootstrap_step: null
+provisioning_time: ~5s
+cost_tier: free
+est_tokens: 500
+card:
+  name: Streamlit Chat UI
+  description: "Single-file Streamlit chat template for Python-only stacks."
+  capabilities_provided: [chat_ui, sse_streaming]
+  required_credentials: []
 emit_files:
   - source: templates/streamlit/**
     dest: frontend/
 docs: |
   Streamlit chat template for Python-only stacks. Single-file UI with
   `st.chat_message` rendering and SSE streaming. Copied verbatim into
-  frontend/ during generation; template tree lives next to this file under
-  templates/streamlit/.
+  frontend/ during generation.
 ---
 
 # Capability: frontend.streamlit
 
 > Template tree: `templates/streamlit/` (sits next to this file). Vendor docs: https://docs.streamlit.io.
 
-**Used for:** prototype chat UI for Python agents, when the goal is "I want a UI in one file with no Node."
-
-## Why pick this
-
-Single Python file, zero JavaScript, `streamlit run` and you're done. Trade-off: less polished than Next.js, weaker streaming UX, no production hosting story comparable to Vercel.
+**Used for:** chat UI for Python agents in a single file with no Node toolchain.
 
 ## Local setup
 
@@ -46,18 +50,54 @@ streamlit run streamlit_app.py        # http://localhost:8501
 |-----|---------|---------|
 | `AGENT_URL` | `http://localhost:8000` | Backend agent endpoint |
 
+## Client integration
+
+The template ships with the agent-call wiring. The relevant glue:
+
+```python
+# frontend/streamlit_app.py (excerpt)
+import streamlit as st
+import httpx
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for msg in st.session_state.messages:
+    st.chat_message(msg["role"]).write(msg["content"])
+
+if prompt := st.chat_input("Ask the agent..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.chat_message("user").write(prompt)
+
+    with st.chat_message("assistant"):
+        placeholder = st.empty()
+        text = ""
+        with httpx.stream("POST", f"{os.environ['AGENT_URL']}/agent",
+                          json={"question": prompt}, timeout=120) as r:
+            for chunk in r.iter_text():
+                text += chunk
+                placeholder.markdown(text)
+    st.session_state.messages.append({"role": "assistant", "content": text})
+```
+
 ## Cloud / production
 
 - **Streamlit Community Cloud** — free for prototypes; deploy via GitHub integration.
-- **Self-hosted** — run via `streamlit run` behind an NGINX proxy; CSRF/auth need separate handling.
+- **Self-hosted** — `streamlit run` behind NGINX; CSRF/auth handled separately.
 
-Not paired with `host.vercel` (Vercel doesn't host Python apps natively). Use `host.fly` or `host.railway` for Streamlit deployment.
+Pair with [`host.fly`](../host/fly.md) or [`host.railway`](../host/railway.md) for production deploys (Vercel doesn't host Python natively).
 
-## When to swap it
+## Troubleshoot
 
-- **→ `frontend.nextjs-chat`** when the prototype works and you want a real production UI.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Connection refused 8000` | Backend not yet running | Bring backend up first; verify `AGENT_URL` matches |
+| Streaming chunks not appearing | httpx `iter_text` blocks per chunk | Confirm backend writes SSE-style (small chunks, flushed); not a single buffered write |
+| Streamlit re-runs on every keystroke | Default behavior | Use `st.chat_input` (not `st.text_input`) — it batches submission on Enter |
+| Session state lost on tab refresh | Streamlit session state is per-tab | Persist to `cache.redis` if cross-session continuity matters |
 
 ## See also
 
 - `templates/streamlit/README.md` — template internals
-- `capabilities/host/fly.md` — natural deploy target for Streamlit
+- [`capabilities/host/fly.md`](../host/fly.md) — natural deploy target
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics
