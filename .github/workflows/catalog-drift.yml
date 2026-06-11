@@ -56,13 +56,7 @@ jobs:
         run: pip install -r scripts/requirements.txt
 
       - name: Regenerate catalog
-        # --allow-missing-required downgrades the v0.3 "missing required field"
-        # checks (layer, card, cost_tier on capabilities; runtime_modes,
-        # smoke_test, cost_profile on recipes) to warnings while the capability
-        # + recipe content migration is in flight. Remove the flag once the
-        # content catches up to the schema (see the recipes/capabilities
-        # migration PRs).
-        run: python scripts/generate_catalog.py --allow-missing-required --out /tmp/catalog.yaml
+        run: python scripts/generate_catalog.py --out /tmp/catalog.yaml
 
       - name: Diff against committed catalog
         run: |
