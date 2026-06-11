@@ -86,6 +86,61 @@ Mastra emits OpenTelemetry spans for agent runs, tool calls, and workflow steps 
 - **Memory** — First-class memory support with built-in storage backends.
 - **Multi-Agent** — Agent handoffs via workflows. Agents can delegate to other agents.
 
+## MCP integration
+
+Mastra ships `MCPClient` in `@mastra/mcp`. Connect to one or more MCP servers, then pass the discovered tools dict directly to a Mastra agent.
+
+**Streamable HTTP transport (the `mcp.tavily` capability):**
+
+```ts
+import { Mastra } from "@mastra/core";
+import { Agent } from "@mastra/core/agent";
+import { MCPClient } from "@mastra/mcp";
+import { anthropic } from "@ai-sdk/anthropic";
+
+const mcp = new MCPClient({
+  servers: {
+    tavily: {
+      url: new URL("https://mcp.tavily.com/mcp/"),
+      requestInit: {
+        headers: { Authorization: `Bearer ${process.env.TAVILY_API_KEY}` },
+      },
+    },
+  },
+});
+
+const tools = await mcp.getTools();
+
+const researchAgent = new Agent({
+  name: "research",
+  instructions: "You are a research assistant. Use tavily.tavily_search to find current information.",
+  model: anthropic("claude-sonnet-4-6"),
+  tools,
+});
+
+const mastra = new Mastra({ agents: { researchAgent } });
+
+const result = await researchAgent.generate(
+  "Compare GraphQL vs gRPC for streaming workloads."
+);
+console.log(result.text);
+```
+
+**Stdio transport:**
+
+```ts
+const mcp = new MCPClient({
+  servers: {
+    postgres: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-postgres", process.env.DATABASE_URL!],
+    },
+  },
+});
+```
+
+Tools discovered by `mcp.getTools()` retain their server prefix in the tool name (`tavily.tavily_search`); reference them by that prefixed name in agent instructions.
+
 ## Version notes
 
 Pre-1.0 line; the `^0.1.0` floor unlocks the agents + workflows + memory triad recipes assume, but the surface still moves between minors. Pin tight.
