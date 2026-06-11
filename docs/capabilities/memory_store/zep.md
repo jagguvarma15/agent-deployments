@@ -1,8 +1,12 @@
 ---
 id: memory_store.zep
 kind: memory_store
+layer: data
+requires: [relational.postgres]
+bootstrap_inputs:
+  database_name: zep
 provides: [long_term_memory, semantic_recall, conversation_summarization]
-env_vars: [ZEP_API_URL, ZEP_API_KEY]
+env_vars: [ZEP_API_URL, ZEP_API_KEY, ZEP_AUTH_SECRET]
 docker:
   service: zep
   image: ghcr.io/getzep/zep:latest
@@ -20,13 +24,20 @@ docker:
     retries: 5
 probe: zep_health
 bootstrap_step: bootstrap_zep
+provisioning_time: ~30s
+cost_tier: free
+est_tokens: 700
+card:
+  name: Zep
+  description: "Long-term agent memory store with conversation summarization, session/user scoping, and semantic recall."
+  capabilities_provided: [long_term_memory, semantic_recall, conversation_summarization, session_scoping]
+  required_credentials: [ZEP_API_KEY]
 emit_files: []
 docs: |
   Zep as the long-term memory store for `primitives: [memory]` recipes.
-  Zep persists conversation history, summarizes long threads into facts, and
-  exposes semantic search over the agent's recall surface. The OSS image runs
-  alongside Postgres in compose. For the SaaS alternative, swap to
-  `memory_store.zep-cloud`.
+  Persists conversation history, summarizes long threads into facts, and
+  exposes semantic search over the agent's recall surface. OSS image runs
+  alongside Postgres in compose.
 ---
 
 # Capability: memory_store.zep
@@ -35,17 +46,19 @@ docs: |
 
 **Used for:** Persistent agent memory across sessions — conversation history, summarized facts, semantic recall.
 
-## Why pick this
-
-When a recipe declares `primitives: [memory]`, it needs a backing store. Zep is the most agent-native option as of 2026 — built-in summarization (no separate LLM call from the agent code), session/user scoping, and a semantic-search index over both messages and derived facts.
-
-Lighter alternatives: `memory_store.mem0` (planned), `memory_store.letta` (planned, formerly MemGPT). Heaviest (and most flexible): use `vector_db.qdrant` directly and roll your own memory primitives.
-
 ## Local setup
 
-The compose fragment runs Zep against the existing Postgres. The bootstrap step creates the `zep` database on Postgres if missing and calls Zep's `/api/v1/users` endpoint to create the per-tenant user record (or no-op if it exists).
+The compose fragment runs Zep against the existing Postgres. The bootstrap step creates the `zep` database and the per-tenant user record on first run.
 
 Web admin: `http://localhost:8000/admin`. Rotate `ZEP_AUTH_SECRET` off the default in production.
+
+## Bootstrap (post docker_up)
+
+`bootstrap_zep`:
+
+1. Ensures the `zep` Postgres database exists.
+2. Waits for Zep's `/healthz` to return OK.
+3. Calls Zep to create the per-tenant user.
 
 ## Env vars
 
@@ -55,22 +68,70 @@ Web admin: `http://localhost:8000/admin`. Rotate `ZEP_AUTH_SECRET` off the defau
 | `ZEP_API_KEY` | *(generated)* | API key issued by Zep on first boot |
 | `ZEP_AUTH_SECRET` | `change-me` | JWT signing secret — **must rotate** |
 
-## Bootstrap
+## Client integration
 
-`bootstrap_zep` (a) ensures the `zep` Postgres database exists, (b) waits for Zep's health endpoint, (c) calls Zep to create the per-tenant user.
+**Python (zep-python):**
+
+```python
+from zep_python.client import AsyncZep
+
+zep = AsyncZep(api_key=os.environ["ZEP_API_KEY"], base_url=os.environ["ZEP_API_URL"])
+
+# Add user + session
+await zep.user.add(user_id="user-1", email="user@example.com")
+await zep.memory.add_session(session_id="session-1", user_id="user-1")
+
+# Persist message history
+await zep.memory.add(
+    session_id="session-1",
+    messages=[{"role": "user", "content": "What's the GraphQL vs gRPC debate?"}],
+)
+
+# Retrieve with semantic search
+results = await zep.memory.search_sessions(
+    session_id="session-1",
+    text="streaming APIs",
+    limit=5,
+)
+```
+
+**TypeScript (@getzep/zep-cloud):**
+
+```ts
+import { ZepClient } from "@getzep/zep-cloud";
+
+const zep = new ZepClient({ apiKey: process.env.ZEP_API_KEY!, baseURL: process.env.ZEP_API_URL });
+
+await zep.user.add({ userId: "user-1", email: "user@example.com" });
+await zep.memory.addSession({ sessionId: "session-1", userId: "user-1" });
+
+await zep.memory.add("session-1", {
+  messages: [{ role: "user", content: "What's the GraphQL vs gRPC debate?" }],
+});
+
+const results = await zep.memory.searchSessions({
+  sessionId: "session-1",
+  text: "streaming APIs",
+  limit: 5,
+});
+```
 
 ## Cloud / production
 
 - **Zep Cloud** at https://app.getzep.com — managed. Set `ZEP_API_URL=https://api.getzep.com` and provide the cloud key.
-- **Self-hosted production** — separate Postgres for Zep, rotate `ZEP_AUTH_SECRET`, set `ZEP_AUTH_REQUIRED=true` (the default).
+- **Self-hosted production** — separate Postgres for Zep, rotate `ZEP_AUTH_SECRET`, keep `ZEP_AUTH_REQUIRED=true`.
 
-## When to swap it
+## Troubleshoot
 
-- **→ `memory_store.zep-cloud`** — managed Zep, same API surface.
-- **→ `memory_store.mem0`** — lighter weight, less summarization machinery.
-- **→ `vector_db.qdrant`** — roll your own memory primitives over a raw vector store.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `connection refused 8000` | Zep not up yet | `docker compose logs zep` — wait for "Server listening" |
+| `database "zep" does not exist` | bootstrap_zep didn't run | `docker compose exec postgres createdb -U agent zep` |
+| `401 unauthorized` (cloud) | Wrong key tier | Cloud keys are project-scoped; recreate per project |
+| Summarization quality poor | Default summarizer uses small model | Configure a stronger summarizer via Zep env vars (see vendor docs) |
 
 ## See also
 
-- [`vendored/blueprints/primitives/memory/overview.md`](../../../vendored/blueprints/primitives/memory/overview.md) — pattern-level guidance.
-- [`relational/postgres.md`](../relational/postgres.md) — required dependency.
+- [`vendored/blueprints/primitives/memory/overview.md`](../../../vendored/blueprints/primitives/memory/overview.md) — primitive overview
+- [`capabilities/relational/postgres.md`](../relational/postgres.md) — required dependency
+- [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics
