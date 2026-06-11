@@ -3,6 +3,31 @@ status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: plan_and_execute
 primitives: [tool_use]
+runtime_modes:
+  default:
+    description: "Anthropic Claude + E2B sandbox for running test repros."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM (drop the sandbox; use local Docker-in-Docker)."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+      sandbox.e2b: sandbox.local-docker
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/review \
+      -H 'content-type: application/json' \
+      -d '{"diff_url":"https://example.com/test.diff"}'
+  assert_jq: '.findings | length >= 0'
+cost_profile:
+  tier: medium
+  sources: [anthropic, e2b]
+  typical_run_usd: 0.08
+model_recommendation: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+  MAX_STEPS: 10
+est_tokens: 4500
 required_files:
   - Dockerfile
   - docker-compose.yml
