@@ -8,10 +8,9 @@ runtime_modes:
     description: "Anthropic Claude + Zep for memory, OpenAI for embeddings."
     swaps: {}
   local_only:
-    description: "Self-hosted vLLM + Zep (OSS image) + BGE embeddings."
+    description: "Self-hosted vLLM + Zep (OSS image). Embeddings stay on OpenAI for now."
     swaps:
       stack/llm-claude: stack/llm-local-vllm
-      embedding.openai: embedding.local-bge
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |

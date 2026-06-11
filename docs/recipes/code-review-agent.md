@@ -8,10 +8,9 @@ runtime_modes:
     description: "Anthropic Claude + E2B sandbox for running test repros."
     swaps: {}
   local_only:
-    description: "Self-hosted vLLM (drop the sandbox; use local Docker-in-Docker)."
+    description: "Self-hosted vLLM. Sandbox stays on E2B (no fully-local alternative yet)."
     swaps:
       stack/llm-claude: stack/llm-local-vllm
-      sandbox.e2b: sandbox.local-docker
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |
