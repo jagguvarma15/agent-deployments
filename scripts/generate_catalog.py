@@ -79,13 +79,60 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
-GENERATOR_VERSION = "1.1.0"
+GENERATOR_VERSION = "1.2.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
+SUGGESTIONS_ROOT = DOCS_ROOT / "suggestions"
 
 VENDORED_BLUEPRINTS_DIR = REPO_ROOT / "vendored" / "blueprints"
 DEFAULT_BLUEPRINTS_CATALOG_URL = str(VENDORED_BLUEPRINTS_DIR / "patterns-catalog.yaml")
+
+# ---------------------------------------------------------------------------
+# Bootstrap-sequencing contract. Every capability declares which layer it
+# belongs to via `layer:` in its frontmatter; consumers run bootstrap steps
+# layer-by-layer in this order. See MANIFEST_SCHEMA.md § "LAYER_ORDER" for
+# the full semantics.
+# ---------------------------------------------------------------------------
+
+LAYER_ORDER: list[tuple[str, str]] = [
+    (
+        "infrastructure",
+        "Stateful services with own healthchecks (Postgres, Redis, Kafka, vector DBs, Temporal).",
+    ),
+    (
+        "schema",
+        "Schema migrations + initial DDL on the infrastructure layer (alembic upgrade head, prisma migrate deploy).",
+    ),
+    (
+        "data",
+        "Data-shape provisioning (vector collections, kafka topics, redis streams). Reads bootstrap_inputs from upstream caps.",
+    ),
+    (
+        "identity",
+        "User / tenant / service-account provisioning. Empty in MVP recipes; reserved for auth provider bootstrap.",
+    ),
+    (
+        "observability",
+        "Tracing + log-aggregation backends (Langfuse, Langsmith, Grafana stack). Often `requires: [relational]`.",
+    ),
+    (
+        "eval",
+        "Eval harnesses (promptfoo, deepeval, ragas) — config + golden datasets prepped before the agent boots.",
+    ),
+    (
+        "agent",
+        "The agent process itself. Last to boot; first to be smoke-tested.",
+    ),
+    (
+        "frontend",
+        "User-facing UI / chat surface. Optional; only present when the recipe declares a frontend capability.",
+    ),
+]
+LAYER_IDS = frozenset(layer_id for layer_id, _ in LAYER_ORDER)
+
+VALID_COST_TIERS = frozenset(["free", "fixed-monthly", "per-call"])
+VALID_RECIPE_COST_TIERS = frozenset(["free", "low", "medium", "high"])
 """Default source for the blueprints catalog. Reads the vendored snapshot at
 ``vendored/blueprints/patterns-catalog.yaml``. The vendored tree is managed
 by ``vendir`` (see ``vendir.yml``). Override via ``--blueprints-catalog-url``
@@ -176,17 +223,28 @@ def collect_recipes(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
         if not title:
             print(f"warning: {path.relative_to(REPO_ROOT)}: no H1, skipping", file=sys.stderr)
             continue
+        # Refuse hand-authored env_contract — it's auto-derived by build_catalog.
+        if "env_contract" in fm:
+            raise SystemExit(
+                f"error: {path.relative_to(REPO_ROOT)}: env_contract is auto-derived; "
+                "remove it from the recipe frontmatter."
+            )
         entry: dict[str, Any] = OrderedDict()
         entry["slug"] = path.stem
         entry["path"] = str(path.relative_to(REPO_ROOT).as_posix())
         entry["title"] = title
         # Pass-through fields in the order the scaffold's Recipe model expects.
+        # Includes the v0.3 local-bringup additions (runtime_modes, smoke_test,
+        # cost_profile, model_recommendation, env_overrides, est_tokens, plus
+        # the additive advanced fields).
         for key in (
             "status",
             "languages",
             "topology",
             "complexity",
             "agent_pattern",
+            "primitives",
+            "modifiers",
             "required_files",
             "recipe_dependencies",
             "external_services",
@@ -194,6 +252,17 @@ def collect_recipes(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
             "bootstrap_config",
             "roles",
             "load_list",
+            "mcp_servers",
+            "skills",
+            "guardrails",
+            "sandbox",
+            "durable_workflow",
+            "runtime_modes",
+            "smoke_test",
+            "cost_profile",
+            "model_recommendation",
+            "env_overrides",
+            "est_tokens",
         ):
             if key in fm:
                 entry[key] = fm[key]
@@ -216,6 +285,13 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
         entry["id"] = fm["id"]
         entry["kind"] = fm["kind"]
         entry["path"] = str(path.relative_to(REPO_ROOT).as_posix())
+        # v0.3 additions — the local-bringup track surface fields.
+        if "layer" in fm:
+            entry["layer"] = fm["layer"]
+        if "requires" in fm:
+            entry["requires"] = fm["requires"]
+        if "bootstrap_inputs" in fm:
+            entry["bootstrap_inputs"] = fm["bootstrap_inputs"]
         if "env_vars" in fm:
             entry["env_vars"] = fm["env_vars"]
         # Pull docker_service out of the nested docker block — it's the field
@@ -228,6 +304,14 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
             entry["bootstrap_step"] = fm["bootstrap_step"]
         if fm.get("probe"):
             entry["probe"] = fm["probe"]
+        if "provisioning_time" in fm:
+            entry["provisioning_time"] = fm["provisioning_time"]
+        if "cost_tier" in fm:
+            entry["cost_tier"] = fm["cost_tier"]
+        if "est_tokens" in fm:
+            entry["est_tokens"] = fm["est_tokens"]
+        if "card" in fm:
+            entry["card"] = fm["card"]
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
@@ -306,21 +390,49 @@ def validate_recipe_references(
     recipes: list[dict[str, Any]],
     capabilities: list[dict[str, Any]],
     blueprints_catalog: dict[str, Any],
+    *,
+    stack_paths: set[str] | None = None,
+    allow_missing_required: bool = False,
 ) -> None:
-    """Raise SystemExit if any recipe references an id that doesn't resolve.
+    """Raise SystemExit if any recipe / capability reference doesn't resolve.
 
     Checks ``agent_pattern`` against ``catalog.patterns[].id``, each
-    ``primitives[]`` / ``modifiers[]`` entry against the matching cohort, and
-    each ``capabilities[]`` id against the locally-discovered capability
-    files. Recipes that don't declare an additive field are skipped. Surfaces
-    bad ids at generator time instead of at scaffold runtime.
+    ``primitives[]`` / ``modifiers[]`` entry against the matching cohort, each
+    ``capabilities[]`` id against the locally-discovered capability files, and
+    each capability's ``layer`` / ``requires`` / ``card`` / ``cost_tier``
+    against the v0.3 contract. Also validates recipe-side v0.3 fields:
+    ``runtime_modes`` (each swap's from/to resolves), ``smoke_test``
+    (all three keys), ``cost_profile`` (tier + sources). Surfaces bad ids
+    at generator time instead of at scaffold runtime.
+
+    With ``allow_missing_required=True``, missing v0.3 required fields are
+    downgraded to warnings on stderr — used during the migration window
+    while capability + recipe content catches up to the schema. Reference
+    resolution errors still fail loud.
     """
     cap_ids = {c["id"] for c in capabilities if "id" in c}
     cohort_ids = {
         cohort: {e["id"] for e in (blueprints_catalog.get(cohort) or []) if "id" in e}
         for cohort in ("patterns", "primitives", "modifiers")
     }
+    stack_paths = stack_paths or set()
+
+    def _resolve_swap_target(value: str) -> bool:
+        """A swap from/to is either a capability id or a stack-doc path of the
+        form ``stack/<id>``."""
+        if value in cap_ids:
+            return True
+        if value.startswith("stack/"):
+            # Match against the collected stack[] paths (which are
+            # docs/stack/<id>.md). Accept either "stack/<id>" or the full path.
+            slug = value[len("stack/"):]
+            return any(p.endswith(f"docs/stack/{slug}.md") for p in stack_paths)
+        return False
+
     errors: list[str] = []
+    soft_errors: list[str] = []
+
+    # --- Recipe-side ---------------------------------------------------
     for r in recipes:
         path = r.get("path", "<unknown>")
         ap = r.get("agent_pattern")
@@ -335,8 +447,207 @@ def validate_recipe_references(
         for cap in r.get("capabilities") or []:
             if cap not in cap_ids:
                 errors.append(f"{path}: capabilities[] {cap!r} has no docs/capabilities/ entry")
+        # v0.3 local-bringup contract.
+        rmodes = r.get("runtime_modes")
+        if rmodes is None:
+            soft_errors.append(f"{path}: missing required field 'runtime_modes' (v0.3)")
+        else:
+            if not isinstance(rmodes, dict) or "default" not in rmodes:
+                errors.append(f"{path}: runtime_modes must be a map containing a 'default' mode")
+            else:
+                for mode_name, mode_body in rmodes.items():
+                    if not isinstance(mode_body, dict):
+                        errors.append(f"{path}: runtime_modes.{mode_name} must be a mapping")
+                        continue
+                    swaps = mode_body.get("swaps") or {}
+                    if not isinstance(swaps, dict):
+                        errors.append(f"{path}: runtime_modes.{mode_name}.swaps must be a mapping")
+                        continue
+                    for src, dst in swaps.items():
+                        if not _resolve_swap_target(str(src)):
+                            errors.append(
+                                f"{path}: runtime_modes.{mode_name}.swaps from-id {src!r} doesn't resolve"
+                            )
+                        if not _resolve_swap_target(str(dst)):
+                            errors.append(
+                                f"{path}: runtime_modes.{mode_name}.swaps to-id {dst!r} doesn't resolve"
+                            )
+        smoke = r.get("smoke_test")
+        if smoke is None:
+            soft_errors.append(f"{path}: missing required field 'smoke_test' (v0.3)")
+        elif not isinstance(smoke, dict) or not all(
+            k in smoke and isinstance(smoke[k], str) and smoke[k].strip()
+            for k in ("ready", "exercise", "assert_jq")
+        ):
+            errors.append(
+                f"{path}: smoke_test must be a mapping with non-empty 'ready', 'exercise', 'assert_jq'"
+            )
+        cost = r.get("cost_profile")
+        if cost is None:
+            soft_errors.append(f"{path}: missing required field 'cost_profile' (v0.3)")
+        elif not isinstance(cost, dict):
+            errors.append(f"{path}: cost_profile must be a mapping")
+        else:
+            tier = cost.get("tier")
+            if tier not in VALID_RECIPE_COST_TIERS:
+                errors.append(
+                    f"{path}: cost_profile.tier={tier!r} must be one of {sorted(VALID_RECIPE_COST_TIERS)}"
+                )
+            if not isinstance(cost.get("sources"), list):
+                errors.append(f"{path}: cost_profile.sources must be a list")
+
+    # --- Capability-side -----------------------------------------------
+    for c in capabilities:
+        path = c.get("path", "<unknown>")
+        layer = c.get("layer")
+        if layer is None:
+            soft_errors.append(f"{path}: missing required field 'layer' (v0.3)")
+        elif layer not in LAYER_IDS:
+            errors.append(f"{path}: layer={layer!r} not in catalog.LAYER_ORDER")
+        for dep in c.get("requires") or []:
+            if dep not in cap_ids:
+                errors.append(f"{path}: requires {dep!r} has no docs/capabilities/ entry")
+        card = c.get("card")
+        if card is None:
+            soft_errors.append(f"{path}: missing required field 'card' (v0.3)")
+        elif not isinstance(card, dict):
+            errors.append(f"{path}: card must be a mapping")
+        else:
+            for required_key in ("name", "description"):
+                if not card.get(required_key):
+                    errors.append(f"{path}: card.{required_key} must be a non-empty string")
+        ct = c.get("cost_tier")
+        if ct is None:
+            soft_errors.append(f"{path}: missing required field 'cost_tier' (v0.3)")
+        elif ct not in VALID_COST_TIERS:
+            errors.append(
+                f"{path}: cost_tier={ct!r} must be one of {sorted(VALID_COST_TIERS)}"
+            )
+
+    if soft_errors and not allow_missing_required:
+        # Treat soft errors as hard when the flag is not set.
+        errors.extend(soft_errors)
+    elif soft_errors:
+        for msg in soft_errors:
+            print(f"warning: {msg}", file=sys.stderr)
+
     if errors:
-        raise SystemExit("error: recipe id-resolution failed:\n  - " + "\n  - ".join(errors))
+        raise SystemExit("error: catalog validation failed:\n  - " + "\n  - ".join(errors))
+
+
+# ---------------------------------------------------------------------------
+# env_contract derivation + suggestions cohort
+# ---------------------------------------------------------------------------
+
+
+def derive_env_contracts(
+    recipes: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
+) -> None:
+    """Mutate each recipe entry to add an ``env_contract`` block derived from
+    the recipe's selected ``capabilities[]``.
+
+    For every recipe with a `capabilities[]` list, walks each referenced
+    capability, collects ``env_vars``, dedupes case-insensitively (first
+    declaration wins) and annotates with source-capability + any default the
+    recipe's ``env_overrides`` declares.
+
+    The emitted block shape:
+
+        env_contract:
+          - {name: POSTGRES_USER, source_capability: relational.postgres}
+          - {name: REDIS_URL,     source_capability: cache.redis}
+          - {name: APP_PORT,      source_capability: <recipe>, default: 8000}
+    """
+    cap_by_id = {c["id"]: c for c in capabilities if "id" in c}
+    for r in recipes:
+        cap_ids = r.get("capabilities") or []
+        overrides = r.get("env_overrides") or {}
+        seen: dict[str, str] = {}
+        contract: list[dict[str, Any]] = []
+        for cap_id in cap_ids:
+            cap = cap_by_id.get(cap_id)
+            if not cap:
+                continue
+            for var in cap.get("env_vars") or []:
+                key = var.upper()
+                if key in seen:
+                    continue
+                entry: dict[str, Any] = OrderedDict()
+                entry["name"] = var
+                entry["source_capability"] = cap_id
+                if var in overrides:
+                    entry["default"] = overrides[var]
+                contract.append(entry)
+                seen[key] = cap_id
+        for var, default in overrides.items():
+            key = var.upper()
+            if key in seen:
+                continue
+            entry = OrderedDict()
+            entry["name"] = var
+            entry["source_capability"] = r["slug"]
+            entry["default"] = default
+            contract.append(entry)
+            seen[key] = r["slug"]
+        if contract:
+            r["env_contract"] = contract
+
+
+def collect_suggestions() -> dict[str, Any]:
+    """Build the catalog.suggestions block from docs/suggestions/<version>/*.md.
+
+    Exactly one ``<version>/`` directory may exist on disk at any time. The
+    generator raises if more than one is present (the sync workflow's purge
+    step enforces this in CI). Returns an empty payload if no version dir
+    exists yet (the post-purge waiting state).
+    """
+    out: dict[str, Any] = OrderedDict()
+    out["blueprints_version"] = None
+    out["combos"] = []
+    if not SUGGESTIONS_ROOT.is_dir():
+        return out
+    version_dirs = sorted(
+        p for p in SUGGESTIONS_ROOT.iterdir()
+        if p.is_dir() and not p.name.startswith(".")
+    )
+    if not version_dirs:
+        return out
+    if len(version_dirs) > 1:
+        raise SystemExit(
+            "error: docs/suggestions/ contains multiple version directories: "
+            f"{[p.name for p in version_dirs]}. Only the latest blueprints "
+            "version's suggestions may exist on disk (sync-blueprints.yml "
+            "should have purged the older one)."
+        )
+    version_dir = version_dirs[0]
+    version = version_dir.name
+    out["blueprints_version"] = version
+    combos: list[dict[str, Any]] = []
+    for path in sorted(version_dir.glob("*.md")):
+        if path.stem.lower() in ("readme", "schema"):
+            continue
+        text = path.read_text(encoding="utf-8")
+        fm, _ = parse_frontmatter(text)
+        if not fm:
+            continue
+        if fm.get("blueprints_version") != version:
+            raise SystemExit(
+                f"error: {path.relative_to(REPO_ROOT)}: blueprints_version="
+                f"{fm.get('blueprints_version')!r} doesn't match directory name {version!r}."
+            )
+        entry: dict[str, Any] = OrderedDict()
+        entry["applies_to"] = fm.get("applies_to") or {}
+        entry["path"] = str(path.relative_to(REPO_ROOT).as_posix())
+        if "recommends" in fm:
+            entry["recommends"] = fm["recommends"]
+        if "local_only_swaps" in fm:
+            entry["local_only_swaps"] = fm["local_only_swaps"]
+        if "est_tokens" in fm:
+            entry["est_tokens"] = fm["est_tokens"]
+        combos.append(entry)
+    out["combos"] = combos
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -387,6 +698,8 @@ def build_catalog(
     blueprints_catalog: dict[str, Any],
     blueprints_repo: str,
     blueprints_branch: str,
+    *,
+    allow_missing_required: bool = False,
 ) -> dict[str, Any]:
     non_recipe_stems = frozenset(
         s.lower() for s in seed.get("non_recipe_stems", list(DEFAULT_NON_RECIPE_STEMS))
@@ -394,6 +707,14 @@ def build_catalog(
     catalog: dict[str, Any] = OrderedDict()
     catalog["schema_version"] = SCHEMA_VERSION
     catalog["generator_version"] = GENERATOR_VERSION
+
+    # Bootstrap-sequencing contract — every capability's `layer:` must be one
+    # of these layer ids. Consumers walk this list top-to-bottom when running
+    # `docker compose up + bootstrap`.
+    catalog["LAYER_ORDER"] = [
+        OrderedDict([("id", layer_id), ("description", desc)])
+        for layer_id, desc in LAYER_ORDER
+    ]
 
     # Blueprints pointer block — the dependency declaration this repo makes
     # explicit so downstream consumers (scaffold) never reach into blueprints
@@ -442,9 +763,27 @@ def build_catalog(
     catalog["primitive_docs"] = sorted(p for p in all_overviews if "/primitives/" in p)
     catalog["modifier_docs"] = sorted(p for p in all_overviews if "/modifiers/" in p)
 
-    # Validate every recipe-side id resolves before we emit. Loud failure
-    # here is better than silent skip at scaffold runtime.
-    validate_recipe_references(catalog["recipes"], catalog["capabilities"], blueprints_catalog)
+    # Validate every recipe-side + capability-side id resolves before we
+    # emit. Loud failure here is better than silent skip at scaffold runtime.
+    # During the v0.3 migration window, allow_missing_required downgrades the
+    # "missing required field" checks to warnings (resolution errors still
+    # fail loud). Remove the flag use at end of the migration.
+    validate_recipe_references(
+        catalog["recipes"],
+        catalog["capabilities"],
+        blueprints_catalog,
+        stack_paths=set(catalog["stack"]),
+        allow_missing_required=allow_missing_required,
+    )
+
+    # Derive each recipe's env_contract from the dedup of its capabilities'
+    # env_vars + the recipe's env_overrides. Runs after validation so we
+    # never derive against an unresolved capability id.
+    derive_env_contracts(catalog["recipes"], catalog["capabilities"])
+
+    # Per-combo stack recommendations for the current upstream pin. Empty
+    # block when no version dir exists yet (post-purge waiting state).
+    catalog["suggestions"] = collect_suggestions()
 
     # Seeded behavior knobs.
     catalog["aliases"] = seed.get("aliases", {})
@@ -511,6 +850,15 @@ def main(argv: list[str] | None = None) -> int:
         default=str(REPO_ROOT / "scripts" / "_seed_aliases.yaml"),
         help="Path to the seed aliases / cross-cutting / non-recipe-stems YAML.",
     )
+    parser.add_argument(
+        "--allow-missing-required",
+        action="store_true",
+        help=(
+            "Downgrade 'missing required v0.3 field' errors to warnings on stderr. "
+            "Used during the migration window while capability + recipe content "
+            "catches up to the schema. Reference-resolution errors still fail loud."
+        ),
+    )
     args = parser.parse_args(argv)
 
     seed_path = Path(args.seed)
@@ -526,6 +874,7 @@ def main(argv: list[str] | None = None) -> int:
         blueprints_catalog=blueprints_catalog,
         blueprints_repo=args.blueprints_repo,
         blueprints_branch=args.blueprints_branch,
+        allow_missing_required=args.allow_missing_required,
     )
 
     body = render_yaml(catalog)
@@ -536,6 +885,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     Path(args.out).write_text(header + body, encoding="utf-8")
 
+    suggestions = catalog.get("suggestions") or {}
+    suggestions_version = suggestions.get("blueprints_version") or "(empty)"
+    suggestions_combos = len(suggestions.get("combos") or [])
     print(
         f"Wrote {args.out} "
         f"({len(catalog['recipes'])} recipes, "
@@ -544,7 +896,8 @@ def main(argv: list[str] | None = None) -> int:
         f"{len(catalog['patterns'])} patterns + "
         f"{len(catalog['primitives'])} primitives + "
         f"{len(catalog['modifiers'])} modifiers embedded, "
-        f"{len(catalog['compositions'])} compositions)"
+        f"{len(catalog['compositions'])} compositions, "
+        f"suggestions={suggestions_version}/{suggestions_combos} combos)"
     )
     return 0
 
