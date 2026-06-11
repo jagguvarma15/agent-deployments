@@ -3,6 +3,33 @@ status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: multi_agent
 primitives: [tool_use, sub_agents]
+runtime_modes:
+  default:
+    description: "Anthropic Claude — Opus for supervisor, Sonnet for specialists."
+    swaps: {}
+  local_only:
+    description: "Self-hosted vLLM serving Llama 3 70B for all roles."
+    swaps:
+      stack/llm-claude: stack/llm-local-vllm
+smoke_test:
+  ready: "curl -sf http://localhost:8000/health"
+  exercise: |
+    curl -sf -X POST http://localhost:8000/task \
+      -H 'content-type: application/json' \
+      -d '{"task":"write a one-paragraph explainer about Postgres MVCC"}'
+  assert_jq: '.deliverable | length > 0'
+cost_profile:
+  tier: medium
+  sources: [anthropic]
+  typical_run_usd: 0.06
+model_recommendation:
+  supervisor: claude-opus-4-7
+  researcher: claude-sonnet-4-6
+  writer: claude-sonnet-4-6
+  reviewer: claude-sonnet-4-6
+env_overrides:
+  APP_PORT: 8000
+est_tokens: 5000
 required_files:
   - Dockerfile
   - docker-compose.yml
