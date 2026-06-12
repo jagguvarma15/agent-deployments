@@ -1208,6 +1208,7 @@ recipes:
   - typescript
   topology: chain
   agent_pattern: prompt-chaining
+  primitives: []
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -1500,6 +1501,7 @@ recipes:
   - typescript
   topology: single
   agent_pattern: rag
+  primitives: []
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -2126,6 +2128,7 @@ recipes:
   - typescript
   topology: parallel
   agent_pattern: parallel-calls
+  primitives: []
   required_files:
   - Dockerfile
   - docker-compose.yml
@@ -3324,6 +3327,8 @@ modifier_docs:
 - vendored/blueprints/modifiers/human_in_the_loop/overview.md
 suggestions:
   blueprints_version: dfd824d
+  description: Per-combo stack recommendations scoped to upstream blueprints version dfd824d. One file per pattern × primitives × modifiers combination.
+  readme_path: docs/suggestions/README.md
   combos:
   - applies_to:
       pattern: event_driven

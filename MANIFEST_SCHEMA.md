@@ -330,10 +330,14 @@ Pinned to a single upstream blueprints release at a time. Generator walks `docs/
 
 ```yaml
 suggestions:
-  blueprints_version: v0.1.0      # matches the single <version>/ dir under docs/suggestions/
+  blueprints_version: dfd824d     # matches the single <version>/ dir under docs/suggestions/
+  description: >
+    Per-combo stack recommendations scoped to upstream blueprints version
+    dfd824d. One file per pattern × primitives × modifiers combination.
+  readme_path: docs/suggestions/README.md
   combos:
     - applies_to: {pattern: react, primitives: [tool_use], modifiers: []}
-      path: docs/suggestions/v0.1.0/react+tool_use.md
+      path: docs/suggestions/dfd824d/react+tool_use.md
       recommends:
         framework: pydantic_ai
         llm: stack/llm-claude
@@ -347,12 +351,23 @@ suggestions:
       est_tokens: 600
 ```
 
+#### Directory-naming convention
+
+The `<blueprints-version>/` directory name matches the upstream pin recorded in [`vendir.lock.yml`](vendir.lock.yml). Today that resolves to the **7-character commit SHA** of the synced `agent-blueprints` ref (e.g. `dfd824d`); future syncs against a tagged release will use the tag name (`v0.4.0`). The `.github/workflows/sync-blueprints.yml` workflow purges the prior `<version>/` directory when bumping the upstream pin, keeping the single-version invariant on disk.
+
+#### Emitted fields
+
+| Field | Type | Notes |
+|---|---|---|
+| `blueprints_version` | string | Mirrors the single `docs/suggestions/<version>/` directory name; `null` only when no version dir exists yet (post-purge waiting state). |
+| `description` | string | One-line cohort framing. Interpolates `blueprints_version` when set, falls back to a generic "pinned in vendir.lock.yml" wording when no version dir exists yet. |
+| `readme_path` | string | Repo-root-relative path to the cohort README (`docs/suggestions/README.md`). Omitted if the README is absent. |
+| `combos[]` | list | One entry per combo markdown under `docs/suggestions/<version>/*.md` (excluding `README.md` and `SCHEMA.md`). |
+
 Combo file authoring contract is in [`docs/suggestions/README.md`](docs/suggestions/README.md). The generator raises if:
 - More than one `docs/suggestions/<version>/` directory exists on disk.
 - A combo file's `blueprints_version:` doesn't match the directory name.
 - Any `recommends:` or `local_only_swaps[].from`/`to` value fails to resolve (capability id or `stack/<id>` path).
-
-The `.github/workflows/sync-blueprints.yml` workflow purges the prior `<version>/` directory when bumping the upstream pin, keeping the single-version invariant.
 
 Consumers (scaffold CLIs, AI tools) read `catalog.suggestions.combos[]` to find the right combo file for a recipe's `agent_pattern` + `primitives` + `modifiers`, then load that combo file's body for the recommended-stack rationale.
 

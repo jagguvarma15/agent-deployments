@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: parallel-calls
+primitives: []
 runtime_modes:
   default:
     description: "Anthropic Claude Haiku for the enrichment fan-out."

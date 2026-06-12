@@ -4,6 +4,11 @@ languages: [python, typescript]
 agent_pattern: react
 primitives: [tool_use, sub_agents, skills]
 runtime_modes:
+  # Note: `local_only` mode is intentionally omitted. Claude Agent SDK's
+  # subagent abstraction (subagents_dir + permission hooks + session
+  # resumption) has no fully-local equivalent yet — open-source SDKs don't
+  # match its contract. If/when this recipe adds sandbox.e2b for code
+  # execution, E2B is hosted-only and reinforces the same gap.
   default:
     description: "Anthropic Claude via Claude Agent SDK — Sonnet for host, Sonnet for subagents."
     swaps: {}

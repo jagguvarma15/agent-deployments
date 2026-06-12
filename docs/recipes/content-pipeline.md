@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: prompt-chaining
+primitives: []
 runtime_modes:
   default:
     description: "Anthropic Claude Sonnet across all chain steps."

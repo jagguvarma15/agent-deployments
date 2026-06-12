@@ -604,6 +604,14 @@ def collect_suggestions() -> dict[str, Any]:
     """
     out: dict[str, Any] = OrderedDict()
     out["blueprints_version"] = None
+    out["description"] = (
+        "Per-combo stack recommendations scoped to the upstream blueprints "
+        "version pinned in vendir.lock.yml. One file per pattern × primitives "
+        "× modifiers combination."
+    )
+    readme_candidate = SUGGESTIONS_ROOT / "README.md"
+    if readme_candidate.is_file():
+        out["readme_path"] = str(readme_candidate.relative_to(REPO_ROOT).as_posix())
     out["combos"] = []
     if not SUGGESTIONS_ROOT.is_dir():
         return out
@@ -623,6 +631,11 @@ def collect_suggestions() -> dict[str, Any]:
     version_dir = version_dirs[0]
     version = version_dir.name
     out["blueprints_version"] = version
+    out["description"] = (
+        f"Per-combo stack recommendations scoped to upstream blueprints "
+        f"version {version}. One file per pattern × primitives × modifiers "
+        f"combination."
+    )
     combos: list[dict[str, Any]] = []
     for path in sorted(version_dir.glob("*.md")):
         if path.stem.lower() in ("readme", "schema"):
