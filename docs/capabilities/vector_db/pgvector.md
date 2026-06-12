@@ -25,6 +25,8 @@ docs: |
   pgvector extension on the existing Postgres instance. No new service —
   bootstrap step runs `CREATE EXTENSION IF NOT EXISTS vector;` plus
   optional table + ivfflat index.
+tags: [vector-search, retrieval, postgres-native]
+when_to_load: "recipe declares vector_db.pgvector"
 ---
 
 # Capability: vector_db.pgvector

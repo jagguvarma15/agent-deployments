@@ -6,6 +6,8 @@ versions:
   minimum: ">=0.1.0"
   last_known_good: "0.1.0"
   notes: "The >=0.1.0 floor is what stabilizes the agent + `output_type` (renamed from `result_type`) surface the recipes rely on; treat the 0.0.x line as legacy."
+tags: [python, type-safe, mcp-native, agentic-loop]
+when_to_load: "recipe.framework == 'pydantic_ai'"
 ---
 
 # Framework: Pydantic AI

@@ -19,6 +19,8 @@ emit_files: []
 docs: |
   DeepEval for RAG-specific metrics (faithfulness, answer relevancy, contextual
   precision/recall). Python-native test suite that runs as `pytest` cases.
+tags: [eval, llm-eval, python]
+when_to_load: "recipe declares eval.deepeval"
 ---
 
 # Capability: eval.deepeval

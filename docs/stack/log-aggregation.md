@@ -1,3 +1,8 @@
+---
+tags: [observability, logging]
+when_to_load: "recipe needs centralized logs"
+---
+
 # Stack pick: Log aggregation
 
 **Choice:** Loki (Grafana stack) for self-hosted; Datadog / Better Stack / Axiom for managed

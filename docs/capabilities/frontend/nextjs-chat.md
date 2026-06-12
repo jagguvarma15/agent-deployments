@@ -22,6 +22,8 @@ docs: |
   Next.js 14 (App Router) chat template wired to consume Vercel AI SDK
   responses from the backend's /api/agent endpoint. Copied verbatim into
   frontend/ during generation.
+tags: [frontend, react, streaming]
+when_to_load: "recipe declares frontend.nextjs-chat"
 ---
 
 # Capability: frontend.nextjs-chat

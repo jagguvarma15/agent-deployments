@@ -40,6 +40,8 @@ docs: |
   criterion spans hours/days declare `durable_workflow: durable.temporal`
   in frontmatter; the scaffold wires the Temporal SDK and emits a worker
   process. Requires `relational.postgres` for Temporal's persistence store.
+tags: [durable, workflow-engine, long-running]
+when_to_load: "recipe declares durable.temporal"
 ---
 
 # Capability: durable.temporal

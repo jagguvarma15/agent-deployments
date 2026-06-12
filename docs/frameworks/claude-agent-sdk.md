@@ -8,6 +8,8 @@ versions:
   notes: "0.2.x is the current line. API surface still evolving — pin tight and re-verify on every minor bump."
 extra_packages:
   - {name: anthropic, minimum: "0.69.0"}
+tags: [python, claude-code-style, mcp-native, subagents, hooks]
+when_to_load: "recipe.framework == 'claude_agent_sdk_python'"
 ---
 
 # Framework: Claude Agent SDK

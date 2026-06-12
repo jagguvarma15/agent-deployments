@@ -20,6 +20,8 @@ docs: |
   Tavily Search via direct REST API. The scaffold imports the Tavily SDK and
   emits a `web_search` tool the agent calls. For MCP transport use
   `mcp.tavily`.
+tags: [live_data, web-search, hosted]
+when_to_load: "recipe declares live_data.tavily"
 ---
 
 # Capability: live_data.tavily

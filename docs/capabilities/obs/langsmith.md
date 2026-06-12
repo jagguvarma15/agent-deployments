@@ -20,6 +20,8 @@ docs: |
   LangSmith hosted tracing for LangChain / LangGraph agents. Bootstrap step
   creates the project via the LangSmith SDK and writes tracing env vars to
   `.env.local`. API-key based — no local container.
+tags: [observability, llm-tracing, hosted]
+when_to_load: "recipe declares obs.langsmith"
 ---
 
 # Capability: obs.langsmith

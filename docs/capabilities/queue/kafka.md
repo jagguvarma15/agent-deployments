@@ -33,6 +33,8 @@ docs: |
   Apache Kafka 3.x in KRaft mode. Bootstrap step creates the topics declared
   by the recipe via `KafkaAdminClient`. Pair with `queue.redis-streams`
   instead for ≤10k events/sec workloads.
+tags: [queue, high-throughput, durable]
+when_to_load: "recipe declares queue.kafka"
 ---
 
 # Capability: queue.kafka

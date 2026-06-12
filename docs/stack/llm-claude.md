@@ -1,3 +1,8 @@
+---
+tags: [llm, anthropic, primary]
+when_to_load: "always when generating agent code"
+---
+
 # Stack pick: Anthropic Claude
 
 **Choice:** Claude Sonnet 4.6 (default), Haiku 4.5 (cheap/fast paths)

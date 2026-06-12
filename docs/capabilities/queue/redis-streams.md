@@ -21,6 +21,8 @@ docs: |
   Redis Streams as the event source. Piggybacks on `cache.redis` — no extra
   service. Bootstrap step creates consumer groups (the `bootstrap_kafka`
   step name covers both Kafka topics and Redis Streams consumer groups).
+tags: [queue, lightweight, redis]
+when_to_load: "recipe declares queue.redis-streams"
 ---
 
 # Capability: queue.redis-streams

@@ -20,6 +20,8 @@ docs: |
   E2B Code Interpreter — hosted sandbox that runs LLM-emitted code in an
   isolated container. Recipes wire it via `sandbox: sandbox.e2b`; the
   scaffold prompts for the API key.
+tags: [sandbox, code-execution, hosted]
+when_to_load: "recipe declares sandbox.e2b"
 ---
 
 # Capability: sandbox.e2b

@@ -1,3 +1,8 @@
+---
+tags: [relational, sql, postgres]
+when_to_load: "recipe declares relational.postgres"
+---
+
 # Stack pick: Postgres
 
 > Standing Postgres up for the first time? Start with [`getting-started/postgres.md`](../getting-started/postgres.md) for the one-screen quickstart. This doc is the deep reference.

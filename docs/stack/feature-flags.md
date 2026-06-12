@@ -1,3 +1,8 @@
+---
+tags: [feature-flags, rollout]
+when_to_load: "recipe needs runtime configuration toggles"
+---
+
 # Stack pick: Feature flags
 
 **Choice:** GrowthBook (open-source, self-hostable) OR LaunchDarkly (managed; gold standard) OR Unleash (open-source; mature)

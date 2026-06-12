@@ -1,3 +1,8 @@
+---
+tags: [observability, tracing, otel]
+when_to_load: "recipe needs OTel instrumentation"
+---
+
 # Stack pick: OpenTelemetry
 
 **Choice:** OpenTelemetry SDK — `opentelemetry-sdk` (Python), `@opentelemetry/sdk-node` (TypeScript)

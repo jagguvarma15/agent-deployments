@@ -22,6 +22,8 @@ docs: |
   Tavily's hosted MCP server. Exposes `tavily_search` and `tavily_extract`
   as MCP tools the agent discovers at session start. For the direct-API
   alternative (no MCP framing) use `live_data.tavily`.
+tags: [mcp, web-search, hosted]
+when_to_load: "recipe declares mcp_servers with capability: mcp.tavily"
 ---
 
 # Capability: mcp.tavily

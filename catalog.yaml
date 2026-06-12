@@ -2829,6 +2829,12 @@ capabilities:
     - rate_limit_backend
     - event_source
     required_credentials: []
+  tags:
+  - cache
+  - in-memory
+  - rate-limiting
+  - session-store
+  when_to_load: recipe declares cache.redis
 - id: durable.temporal
   kind: durable
   path: docs/capabilities/durable/temporal.md
@@ -2856,6 +2862,11 @@ capabilities:
     - signal_handling
     - retry_with_dedup
     required_credentials: []
+  tags:
+  - durable
+  - workflow-engine
+  - long-running
+  when_to_load: recipe declares durable.temporal
 - id: embedding.openai
   kind: embedding
   path: docs/capabilities/embedding/openai.md
@@ -2873,6 +2884,11 @@ capabilities:
     - text_embeddings
     required_credentials:
     - OPENAI_API_KEY
+  tags:
+  - embeddings
+  - openai
+  - hosted
+  when_to_load: recipe declares embedding.openai
 - id: eval.deepeval
   kind: eval
   path: docs/capabilities/eval/deepeval.md
@@ -2894,6 +2910,11 @@ capabilities:
     required_credentials:
     - ANTHROPIC_API_KEY
     - OPENAI_API_KEY
+  tags:
+  - eval
+  - llm-eval
+  - python
+  when_to_load: recipe declares eval.deepeval
 - id: eval.promptfoo
   kind: eval
   path: docs/capabilities/eval/promptfoo.md
@@ -2913,6 +2934,11 @@ capabilities:
     - ci_gating
     required_credentials:
     - ANTHROPIC_API_KEY
+  tags:
+  - eval
+  - prompt-testing
+  - yaml-config
+  when_to_load: recipe declares eval.promptfoo
 - id: eval.ragas
   kind: eval
   path: docs/capabilities/eval/ragas.md
@@ -2934,6 +2960,11 @@ capabilities:
     required_credentials:
     - ANTHROPIC_API_KEY
     - OPENAI_API_KEY
+  tags:
+  - eval
+  - rag-eval
+  - python
+  when_to_load: recipe declares eval.ragas
 - id: frontend.nextjs-chat
   kind: frontend
   path: docs/capabilities/frontend/nextjs-chat.md
@@ -2951,6 +2982,11 @@ capabilities:
     - sse_streaming
     - tool_call_rendering
     required_credentials: []
+  tags:
+  - frontend
+  - react
+  - streaming
+  when_to_load: recipe declares frontend.nextjs-chat
 - id: frontend.streamlit
   kind: frontend
   path: docs/capabilities/frontend/streamlit.md
@@ -2967,6 +3003,11 @@ capabilities:
     - chat_ui
     - sse_streaming
     required_credentials: []
+  tags:
+  - frontend
+  - python
+  - prototype
+  when_to_load: recipe declares frontend.streamlit
 - id: guardrail.llama-guard
   kind: guardrail
   path: docs/capabilities/guardrail/llama-guard.md
@@ -2986,6 +3027,11 @@ capabilities:
     - dual_llm_split
     required_credentials:
     - TOGETHER_API_KEY
+  tags:
+  - guardrail
+  - safety
+  - llama
+  when_to_load: recipe declares guardrail.llama-guard
 - id: host.fly
   kind: host
   path: docs/capabilities/host/fly.md
@@ -3007,6 +3053,11 @@ capabilities:
     - ci_deploy
     required_credentials:
     - FLY_API_TOKEN
+  tags:
+  - host
+  - paas
+  - docker
+  when_to_load: recipe declares host.fly
 - id: host.railway
   kind: host
   path: docs/capabilities/host/railway.md
@@ -3028,6 +3079,11 @@ capabilities:
     - ci_deploy
     required_credentials:
     - RAILWAY_TOKEN
+  tags:
+  - host
+  - paas
+  - github-integrated
+  when_to_load: recipe declares host.railway
 - id: host.vercel
   kind: host
   path: docs/capabilities/host/vercel.md
@@ -3049,6 +3105,11 @@ capabilities:
     - preview_envs
     required_credentials:
     - VERCEL_TOKEN
+  tags:
+  - host
+  - serverless
+  - frontend-first
+  when_to_load: recipe declares host.vercel
 - id: live_data.tavily
   kind: live_data
   path: docs/capabilities/live_data/tavily.md
@@ -3067,6 +3128,11 @@ capabilities:
     - web_extract
     required_credentials:
     - TAVILY_API_KEY
+  tags:
+  - live_data
+  - web-search
+  - hosted
+  when_to_load: recipe declares live_data.tavily
 - id: mcp.tavily
   kind: mcp
   path: docs/capabilities/mcp/tavily.md
@@ -3085,6 +3151,11 @@ capabilities:
     - web_extract
     required_credentials:
     - TAVILY_API_KEY
+  tags:
+  - mcp
+  - web-search
+  - hosted
+  when_to_load: 'recipe declares mcp_servers with capability: mcp.tavily'
 - id: memory_store.zep
   kind: memory_store
   path: docs/capabilities/memory_store/zep.md
@@ -3113,6 +3184,11 @@ capabilities:
     - session_scoping
     required_credentials:
     - ZEP_API_KEY
+  tags:
+  - memory_store
+  - long-term-memory
+  - hosted
+  when_to_load: recipe declares memory_store.zep
 - id: obs.grafana-stack
   kind: obs
   path: docs/capabilities/obs/grafana-stack.md
@@ -3137,6 +3213,11 @@ capabilities:
     - dashboards
     - alerting
     required_credentials: []
+  tags:
+  - observability
+  - metrics
+  - self-hosted
+  when_to_load: recipe declares obs.grafana-stack
 - id: obs.langfuse
   kind: obs
   path: docs/capabilities/obs/langfuse.md
@@ -3168,6 +3249,11 @@ capabilities:
     required_credentials:
     - LANGFUSE_PUBLIC_KEY
     - LANGFUSE_SECRET_KEY
+  tags:
+  - observability
+  - llm-tracing
+  - self-hosted
+  when_to_load: recipe declares obs.langfuse
 - id: obs.langsmith
   kind: obs
   path: docs/capabilities/obs/langsmith.md
@@ -3191,6 +3277,11 @@ capabilities:
     - dataset_eval
     required_credentials:
     - LANGCHAIN_API_KEY
+  tags:
+  - observability
+  - llm-tracing
+  - hosted
+  when_to_load: recipe declares obs.langsmith
 - id: queue.kafka
   kind: queue
   path: docs/capabilities/queue/kafka.md
@@ -3213,6 +3304,11 @@ capabilities:
     - replay
     - consumer_groups
     required_credentials: []
+  tags:
+  - queue
+  - high-throughput
+  - durable
+  when_to_load: recipe declares queue.kafka
 - id: queue.redis-streams
   kind: queue
   path: docs/capabilities/queue/redis-streams.md
@@ -3234,6 +3330,11 @@ capabilities:
     - consumer_groups
     - replay_within_retention
     required_credentials: []
+  tags:
+  - queue
+  - lightweight
+  - redis
+  when_to_load: recipe declares queue.redis-streams
 - id: relational.postgres
   kind: relational
   path: docs/capabilities/relational/postgres.md
@@ -3257,6 +3358,11 @@ capabilities:
     - json_store
     - schema_evolution
     required_credentials: []
+  tags:
+  - relational
+  - sql
+  - self-hosted
+  when_to_load: recipe declares relational.postgres
 - id: rerank.cohere
   kind: rerank
   path: docs/capabilities/rerank/cohere.md
@@ -3275,6 +3381,11 @@ capabilities:
     - multilingual_rerank
     required_credentials:
     - COHERE_API_KEY
+  tags:
+  - rerank
+  - hosted
+  - embeddings-companion
+  when_to_load: recipe declares rerank.cohere
 - id: sandbox.e2b
   kind: sandbox
   path: docs/capabilities/sandbox/e2b.md
@@ -3294,6 +3405,11 @@ capabilities:
     - file_artifacts
     required_credentials:
     - E2B_API_KEY
+  tags:
+  - sandbox
+  - code-execution
+  - hosted
+  when_to_load: recipe declares sandbox.e2b
 - id: vector_db.chroma
   kind: vector_db
   path: docs/capabilities/vector_db/chroma.md
@@ -3315,6 +3431,12 @@ capabilities:
     - vector_search
     - collection_init
     required_credentials: []
+  tags:
+  - vector-search
+  - retrieval
+  - self-hosted
+  - embedded
+  when_to_load: recipe declares vector_db.chroma
 - id: vector_db.pgvector
   kind: vector_db
   path: docs/capabilities/vector_db/pgvector.md
@@ -3339,6 +3461,11 @@ capabilities:
     - vector_search
     - sql_join_on_vectors
     required_credentials: []
+  tags:
+  - vector-search
+  - retrieval
+  - postgres-native
+  when_to_load: recipe declares vector_db.pgvector
 - id: vector_db.qdrant
   kind: vector_db
   path: docs/capabilities/vector_db/qdrant.md
@@ -3361,6 +3488,11 @@ capabilities:
     - payload_filtering
     - collection_init
     required_credentials: []
+  tags:
+  - vector-search
+  - retrieval
+  - self-hosted
+  when_to_load: recipe declares vector_db.qdrant
 frameworks:
 - id: claude_agent_sdk_python
   language: python
@@ -3373,6 +3505,13 @@ frameworks:
   extra_packages:
   - name: anthropic
     minimum: 0.69.0
+  tags:
+  - python
+  - claude-code-style
+  - mcp-native
+  - subagents
+  - hooks
+  when_to_load: recipe.framework == 'claude_agent_sdk_python'
 - id: claude_agent_sdk_typescript
   language: typescript
   path: docs/frameworks/claude-agent-sdk-typescript.md
@@ -3381,6 +3520,12 @@ frameworks:
     minimum: ^0.3.0
     last_known_good: 0.3.163
     notes: 0.3.x is the current line. API surface still evolving — pin tight and re-verify on every minor bump. Semver runs independently from the Python package.
+  tags:
+  - typescript
+  - claude-code-style
+  - mcp-native
+  - subagents
+  when_to_load: recipe.framework == 'claude_agent_sdk_typescript'
 - id: crewai
   language: python
   path: docs/frameworks/crewai.md
@@ -3389,6 +3534,11 @@ frameworks:
     minimum: '>=0.70.0'
     last_known_good: 0.70.0
     notes: '>=0.70.0 is the floor at which the kwargs-only `Crew()` constructor + the split-out memory module are stable; older drops break in unobvious ways.'
+  tags:
+  - python
+  - role-based
+  - multi-agent
+  when_to_load: recipe.framework == 'crewai'
 - id: langchain
   language: python
   path: docs/frameworks/langchain.md
@@ -3402,6 +3552,11 @@ frameworks:
     minimum: 0.2.0
   - name: langchain-core
     minimum: 0.3.0
+  tags:
+  - python
+  - agent-executor
+  - retriever-ecosystem
+  when_to_load: recipe.framework == 'langchain'
 - id: langgraph
   language: python
   path: docs/frameworks/langgraph.md
@@ -3410,6 +3565,12 @@ frameworks:
     minimum: 0.3.21
     last_known_good: 0.3.21
     notes: 0.3.x is the recipe-validated floor; pin tight because the checkpointer + prebuilt agent surface still shifts between minors.
+  tags:
+  - python
+  - graph-state
+  - stateful
+  - mcp-via-adapter
+  when_to_load: recipe.framework == 'langgraph'
 - id: mastra
   language: typescript
   path: docs/frameworks/mastra.md
@@ -3418,6 +3579,13 @@ frameworks:
     minimum: ^0.1.0
     last_known_good: 0.1.0
     notes: Pre-1.0 line; the ^0.1.0 floor unlocks the agents + workflows + memory triad recipes assume, but the surface still moves between minors. Pin tight.
+  tags:
+  - typescript
+  - workflows
+  - memory
+  - multi-agent
+  - mcp-native
+  when_to_load: recipe.framework == 'mastra'
 - id: pydantic_ai
   language: python
   path: docs/frameworks/pydantic-ai.md
@@ -3426,6 +3594,12 @@ frameworks:
     minimum: '>=0.1.0'
     last_known_good: 0.1.0
     notes: The >=0.1.0 floor is what stabilizes the agent + `output_type` (renamed from `result_type`) surface the recipes rely on; treat the 0.0.x line as legacy.
+  tags:
+  - python
+  - type-safe
+  - mcp-native
+  - agentic-loop
+  when_to_load: recipe.framework == 'pydantic_ai'
 - id: vercel_ai_sdk
   language: typescript
   path: docs/frameworks/vercel-ai-sdk.md
@@ -3437,27 +3611,116 @@ frameworks:
   extra_packages:
   - name: '@ai-sdk/anthropic'
     minimum: ^1.0.0
+  tags:
+  - typescript
+  - streaming
+  - edge-friendly
+  when_to_load: recipe.framework == 'vercel_ai_sdk'
 stack:
-- docs/stack/api-fastapi.md
-- docs/stack/api-hono.md
-- docs/stack/background-jobs.md
-- docs/stack/cache-redis.md
-- docs/stack/connection-pooling-pgbouncer.md
-- docs/stack/eval-deepeval-ragas-promptfoo.md
-- docs/stack/feature-flags.md
-- docs/stack/kafka.md
-- docs/stack/kubernetes-helm.md
-- docs/stack/llm-claude.md
-- docs/stack/llm-local-vllm.md
-- docs/stack/log-aggregation.md
-- docs/stack/opentelemetry.md
-- docs/stack/prometheus-grafana.md
-- docs/stack/relational-postgres.md
-- docs/stack/secrets-management.md
-- docs/stack/terraform.md
-- docs/stack/tool-protocol-mcp.md
-- docs/stack/tracing-langfuse.md
-- docs/stack/vector-qdrant.md
+- path: docs/stack/api-fastapi.md
+  tags:
+  - python
+  - web-api
+  when_to_load: recipe.language == 'python'
+- path: docs/stack/api-hono.md
+  tags:
+  - typescript
+  - web-api
+  when_to_load: recipe.language == 'typescript'
+- path: docs/stack/background-jobs.md
+  tags:
+  - background-jobs
+  - queue-workers
+  when_to_load: recipe needs background processing
+- path: docs/stack/cache-redis.md
+  tags:
+  - cache
+  - redis
+  when_to_load: recipe declares cache.redis
+- path: docs/stack/connection-pooling-pgbouncer.md
+  tags:
+  - database
+  - connection-pooling
+  when_to_load: recipe declares relational.postgres and high concurrency
+- path: docs/stack/eval-deepeval-ragas-promptfoo.md
+  tags:
+  - eval
+  - comparison
+  when_to_load: recipe declares any eval.*
+- path: docs/stack/feature-flags.md
+  tags:
+  - feature-flags
+  - rollout
+  when_to_load: recipe needs runtime configuration toggles
+- path: docs/stack/kafka.md
+  tags:
+  - queue
+  - high-throughput
+  when_to_load: recipe declares queue.kafka
+- path: docs/stack/kubernetes-helm.md
+  tags:
+  - deployment
+  - kubernetes
+  - production
+  when_to_load: recipe targets kubernetes
+- path: docs/stack/llm-claude.md
+  tags:
+  - llm
+  - anthropic
+  - primary
+  when_to_load: always when generating agent code
+- path: docs/stack/llm-local-vllm.md
+  tags:
+  - llm
+  - local
+  - vllm
+  when_to_load: recipe.runtime_mode == 'local_only'
+- path: docs/stack/log-aggregation.md
+  tags:
+  - observability
+  - logging
+  when_to_load: recipe needs centralized logs
+- path: docs/stack/opentelemetry.md
+  tags:
+  - observability
+  - tracing
+  - otel
+  when_to_load: recipe needs OTel instrumentation
+- path: docs/stack/prometheus-grafana.md
+  tags:
+  - observability
+  - metrics
+  when_to_load: recipe declares obs.grafana-stack
+- path: docs/stack/relational-postgres.md
+  tags:
+  - relational
+  - sql
+  - postgres
+  when_to_load: recipe declares relational.postgres
+- path: docs/stack/secrets-management.md
+  tags:
+  - secrets
+  - security
+  when_to_load: always for production deployment
+- path: docs/stack/terraform.md
+  tags:
+  - infrastructure-as-code
+  - cloud
+  when_to_load: recipe targets cloud deployment
+- path: docs/stack/tool-protocol-mcp.md
+  tags:
+  - mcp
+  - tool-protocol
+  when_to_load: recipe uses MCP tooling
+- path: docs/stack/tracing-langfuse.md
+  tags:
+  - observability
+  - llm-tracing
+  when_to_load: recipe declares obs.langfuse
+- path: docs/stack/vector-qdrant.md
+  tags:
+  - vector-search
+  when_to_load: recipe declares vector_db.qdrant
 cross_cutting_docs:
 - docs/cross-cutting/audit-logging.md
 - docs/cross-cutting/auth-jwt.md

@@ -33,6 +33,8 @@ docs: |
   Postgres 16 for conversation state, domain data, LangGraph checkpointing,
   and Langfuse backend storage. Migrations run via the project's `migrations`
   step (Alembic in Python, Drizzle Kit in TypeScript).
+tags: [relational, sql, self-hosted]
+when_to_load: "recipe declares relational.postgres"
 ---
 
 # Capability: relational.postgres

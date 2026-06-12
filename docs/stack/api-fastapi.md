@@ -1,3 +1,8 @@
+---
+tags: [python, web-api]
+when_to_load: "recipe.language == 'python'"
+---
+
 # Stack pick: FastAPI
 
 **Choice:** FastAPI 0.115 + Uvicorn 0.32 (behind Gunicorn for prod)

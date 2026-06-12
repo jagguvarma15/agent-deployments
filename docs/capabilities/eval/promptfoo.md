@@ -23,6 +23,8 @@ docs: |
   Promptfoo eval harness. Generated project gets evals/promptfooconfig.yaml +
   evals/cases.yaml stubs; `agent-scaffold eval` shells out to `npx promptfoo
   eval` and renders pass/fail + LLM-judge scores.
+tags: [eval, prompt-testing, yaml-config]
+when_to_load: "recipe declares eval.promptfoo"
 ---
 
 # Capability: eval.promptfoo

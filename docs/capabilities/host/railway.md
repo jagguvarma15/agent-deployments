@@ -30,6 +30,8 @@ docs: |
   platform. The emit_deploy_configs step writes `railway.json`;
   `agent-scaffold deploy --target railway` runs `railway up` (dry-run by
   default).
+tags: [host, paas, github-integrated]
+when_to_load: "recipe declares host.railway"
 ---
 
 # Capability: host.railway

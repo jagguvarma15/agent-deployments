@@ -8,6 +8,8 @@ versions:
   notes: "The ^4.0.0 major rewrote `streamText` / `generateText` / `generateObject` and is the recipe-validated line; 3.x is incompatible, 5.x untested."
 extra_packages:
   - {name: "@ai-sdk/anthropic", minimum: "^1.0.0"}
+tags: [typescript, streaming, edge-friendly]
+when_to_load: "recipe.framework == 'vercel_ai_sdk'"
 ---
 
 # Framework: Vercel AI SDK

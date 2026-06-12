@@ -22,6 +22,8 @@ docs: |
   Streamlit chat template for Python-only stacks. Single-file UI with
   `st.chat_message` rendering and SSE streaming. Copied verbatim into
   frontend/ during generation.
+tags: [frontend, python, prototype]
+when_to_load: "recipe declares frontend.streamlit"
 ---
 
 # Capability: frontend.streamlit

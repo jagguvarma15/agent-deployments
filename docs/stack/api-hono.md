@@ -1,3 +1,8 @@
+---
+tags: [typescript, web-api]
+when_to_load: "recipe.language == 'typescript'"
+---
+
 # Stack pick: Hono
 
 **Choice:** Hono 4.6 on Node.js runtime (Cloudflare Workers-compatible)

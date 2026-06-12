@@ -23,6 +23,8 @@ docs: |
   RAG recipes. 1536-dim output matches recipe-side `vector_collections`
   defaults. Note: this is OpenAI for embeddings only — the primary LLM in
   this stack remains Anthropic Claude.
+tags: [embeddings, openai, hosted]
+when_to_load: "recipe declares embedding.openai"
 ---
 
 # Capability: embedding.openai

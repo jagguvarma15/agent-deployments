@@ -29,6 +29,8 @@ docs: |
   Qdrant vector DB for RAG retrieval and semantic memory. The bootstrap step
   creates declared collections after `docker_up` so the agent can write
   embeddings on first run.
+tags: [vector-search, retrieval, self-hosted]
+when_to_load: "recipe declares vector_db.qdrant"
 ---
 
 # Capability: vector_db.qdrant

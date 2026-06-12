@@ -6,6 +6,8 @@ versions:
   minimum: ">=0.70.0"
   last_known_good: "0.70.0"
   notes: ">=0.70.0 is the floor at which the kwargs-only `Crew()` constructor + the split-out memory module are stable; older drops break in unobvious ways."
+tags: [python, role-based, multi-agent]
+when_to_load: "recipe.framework == 'crewai'"
 ---
 
 # Framework: CrewAI

@@ -28,6 +28,8 @@ emit_files: []
 docs: |
   Chroma vector DB. Smallest install footprint of any vector store option.
   Bootstrap step creates collections after docker_up.
+tags: [vector-search, retrieval, self-hosted, embedded]
+when_to_load: "recipe declares vector_db.chroma"
 ---
 
 # Capability: vector_db.chroma

@@ -41,6 +41,8 @@ docs: |
   Grafana + Prometheus + Tempo. Bootstrap step provisions datasources and
   uploads dashboards after the containers are healthy. Prometheus + Tempo
   run as additional compose services via emit_files.
+tags: [observability, metrics, self-hosted]
+when_to_load: "recipe declares obs.grafana-stack"
 ---
 
 # Capability: obs.grafana-stack

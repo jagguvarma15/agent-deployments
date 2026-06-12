@@ -1,3 +1,8 @@
+---
+tags: [cache, redis]
+when_to_load: "recipe declares cache.redis"
+---
+
 # Stack pick: Redis
 
 > Standing Redis up for the first time? Start with [`getting-started/redis.md`](../getting-started/redis.md) for the one-screen quickstart. This doc is the deep reference.

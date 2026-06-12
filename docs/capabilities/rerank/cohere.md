@@ -20,6 +20,8 @@ emit_files: []
 docs: |
   Cohere Rerank v3.5 — plugs into RAG recipes between vector search and the
   LLM prompt to lift recall@5 by 20-40 points on benchmark datasets.
+tags: [rerank, hosted, embeddings-companion]
+when_to_load: "recipe declares rerank.cohere"
 ---
 
 # Capability: rerank.cohere
