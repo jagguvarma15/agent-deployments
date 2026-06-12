@@ -9,6 +9,8 @@ versions:
 extra_packages:
   - {name: langchain-anthropic, minimum: "0.2.0"}
   - {name: langchain-core, minimum: "0.3.0"}
+tags: [python, agent-executor, retriever-ecosystem]
+when_to_load: "recipe.framework == 'langchain'"
 ---
 
 # Framework: LangChain

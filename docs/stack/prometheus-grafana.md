@@ -1,3 +1,8 @@
+---
+tags: [observability, metrics]
+when_to_load: "recipe declares obs.grafana-stack"
+---
+
 # Stack pick: Prometheus + Grafana
 
 > **Capability:** [`obs.grafana-stack`](../capabilities/obs/grafana-stack.md) (provisioning contract for `agent-scaffold up` — bundles Prometheus, Grafana, Tempo, and Loki via docker-compose).

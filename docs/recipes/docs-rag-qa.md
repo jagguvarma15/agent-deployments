@@ -7,10 +7,12 @@ runtime_modes:
   default:
     description: "Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse."
     swaps: {}
+    context_budget: {input_max: 80000, output_max: 8000}
   local_only:
     description: "Self-hosted vLLM + BGE embeddings + BGE-reranker, no SaaS keys."
     swaps:
       stack/llm-claude: stack/llm-local-vllm
+    context_budget: {input_max: 32000, output_max: 4000}
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |
@@ -70,6 +72,16 @@ capabilities:
 bootstrap_config:
   vector_collections:
     - { name: docs_rag, vector_size: 1536, distance: cosine }
+acceptance_contracts:
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+    - {path: /ask, method: POST, status: 200}
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+    - {name: DATABASE_URL, source: 'capability:relational.postgres'}
+  required_compose_services: [postgres, redis, qdrant, langfuse]
+  smoke_assertions:
+    - {jq: '.answer | length > 0', against: smoke_test.exercise.stdout}
 topology: single
 load_list:
   - {path: ../../vendored/blueprints/patterns/rag/overview.md, required: true}
@@ -122,6 +134,35 @@ Feed these files to your AI coding assistant to build this agent:
 - `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
+
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/docs-rag-qa.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./docs-rag-qa/` matching the recipe's `required_files[]`:
+  - model(s): claude-sonnet-4-6
+  - framework: pydantic-ai (Python) or vercel-ai-sdk (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[docs-rag-qa].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     curl -sf -X POST http://localhost:8000/ask \
+       -H 'content-type: application/json' \
+       -d '{"question":"What is the canonical stack?"}'
+
+Step 5 — Validate against `catalog.recipes[docs-rag-qa].acceptance_contracts`.
+````
 
 ## What it does
 

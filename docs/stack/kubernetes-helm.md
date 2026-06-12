@@ -1,3 +1,8 @@
+---
+tags: [deployment, kubernetes, production]
+when_to_load: "recipe targets kubernetes"
+---
+
 # Stack pick: Kubernetes + Helm
 
 **Choice:** Kubernetes 1.30+ via managed control plane (EKS / GKE / AKS); Helm 3.x for application packaging

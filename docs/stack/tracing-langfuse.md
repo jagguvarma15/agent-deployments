@@ -1,3 +1,8 @@
+---
+tags: [observability, llm-tracing]
+when_to_load: "recipe declares obs.langfuse"
+---
+
 # Stack pick: Langfuse
 
 > Standing Langfuse up for the first time? Start with [`getting-started/langfuse.md`](../getting-started/langfuse.md) for the one-screen quickstart. This doc is the deep reference.

@@ -1,3 +1,8 @@
+---
+tags: [vector-search]
+when_to_load: "recipe declares vector_db.qdrant"
+---
+
 # Stack pick: Qdrant
 
 > **Capability:** [`vector_db.qdrant`](../capabilities/vector_db/qdrant.md) (provisioning contract for `agent-scaffold up`). Alternatives: [`vector_db.chroma`](../capabilities/vector_db/chroma.md), [`vector_db.pgvector`](../capabilities/vector_db/pgvector.md).

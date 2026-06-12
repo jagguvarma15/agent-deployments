@@ -30,6 +30,8 @@ docs: |
   rollout. The emit_deploy_configs step writes `fly.toml`;
   `agent-scaffold deploy --target fly` runs `fly deploy` (dry-run by default).
   First-time deploys need an interactive `fly launch --no-deploy`.
+tags: [host, paas, docker]
+when_to_load: "recipe declares host.fly"
 ---
 
 # Capability: host.fly

@@ -1,3 +1,8 @@
+---
+tags: [mcp, tool-protocol]
+when_to_load: "recipe uses MCP tooling"
+---
+
 # Stack pick: MCP (Model Context Protocol)
 
 **Choice:** MCP as the standard tool protocol

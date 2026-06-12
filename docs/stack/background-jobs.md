@@ -1,3 +1,8 @@
+---
+tags: [background-jobs, queue-workers]
+when_to_load: "recipe needs background processing"
+---
+
 # Stack pick: Background jobs
 
 **Choice (Py):** Celery 5.x with a Redis broker (or RabbitMQ); Dramatiq for simpler workloads

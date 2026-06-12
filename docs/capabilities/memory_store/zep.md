@@ -38,6 +38,8 @@ docs: |
   Persists conversation history, summarizes long threads into facts, and
   exposes semantic search over the agent's recall surface. OSS image runs
   alongside Postgres in compose.
+tags: [memory_store, long-term-memory, hosted]
+when_to_load: "recipe declares memory_store.zep"
 ---
 
 # Capability: memory_store.zep

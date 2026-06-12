@@ -28,6 +28,8 @@ emit_files: []
 docs: |
   Redis 7 for cache, session storage, rate-limit counters, and (via Streams)
   low-throughput event source. No post-up bootstrap needed.
+tags: [cache, in-memory, rate-limiting, session-store]
+when_to_load: "recipe declares cache.redis"
 ---
 
 # Capability: cache.redis

@@ -16,10 +16,12 @@ runtime_modes:
   default:
     description: "Anthropic Claude + Redis Streams + Postgres + Langfuse."
     swaps: {}
+    context_budget: {input_max: 80000, output_max: 8000}
   hybrid_kafka:
     description: "Same as default but Kafka instead of Redis Streams for >10k events/sec."
     swaps:
       queue.redis-streams: queue.kafka
+    context_budget: {input_max: 80000, output_max: 8000}
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |
@@ -98,6 +100,15 @@ bootstrap_config:
     - { name: reservations.cancelled, maxlen: 10000, consumer_group: rebooker }
     - { name: reservations.rebooked, maxlen: 10000 }
     - { name: reservations.cancelled.dlq, maxlen: 10000 }
+acceptance_contracts:
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+    - {name: DATABASE_URL, source: 'capability:relational.postgres'}
+  required_compose_services: [postgres, redis, qdrant, langfuse, grafana]
+  smoke_assertions:
+    - {jq: 'tonumber > 0', against: smoke_test.exercise.stdout}
 topology: multi-agent-flat
 roles:
   - name: intake
@@ -197,6 +208,39 @@ Feed these files to your AI coding assistant to build this agent:
 - `docs/cross-cutting/security-hardening.md` · `docs/cross-cutting/authorization-rbac.md` · `docs/cross-cutting/audit-logging.md` · `docs/cross-cutting/pii-gdpr.md` · `docs/cross-cutting/cost-tracking.md` · `docs/cross-cutting/model-routing.md`
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
+
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/restaurant-rebooking.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./restaurant-rebooking/` matching the recipe's `required_files[]`:
+  - model(s): intake=claude-haiku-4-5, eligibility=claude-haiku-4-5, search=claude-sonnet-4-6, notifier=claude-haiku-4-5
+  - framework: langgraph (Python) or mastra (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[restaurant-rebooking].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     # Publish a synthetic cancellation event onto the input stream
+     docker compose exec -T redis redis-cli XADD reservations.cancelled '*' \
+       reservation_id smoke-1 customer_id smoke party_size 2 cancel_window_minutes 60
+     # Wait briefly for the worker to process
+     sleep 2
+     # Read back any rebooked-event the worker emitted
+     docker compose exec -T redis redis-cli XLEN reservations.rebooked
+
+Step 5 — Validate against `catalog.recipes[restaurant-rebooking].acceptance_contracts`.
+````
 
 ## What it does
 

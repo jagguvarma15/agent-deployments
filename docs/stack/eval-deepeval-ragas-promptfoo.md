@@ -1,3 +1,8 @@
+---
+tags: [eval, comparison]
+when_to_load: "recipe declares any eval.*"
+---
+
 # Stack pick: Eval Toolchain (DeepEval + RAGAS + Promptfoo)
 
 > Capabilities: [`eval.promptfoo`](../capabilities/eval/promptfoo.md) · [`eval.deepeval`](../capabilities/eval/deepeval.md) · [`eval.ragas`](../capabilities/eval/ragas.md)

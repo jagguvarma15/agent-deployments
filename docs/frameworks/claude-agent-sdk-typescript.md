@@ -6,6 +6,8 @@ versions:
   minimum: "^0.3.0"
   last_known_good: "0.3.163"
   notes: "0.3.x is the current line. API surface still evolving — pin tight and re-verify on every minor bump. Semver runs independently from the Python package."
+tags: [typescript, claude-code-style, mcp-native, subagents]
+when_to_load: "recipe.framework == 'claude_agent_sdk_typescript'"
 ---
 
 # Framework: Claude Agent SDK (TypeScript)

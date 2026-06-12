@@ -21,6 +21,8 @@ docs: |
   agent's input and output surfaces. Default impl calls Llama Guard via
   Together AI's hosted inference. Recipes wire it via
   `guardrails: [guardrail.llama-guard]`.
+tags: [guardrail, safety, llama]
+when_to_load: "recipe declares guardrail.llama-guard"
 ---
 
 # Capability: guardrail.llama-guard

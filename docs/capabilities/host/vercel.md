@@ -30,6 +30,8 @@ docs: |
   emit_deploy_configs step writes `vercel.json` with env placeholders;
   `agent-scaffold deploy --target vercel` runs the Vercel CLI (dry-run by
   default).
+tags: [host, serverless, frontend-first]
+when_to_load: "recipe declares host.vercel"
 ---
 
 # Capability: host.vercel

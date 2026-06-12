@@ -1,3 +1,8 @@
+---
+tags: [secrets, security]
+when_to_load: "always for production deployment"
+---
+
 # Stack pick: Secrets management
 
 **Choice (dev):** `.env` files loaded via `python-dotenv` or Node's `--env-file`

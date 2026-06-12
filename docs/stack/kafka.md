@@ -1,3 +1,8 @@
+---
+tags: [queue, high-throughput]
+when_to_load: "recipe declares queue.kafka"
+---
+
 # Stack pick: Kafka
 
 > Standing Kafka or Redpanda up for the first time? Start with [`getting-started/kafka.md`](../getting-started/kafka.md) for the one-screen quickstart. This doc is the deep reference.

@@ -1,3 +1,8 @@
+---
+tags: [llm, local, vllm]
+when_to_load: "recipe.runtime_mode == 'local_only'"
+---
+
 # LLM — local vLLM
 
 Self-hosted Llama 3 / Qwen / Mistral served by [vLLM](https://docs.vllm.ai). The canonical `local_only` swap target for recipes that default to Anthropic Claude.

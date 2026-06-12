@@ -6,6 +6,8 @@ versions:
   minimum: "^0.1.0"
   last_known_good: "0.1.0"
   notes: "Pre-1.0 line; the ^0.1.0 floor unlocks the agents + workflows + memory triad recipes assume, but the surface still moves between minors. Pin tight."
+tags: [typescript, workflows, memory, multi-agent, mcp-native]
+when_to_load: "recipe.framework == 'mastra'"
 ---
 
 # Framework: Mastra

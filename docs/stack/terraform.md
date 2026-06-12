@@ -1,3 +1,8 @@
+---
+tags: [infrastructure-as-code, cloud]
+when_to_load: "recipe targets cloud deployment"
+---
+
 # Stack pick: Terraform
 
 **Choice:** OpenTofu (the Linux Foundation fork, MPL-licensed) OR HashiCorp Terraform 1.5+

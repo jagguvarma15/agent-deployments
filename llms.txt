@@ -1,5 +1,7 @@
 # agent-deployments
 
+> Canonical: https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/llms.txt
+
 > Production-shaped markdown specs for AI agents. The stack-decision layer of the three-repo pipeline: [agent-blueprints](https://github.com/jagguvarma15/agent-blueprints) (architecture) → **agent-deployments** (specs + stack) → [agent-scaffold](https://github.com/jagguvarma15/agent-scaffold) (generator). After you pick a cognitive pattern in blueprints, this repo tells you what to build it on.
 
 Every recipe is a full-spec markdown blueprint with frontmatter that consumers (AI tools, scaffold CLIs) parse to assemble a runnable project. The canonical machine-readable index is `catalog.yaml`.
@@ -7,6 +9,7 @@ Every recipe is a full-spec markdown blueprint with frontmatter that consumers (
 ## Start here
 
 - [catalog.yaml](catalog.yaml): single source of truth — embeds the blueprints catalog (patterns + primitives + modifiers + compositions) and this repo's recipes, capabilities, frameworks, stack docs.
+- [CONSUMER_CONTRACT.md](CONSUMER_CONTRACT.md): the canonical 9-step recipe a tool follows to turn a catalog entry into a working local project. Includes prompt-cache tiering, load-list breakpointing, acceptance validation, and cache-hit-rate monitoring.
 - [STRUCTURE.md](STRUCTURE.md): directory map. Read this if you need orientation before walking the tree.
 - [agents.md](agents.md): how to programmatically consume the catalog. Entry shapes, resolution rules, pinning convention.
 - [MANIFEST_SCHEMA.md](MANIFEST_SCHEMA.md): catalog schema.

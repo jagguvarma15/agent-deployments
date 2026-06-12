@@ -20,6 +20,8 @@ docs: |
   RAGAS for academic-style RAG benchmarking — reference-answer comparison,
   per-question scoring, dataset-aware aggregation. Best for batch evaluation
   against a labeled test set.
+tags: [eval, rag-eval, python]
+when_to_load: "recipe declares eval.ragas"
 ---
 
 # Capability: eval.ragas

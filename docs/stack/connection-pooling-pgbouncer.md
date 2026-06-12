@@ -1,3 +1,8 @@
+---
+tags: [database, connection-pooling]
+when_to_load: "recipe declares relational.postgres and high concurrency"
+---
+
 # Stack pick: PgBouncer (connection pooling)
 
 **Choice:** PgBouncer in transaction-pooling mode for Postgres-backed services

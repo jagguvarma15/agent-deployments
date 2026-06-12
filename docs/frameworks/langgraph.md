@@ -6,6 +6,8 @@ versions:
   minimum: "0.3.21"
   last_known_good: "0.3.21"
   notes: "0.3.x is the recipe-validated floor; pin tight because the checkpointer + prebuilt agent surface still shifts between minors."
+tags: [python, graph-state, stateful, mcp-via-adapter]
+when_to_load: "recipe.framework == 'langgraph'"
 ---
 
 # Framework: LangGraph
