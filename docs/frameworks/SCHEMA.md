@@ -30,6 +30,8 @@ Every framework doc opens with a YAML frontmatter block. Fields:
 ### Optional
 
 - **`extra_packages`** *(list of `{name, minimum}` objects)* — companion deps the framework requires beyond the baseline language environment. Each entry is a mapping with `name` (PyPI / npm slug) and `minimum` (version constraint string). Example: LangGraph hierarchical recipes need `langgraph-supervisor`; it lives in `extra_packages`, not the recipe's `recipe_dependencies`, because the dependency is framework-owned.
+- **`tags`** *(list of lowercase strings)* — hybrid-intake discovery tokens. Convention: language + paradigm (e.g. `pydantic_ai` → `[python, type-safe, mcp-native, agentic-loop]`, `vercel_ai_sdk` → `[typescript, streaming, mcp-native, edge-friendly]`). Consumers index on these to short-circuit framework selection without loading the full body.
+- **`when_to_load`** *(string)* — one-line semantic predicate over the resolver scope. Convention: `"recipe.framework == '<id>'"`. Free-form; consumers may treat as a hint or enforce.
 
 ### Example frontmatter
 
@@ -45,6 +47,8 @@ versions:
 extra_packages:
   - {name: langchain-anthropic, minimum: ">=0.2.0"}
   - {name: langchain-core, minimum: ">=0.3.0"}
+tags: [python, agent-executor, retriever-ecosystem]
+when_to_load: "recipe.framework == 'langchain'"
 ---
 ```
 
@@ -93,6 +97,8 @@ The verification script in the PR that landed this schema audits every `comparis
 | `versions.last_known_good` | Yes | wizard preview + scaffold-side ceiling gate |
 | `versions.notes` | Yes | wizard preview prose |
 | `extra_packages` | Optional | recipe `recipe_dependencies` augment |
+| `tags` | Optional | hybrid-intake discovery — lazy framework selection |
+| `when_to_load` | Optional | hybrid-intake discovery predicate |
 
 ## Conformance
 

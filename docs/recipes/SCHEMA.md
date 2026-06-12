@@ -188,6 +188,20 @@ Structured, machine-readable companion to the prose `### Load list` H3 section e
 
 - **Conformance:** recipes without a `load_list` block fall back to the legacy prose `### Load list` section — the loader treats both as authoritative for one release. New recipes should declare `load_list` from day one. The prose section becomes a human-readable mirror; conflicts are bugs.
 
+##### `load_list[].cache_tier` *(optional, generator-defaulted)*
+
+Per-entry hint telling consumers which Anthropic `cache_control` tier each doc belongs in. The generator computes a path-based default when the entry doesn't author one; authored values win after enum validation.
+
+- **Type:** enum `hot` | `warm` | `dynamic`.
+- **Consumer:** the consumer assembling the prompt with cache breakpoints (typically the scaffold CLI or any other AI tool that reads the catalog).
+- **Path-based defaults:** `vendored/blueprints/**`, `frameworks/**`, `stack/**`, and `cross-cutting/project-layout.md` → `hot`; other `cross-cutting/**` + `capabilities/**` + the recipe body → `warm`; everything else → `dynamic`. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md#recipesload_listcache_tier) for the full mapping including the Anthropic TTL table.
+- **Authoring guidance:** authors rarely need to override the default. Set it explicitly when:
+  - A `cross-cutting/` doc is *foundational* for the recipe and you want it in the 1h hot cache.
+  - A `stack/` doc is *experimental* and you want it in the 5m warm tier instead.
+  - A `capabilities/` doc is *load-bearing* enough that 1h hot caching saves more than the 2.0× write cost.
+- **Consumer contract:** every emitted `load_list[]` entry carries a `cache_tier` value. Consumers can rely on the field being present.
+- **4-breakpoint budget:** Anthropic allows at most 4 `cache_control` breakpoints per request. Canonical placement: hot/warm boundary, warm/dynamic boundary, last assistant turn (conversational recipes), plus one spare. If the recipe's `load_list` implies more, the consumer collapses adjacent same-tier entries.
+
 #### `required_files`
 
 Paths the LLM must emit into the generated project.
@@ -529,6 +543,32 @@ Named runtime modes the recipe supports, each declaring concrete capability swap
 
 The catalog generator validates each swap's `from` and `to` ids resolve to a capability id or `docs/stack/<x>.md` path-style reference.
 
+##### `runtime_modes[<mode>].context_budget` *(optional)*
+
+Per-mode context-window envelope. Lets the consumer (or runtime) bound prompt assembly against the mode's chosen model class.
+
+- **Type:** object with `input_max` (positive int) and `output_max` (positive int).
+- **Consumer:** generator validates types; consumers interpret magnitudes against their model.
+- **Recommended values:**
+  - `default` mode (Claude Sonnet 4.6 envelope): `{input_max: 80000, output_max: 8000}`.
+  - `local_only` mode (Llama 3.1 8B-equivalent): `{input_max: 32000, output_max: 4000}`.
+  - `local_only` mode (Llama 3.1 70B-equivalent on vLLM): `{input_max: 80000, output_max: 8000}`.
+- **Example:**
+  ```yaml
+  runtime_modes:
+    default:
+      description: "Anthropic Claude — Sonnet across the loop."
+      swaps: {}
+      context_budget: {input_max: 80000, output_max: 8000}
+    local_only:
+      description: "Self-hosted vLLM serving Llama 3.1 8B."
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+      context_budget: {input_max: 32000, output_max: 4000}
+  ```
+
+When `context_budget` is absent, consumers fall back to their own per-model defaults rather than assume "unlimited."
+
 #### `smoke_test` *(required)*
 
 Shell-string commands the consumer runs after `docker compose up` + bootstrap to verify the recipe is locally healthy.
@@ -621,6 +661,71 @@ Coarse estimate of the recipe's whole-file token cost. Lets a consumer budget it
 - **Consumer:** v0.3+ (informational; surfaces in the wizard preview).
 - **Example:** `est_tokens: 4200`
 
+#### `acceptance_contracts` *(optional)*
+
+Machine-checkable contracts the consumer validates the generated project against after `docker compose up` + smoke pass. Lets external tooling (CI smoke jobs, scaffold doctor) answer "did the generated project actually conform?" without re-reading the recipe body.
+
+- **Type:** mapping with four optional sub-blocks. Each sub-block has its own shape (see below). The generator validates structure + reference resolution when the block is present.
+- **Consumer:** v0.3+ (additive; ignored by older builds via Pydantic `extra: ignore`).
+- **Sub-blocks:**
+
+  ##### `acceptance_contracts.http_endpoints`
+
+  Endpoints the generated project must expose. Generator requires each entry's `path` to be a string starting with `/`.
+
+  ```yaml
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+    - {path: /research, method: POST, status: 200, response_schema_ref: "#/data/ResearchResponse"}
+  ```
+
+  Include `/health` even for event-driven recipes (it's the readiness probe).
+
+  ##### `acceptance_contracts.required_env`
+
+  Env-vars that must be set before the project boots. `source: prompted` means the consumer asks the user; `source: capability:<id>` means the value comes from the named capability and the id must resolve.
+
+  ```yaml
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+    - {name: DATABASE_URL,      source: capability:relational.postgres}
+  ```
+
+  ##### `acceptance_contracts.required_compose_services`
+
+  Docker-compose service names that must be present and healthy. Generator requires every entry to match some capability's `docker_service`.
+
+  ```yaml
+  required_compose_services: [postgres, redis, langfuse]
+  ```
+
+  ##### `acceptance_contracts.smoke_assertions`
+
+  Jq expressions evaluated against `smoke_test.exercise`'s stdout (or another named stream). At least one assertion is conventional — for event-driven recipes (no HTTP), it's where the bulk of the contract lives.
+
+  ```yaml
+  smoke_assertions:
+    - {jq: ".answer | length > 0", against: smoke_test.exercise.stdout}
+  ```
+
+- **Worked example:**
+  ```yaml
+  acceptance_contracts:
+    http_endpoints:
+      - {path: /health, method: GET, status: 200}
+      - {path: /research, method: POST, status: 200, response_schema_ref: "#/data/ResearchResponse"}
+    required_env:
+      - {name: ANTHROPIC_API_KEY, source: prompted}
+      - {name: DATABASE_URL, source: capability:relational.postgres}
+    required_compose_services: [postgres, langfuse]
+    smoke_assertions:
+      - {jq: ".answer | length > 0", against: smoke_test.exercise.stdout}
+  ```
+
+#### Forward note: `### Generation prompt` H3
+
+A future content scope will populate a `### Generation prompt` H3 section in every recipe's body, placed immediately after `## Composes` and before `## What it does`. The section will hold a copy-pasteable prompt scaffold-CLI users can drop into Claude Code or Cursor to bootstrap the recipe before agent-scaffold ships. It's a body section, not a frontmatter field — this SCHEMA.md notes its existence so authors don't accidentally overwrite it during refactors.
+
 ---
 
 ## Required vs. recommended summary
@@ -652,6 +757,9 @@ Coarse estimate of the recipe's whole-file token cost. Lets a consumer budget it
 | `env_overrides` | Optional | v0.3+ | Merged into the emitted `.env.example` on top of `env_contract` |
 | `env_contract` | Auto-derived | v0.3+ | Generator emits; do NOT author |
 | `est_tokens` | Recommended | v0.3+ | Whole-file token estimate |
+| `load_list[].cache_tier` | Auto-defaulted | v0.3+ | Enum `hot \| warm \| dynamic`; generator computes from path when not authored |
+| `runtime_modes[<mode>].context_budget` | Optional | v0.3+ | `{input_max, output_max}` positive ints per mode |
+| `acceptance_contracts` | Optional | v0.3+ | Machine-checkable contracts for the generated project |
 
 ## Section ordering convention
 

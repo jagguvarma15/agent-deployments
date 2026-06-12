@@ -79,7 +79,17 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
-GENERATOR_VERSION = "1.2.0"
+GENERATOR_VERSION = "1.3.0"
+
+# Contract version: semantic guarantees consumers can pin against. Independent
+# of schema_version (YAML shape). Bumped when stable-field semantics change or
+# new fields graduate from optional to required. Additive optional fields keep
+# this version stable. See MANIFEST_SCHEMA.md § contract_version.
+CONTRACT_VERSION = 1
+
+# Valid enum for recipes[].load_list[].cache_tier. Maps to Anthropic
+# cache_control TTLs in the schema doc; the generator only enforces the enum.
+VALID_CACHE_TIERS = frozenset(["hot", "warm", "dynamic"])
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
@@ -193,6 +203,38 @@ def first_h1(text: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def default_cache_tier(load_path: str) -> str:
+    """Path-based default for ``recipes[].load_list[].cache_tier``.
+
+    Load_list paths are recipe-relative (``../../vendored/...``,
+    ``../frameworks/...``, ``../stack/...``). Strip leading ``./`` and
+    ``../`` segments to a canonical form, then bucket by directory.
+
+    Defaults:
+      - ``vendored/blueprints/**`` → hot
+      - ``frameworks/**``, ``stack/**``, ``cross-cutting/project-layout.md`` → hot
+      - ``cross-cutting/**`` (other), ``capabilities/**`` → warm
+      - ``recipes/**`` (recipe body) → warm
+      - Anything not matched → dynamic
+    """
+    p = load_path
+    while p.startswith("./"):
+        p = p[2:]
+    while p.startswith("../"):
+        p = p[3:]
+    if p.startswith("vendored/blueprints/"):
+        return "hot"
+    if p.startswith("frameworks/") or p.startswith("stack/"):
+        return "hot"
+    if p == "cross-cutting/project-layout.md":
+        return "hot"
+    if p.startswith("cross-cutting/") or p.startswith("capabilities/"):
+        return "warm"
+    if p.startswith("recipes/"):
+        return "warm"
+    return "dynamic"
+
+
 # ---------------------------------------------------------------------------
 # Source walkers
 # ---------------------------------------------------------------------------
@@ -263,9 +305,25 @@ def collect_recipes(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
             "model_recommendation",
             "env_overrides",
             "est_tokens",
+            "acceptance_contracts",
         ):
             if key in fm:
                 entry[key] = fm[key]
+        # Compute cache_tier defaults on every load_list entry. Authored values
+        # win after enum validation; missing values get the path-based default.
+        # Validation lives in validate_recipe_references; here we only fill in.
+        load_list = entry.get("load_list") or []
+        if isinstance(load_list, list):
+            normalized: list[Any] = []
+            for item in load_list:
+                if not isinstance(item, dict):
+                    normalized.append(item)
+                    continue
+                merged = OrderedDict(item)
+                if "cache_tier" not in merged and isinstance(merged.get("path"), str):
+                    merged["cache_tier"] = default_cache_tier(merged["path"])
+                normalized.append(merged)
+            entry["load_list"] = normalized
         out.append(entry)
     out.sort(key=lambda e: e["slug"])
     return out
@@ -312,6 +370,11 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
             entry["est_tokens"] = fm["est_tokens"]
         if "card" in fm:
             entry["card"] = fm["card"]
+        # Hybrid-intake discovery metadata (optional, additive).
+        if "tags" in fm:
+            entry["tags"] = fm["tags"]
+        if "when_to_load" in fm:
+            entry["when_to_load"] = fm["when_to_load"]
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
@@ -335,22 +398,51 @@ def collect_frameworks(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]
             entry["versions"] = fm["versions"]
         if "extra_packages" in fm:
             entry["extra_packages"] = fm["extra_packages"]
+        # Hybrid-intake discovery metadata (optional, additive).
+        if "tags" in fm:
+            entry["tags"] = fm["tags"]
+        if "when_to_load" in fm:
+            entry["when_to_load"] = fm["when_to_load"]
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
 
 
-def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[str]:
-    """Build a flat list of repo-root-relative paths for a category.
+def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
+    """Build a list of entries for stack[] / cross_cutting_docs[].
 
-    Used for stack[], cross_cutting_docs[] — reference docs the consumer
-    needs to know exist but they don't carry structured metadata worth
-    lifting into the catalog beyond the path itself.
+    Heterogeneous output:
+      - Plain string ``"<path>"`` for docs without ``tags`` or ``when_to_load``
+        in frontmatter — back-compat with consumers that read this block as
+        ``list[str]``.
+      - Mapping ``{path, tags?, when_to_load?}`` for docs that declare either
+        discovery field. Lets the catalog surface the hybrid-intake metadata
+        without forcing a wholesale shape migration.
+
+    The list is sorted by path so the output is deterministic regardless of
+    which entries are strings vs mappings.
     """
-    return sorted(
-        str(p.relative_to(REPO_ROOT).as_posix())
-        for p in iter_files(glob, non_recipe_stems)
-    )
+    out: list[Any] = []
+    for p in iter_files(glob, non_recipe_stems):
+        rel = str(p.relative_to(REPO_ROOT).as_posix())
+        try:
+            text = p.read_text(encoding="utf-8")
+        except OSError:
+            out.append(rel)
+            continue
+        fm, _ = parse_frontmatter(text)
+        if isinstance(fm, dict) and ("tags" in fm or "when_to_load" in fm):
+            entry: dict[str, Any] = OrderedDict()
+            entry["path"] = rel
+            if "tags" in fm:
+                entry["tags"] = fm["tags"]
+            if "when_to_load" in fm:
+                entry["when_to_load"] = fm["when_to_load"]
+            out.append(entry)
+        else:
+            out.append(rel)
+    out.sort(key=lambda e: e["path"] if isinstance(e, dict) else e)
+    return out
 
 
 def collect_pattern_docs() -> list[str]:
@@ -411,6 +503,9 @@ def validate_recipe_references(
     resolution errors still fail loud.
     """
     cap_ids = {c["id"] for c in capabilities if "id" in c}
+    cap_docker_services = {
+        c["docker_service"] for c in capabilities if c.get("docker_service")
+    }
     cohort_ids = {
         cohort: {e["id"] for e in (blueprints_catalog.get(cohort) or []) if "id" in e}
         for cohort in ("patterns", "primitives", "modifiers")
@@ -472,6 +567,39 @@ def validate_recipe_references(
                             errors.append(
                                 f"{path}: runtime_modes.{mode_name}.swaps to-id {dst!r} doesn't resolve"
                             )
+                    # Optional context_budget — positive integers when present.
+                    cb = mode_body.get("context_budget")
+                    if cb is not None:
+                        if not isinstance(cb, dict):
+                            errors.append(
+                                f"{path}: runtime_modes.{mode_name}.context_budget must be a mapping"
+                            )
+                        else:
+                            for key in ("input_max", "output_max"):
+                                val = cb.get(key)
+                                if not isinstance(val, int) or isinstance(val, bool) or val <= 0:
+                                    errors.append(
+                                        f"{path}: runtime_modes.{mode_name}.context_budget.{key} "
+                                        f"must be a positive integer"
+                                    )
+        # Optional cache_tier on each load_list entry — enum check only.
+        # Path-based defaults are applied in collect_recipes; this catches
+        # hand-authored invalid values.
+        load_list = r.get("load_list") or []
+        if isinstance(load_list, list):
+            for i, item in enumerate(load_list):
+                if not isinstance(item, dict):
+                    continue
+                ct = item.get("cache_tier")
+                if ct is None:
+                    continue
+                if ct not in VALID_CACHE_TIERS:
+                    errors.append(
+                        f"{path}: load_list[{i}].cache_tier={ct!r} must be one of "
+                        f"{sorted(VALID_CACHE_TIERS)}"
+                    )
+        # Optional acceptance_contracts block.
+        _validate_acceptance_contracts(r, cap_ids, cap_docker_services, errors)
         smoke = r.get("smoke_test")
         if smoke is None:
             soft_errors.append(f"{path}: missing required field 'smoke_test' (v0.3)")
@@ -533,6 +661,121 @@ def validate_recipe_references(
 
     if errors:
         raise SystemExit("error: catalog validation failed:\n  - " + "\n  - ".join(errors))
+
+
+def _validate_acceptance_contracts(
+    recipe: dict[str, Any],
+    cap_ids: set[str],
+    cap_docker_services: set[str],
+    errors: list[str],
+) -> None:
+    """Validate the optional ``acceptance_contracts`` block on a recipe.
+
+    Block shape (every key optional, but enforced when present):
+
+      acceptance_contracts:
+        http_endpoints:
+          - {path: /health, method: GET, status: 200}
+        required_env:
+          - {name: ANTHROPIC_API_KEY, source: prompted}
+          - {name: DATABASE_URL,      source: capability:relational.postgres}
+        required_compose_services: [postgres, redis]
+        smoke_assertions:
+          - {jq: ".answer | length > 0", against: smoke_test.exercise.stdout}
+
+    Rules:
+      - ``http_endpoints[].path`` must be a string starting with ``/``.
+      - ``required_env[].source`` of the form ``capability:<id>`` must
+        resolve to a declared capability id.
+      - ``required_compose_services`` entries must match some capability's
+        ``docker_service``.
+      - ``smoke_assertions[].jq`` must be a non-empty string.
+    """
+    ac = recipe.get("acceptance_contracts")
+    if ac is None:
+        return
+    path = recipe.get("path", "<unknown>")
+    if not isinstance(ac, dict):
+        errors.append(f"{path}: acceptance_contracts must be a mapping")
+        return
+
+    endpoints = ac.get("http_endpoints")
+    if endpoints is not None:
+        if not isinstance(endpoints, list):
+            errors.append(f"{path}: acceptance_contracts.http_endpoints must be a list")
+        else:
+            for i, ep in enumerate(endpoints):
+                if not isinstance(ep, dict):
+                    errors.append(
+                        f"{path}: acceptance_contracts.http_endpoints[{i}] must be a mapping"
+                    )
+                    continue
+                ep_path = ep.get("path")
+                if not isinstance(ep_path, str) or not ep_path.startswith("/"):
+                    errors.append(
+                        f"{path}: acceptance_contracts.http_endpoints[{i}].path must "
+                        f"be a string starting with '/'"
+                    )
+
+    required_env = ac.get("required_env")
+    if required_env is not None:
+        if not isinstance(required_env, list):
+            errors.append(f"{path}: acceptance_contracts.required_env must be a list")
+        else:
+            for i, ev in enumerate(required_env):
+                if not isinstance(ev, dict):
+                    errors.append(
+                        f"{path}: acceptance_contracts.required_env[{i}] must be a mapping"
+                    )
+                    continue
+                src = ev.get("source", "")
+                if isinstance(src, str) and src.startswith("capability:"):
+                    cap_id = src[len("capability:"):]
+                    if cap_id not in cap_ids:
+                        errors.append(
+                            f"{path}: acceptance_contracts.required_env[{i}].source "
+                            f"references unknown capability {cap_id!r}"
+                        )
+
+    required_services = ac.get("required_compose_services")
+    if required_services is not None:
+        if not isinstance(required_services, list):
+            errors.append(
+                f"{path}: acceptance_contracts.required_compose_services must be a list"
+            )
+        else:
+            for svc in required_services:
+                if not isinstance(svc, str):
+                    errors.append(
+                        f"{path}: acceptance_contracts.required_compose_services "
+                        f"entries must be strings"
+                    )
+                    continue
+                if svc not in cap_docker_services:
+                    errors.append(
+                        f"{path}: acceptance_contracts.required_compose_services "
+                        f"{svc!r} not present in any capability's docker_service"
+                    )
+
+    smoke_assertions = ac.get("smoke_assertions")
+    if smoke_assertions is not None:
+        if not isinstance(smoke_assertions, list):
+            errors.append(
+                f"{path}: acceptance_contracts.smoke_assertions must be a list"
+            )
+        else:
+            for i, sa in enumerate(smoke_assertions):
+                if not isinstance(sa, dict):
+                    errors.append(
+                        f"{path}: acceptance_contracts.smoke_assertions[{i}] must be a mapping"
+                    )
+                    continue
+                jq_expr = sa.get("jq")
+                if not isinstance(jq_expr, str) or not jq_expr.strip():
+                    errors.append(
+                        f"{path}: acceptance_contracts.smoke_assertions[{i}].jq "
+                        f"must be a non-empty string"
+                    )
 
 
 # ---------------------------------------------------------------------------
@@ -720,6 +963,7 @@ def build_catalog(
     catalog: dict[str, Any] = OrderedDict()
     catalog["schema_version"] = SCHEMA_VERSION
     catalog["generator_version"] = GENERATOR_VERSION
+    catalog["contract_version"] = CONTRACT_VERSION
 
     # Bootstrap-sequencing contract — every capability's `layer:` must be one
     # of these layer ids. Consumers walk this list top-to-bottom when running
@@ -781,11 +1025,17 @@ def build_catalog(
     # During the v0.3 migration window, allow_missing_required downgrades the
     # "missing required field" checks to warnings (resolution errors still
     # fail loud). Remove the flag use at end of the migration.
+    # stack[] is heterogeneous (string or {path, tags?, when_to_load?}). Pull
+    # the path strings only for swap-target resolution in the validator.
+    stack_paths = {
+        entry["path"] if isinstance(entry, dict) else entry
+        for entry in catalog["stack"]
+    }
     validate_recipe_references(
         catalog["recipes"],
         catalog["capabilities"],
         blueprints_catalog,
-        stack_paths=set(catalog["stack"]),
+        stack_paths=stack_paths,
         allow_missing_required=allow_missing_required,
     )
 
