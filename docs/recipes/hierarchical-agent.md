@@ -153,6 +153,35 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/hierarchical-agent.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./hierarchical-agent/` matching the recipe's `required_files[]`:
+  - model(s): supervisor=claude-opus-4-7, researcher=claude-sonnet-4-6, writer=claude-sonnet-4-6, reviewer=claude-sonnet-4-6
+  - framework: langgraph (Python) or mastra (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[hierarchical-agent].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     curl -sf -X POST http://localhost:8000/task \
+       -H 'content-type: application/json' \
+       -d '{"task":"write a one-paragraph explainer about Postgres MVCC"}'
+
+Step 5 — Validate against `catalog.recipes[hierarchical-agent].acceptance_contracts`.
+````
+
 ## What it does
 
 A hierarchical multi-agent system where a supervisor agent coordinates specialized worker agents to complete complex tasks. The supervisor receives a task, decides which worker(s) to delegate to, reviews their outputs, and iterates until the task is complete. Workers are compiled LangGraph sub-graphs, each with their own tools and state.

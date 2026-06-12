@@ -126,6 +126,35 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/research-assistant.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./research-assistant/` matching the recipe's `required_files[]`:
+  - model(s): claude-sonnet-4-6
+  - framework: pydantic-ai (Python) or vercel-ai-sdk (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[research-assistant].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     curl -sf -X POST http://localhost:8000/research \
+       -H 'content-type: application/json' \
+       -d '{"question":"smoke test","max_steps":2}'
+
+Step 5 — Validate against `catalog.recipes[research-assistant].acceptance_contracts`.
+````
+
 ## What it does
 
 A research agent that answers complex questions by iteratively searching, extracting facts, summarizing, and citing sources. Given a question, the agent enters a ReAct loop — reasoning about what information it needs, searching the web, observing results, and repeating until it can provide a comprehensive answer with citations.

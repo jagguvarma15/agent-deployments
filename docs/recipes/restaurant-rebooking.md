@@ -209,6 +209,39 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/restaurant-rebooking.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./restaurant-rebooking/` matching the recipe's `required_files[]`:
+  - model(s): intake=claude-haiku-4-5, eligibility=claude-haiku-4-5, search=claude-sonnet-4-6, notifier=claude-haiku-4-5
+  - framework: langgraph (Python) or mastra (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[restaurant-rebooking].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     # Publish a synthetic cancellation event onto the input stream
+     docker compose exec -T redis redis-cli XADD reservations.cancelled '*' \
+       reservation_id smoke-1 customer_id smoke party_size 2 cancel_window_minutes 60
+     # Wait briefly for the worker to process
+     sleep 2
+     # Read back any rebooked-event the worker emitted
+     docker compose exec -T redis redis-cli XLEN reservations.rebooked
+
+Step 5 — Validate against `catalog.recipes[restaurant-rebooking].acceptance_contracts`.
+````
+
 ## What it does
 
 A real-time rebooking agent for restaurant reservation platforms. When a reservation is cancelled, the agent:

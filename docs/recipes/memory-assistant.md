@@ -133,6 +133,35 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/memory-assistant.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./memory-assistant/` matching the recipe's `required_files[]`:
+  - model(s): claude-sonnet-4-6
+  - framework: pydantic-ai (Python) or mastra (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[memory-assistant].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     curl -sf -X POST http://localhost:8000/chat \
+       -H 'content-type: application/json' \
+       -d '{"user_id":"smoke","message":"remember that my favorite color is blue"}'
+
+Step 5 — Validate against `catalog.recipes[memory-assistant].acceptance_contracts`.
+````
+
 ## What it does
 
 A conversational assistant that remembers facts, preferences, and context from previous interactions. Users can chat naturally, and the agent automatically extracts and stores noteworthy information. On subsequent conversations, relevant memories are retrieved and injected into the prompt, enabling personalized and contextually aware responses.

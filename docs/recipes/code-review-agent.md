@@ -126,6 +126,35 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/code-review-agent.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./code-review-agent/` matching the recipe's `required_files[]`:
+  - model(s): claude-sonnet-4-6
+  - framework: pydantic-ai (Python) or vercel-ai-sdk (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[code-review-agent].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     curl -sf -X POST http://localhost:8000/review \
+       -H 'content-type: application/json' \
+       -d '{"diff_url":"https://example.com/test.diff"}'
+
+Step 5 — Validate against `catalog.recipes[code-review-agent].acceptance_contracts`.
+````
+
 ## What it does
 
 A code review agent that takes a diff or PR, plans what to review (security, correctness, style, performance), executes each review step with targeted analysis, then reflects on whether the review is complete or needs deeper investigation. Produces a structured review with findings, severity levels, and suggested fixes.

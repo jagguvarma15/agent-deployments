@@ -135,6 +135,35 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/docs-rag-qa.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./docs-rag-qa/` matching the recipe's `required_files[]`:
+  - model(s): claude-sonnet-4-6
+  - framework: pydantic-ai (Python) or vercel-ai-sdk (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[docs-rag-qa].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     curl -sf -X POST http://localhost:8000/ask \
+       -H 'content-type: application/json' \
+       -d '{"question":"What is the canonical stack?"}'
+
+Step 5 — Validate against `catalog.recipes[docs-rag-qa].acceptance_contracts`.
+````
+
 ## What it does
 
 A document Q&A agent. Users ingest documents (which get chunked and stored), then ask natural-language questions. The agent retrieves relevant chunks via a tool call, synthesizes an answer grounded in the retrieved context, and returns the answer with citations.

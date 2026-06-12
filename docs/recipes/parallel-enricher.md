@@ -122,6 +122,35 @@ Feed these files to your AI coding assistant to build this agent:
 
 > **Note:** This agent is stateless batch processing — Postgres is optional (only needed if you want to persist enrichment results).
 
+### Generation prompt
+
+Copy-paste this into Claude Code or Cursor to scaffold this recipe before `agent-scaffold` ships:
+
+````
+You are scaffolding a runnable agent project from a spec at https://github.com/jagguvarma15/agent-deployments.
+
+Step 1 — Fetch:
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/catalog.yaml
+  - https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/docs/recipes/parallel-enricher.md
+  - Every `load_list[].path` with `required: true` and `cache_tier: hot`.
+
+Step 2 — Generate the project at `./parallel-enricher/` matching the recipe's `required_files[]`:
+  - model(s): claude-haiku-4-5
+  - framework: pydantic-ai (Python) or vercel-ai-sdk (TS)
+  - runtime_mode: default
+  - env vars: from `catalog.recipes[parallel-enricher].env_contract`
+
+Step 3 — Bring it up: `docker compose up` + bootstrap per `LAYER_ORDER`.
+
+Step 4 — Run the smoke test:
+
+     curl -sf -X POST http://localhost:8000/enrich \
+       -H 'content-type: application/json' \
+       -d '{"items":[{"id":1,"text":"smoke test"}]}'
+
+Step 5 — Validate against `catalog.recipes[parallel-enricher].acceptance_contracts`.
+````
+
 ## What it does
 
 A batch enrichment agent. Given a list of records (e.g., company names, contact emails, product URLs), the agent enriches each record in parallel — extracting structured data, classifying, scoring, and augmenting with external information. Results are aggregated into a structured output.
