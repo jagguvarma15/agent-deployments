@@ -4,6 +4,15 @@ languages: [python, typescript]
 agent_pattern: event_driven
 primitives: [tool_use]
 runtime_modes:
+  # Note: `local_only` is intentionally omitted. Redis Streams, Postgres, and
+  # Langfuse all run locally already; the only SaaS dependency in `default`
+  # is Anthropic. The reason we ship `hybrid_kafka` instead of `local_only`
+  # is throughput scaling (>10k events/sec saturates Redis Streams' single-
+  # node design) — not local availability. A `local_only` swap of
+  # stack/llm-claude→stack/llm-local-vllm is mechanically possible but
+  # deferred: the 4-role design leans on Claude Sonnet/Opus quality for the
+  # `eligibility` router and `search` worker; no local 70B yet matches it
+  # on tool-grounded selection.
   default:
     description: "Anthropic Claude + Redis Streams + Postgres + Langfuse."
     swaps: {}
