@@ -11,6 +11,12 @@ on:
         description: "Recipe slug to smoke (matches catalog.recipes[].slug). Leave blank to run the full matrix."
         required: false
         default: ""
+      dry_run:
+        description: "Dry-run: validate catalog wiring without bringing up services. Default true until reference implementations + secrets land."
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
   # schedule:
   #   - cron: "0 8 * * *"   # daily 08:00 UTC
 
@@ -55,7 +61,10 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        run: uv run scripts/run_smoke_test.py ${{ matrix.recipe }}
+        run: |
+          DRY=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then DRY="--dry-run"; fi
+          uv run scripts/run_smoke_test.py ${{ matrix.recipe }} $DRY
       - name: Open tracking issue on failure
         if: failure() && env.skip != 'true'
         env:
