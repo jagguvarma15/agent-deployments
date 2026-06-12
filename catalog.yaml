@@ -2,7 +2,8 @@
 # Edit source docs (their YAML frontmatter) or the upstream blueprints
 # catalog, then regenerate.
 schema_version: 1
-generator_version: 1.2.0
+generator_version: 1.3.0
+contract_version: 1
 LAYER_ORDER:
 - id: infrastructure
   description: Stateful services with own healthchecks (Postgres, Redis, Kafka, vector DBs, Temporal).
@@ -1004,32 +1005,45 @@ recipes:
   - path: ../frameworks/claude-agent-sdk.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/claude-agent-sdk-typescript.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../../vendored/blueprints/patterns/react/overview.md
     required: true
+    cache_tier: hot
   - path: ../../vendored/blueprints/patterns/routing/overview.md
     required: true
+    cache_tier: hot
   - path: ../../vendored/blueprints/patterns/tool_use/overview.md
     required: true
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/tool-protocol-mcp.md
     required: false
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/testing-strategy.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/eval-data.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude via Claude Agent SDK — Sonnet for host, Sonnet for subagents.
@@ -1110,43 +1124,59 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/plan_and_execute/overview.md
     required: true
+    cache_tier: hot
   - path: ../../vendored/blueprints/patterns/reflection/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/langgraph.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude + E2B sandbox for running test repros.
@@ -1247,41 +1277,56 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/workflows/prompt-chaining/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude Sonnet across all chain steps.
@@ -1404,43 +1449,59 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/routing/overview.md
     required: true
+    cache_tier: hot
   - path: ../../vendored/blueprints/patterns/tool_use/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude — Haiku for classification, Sonnet for specialists.
@@ -1550,44 +1611,60 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/rag/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/vector-qdrant.md
     required: true
     when: capabilities contains 'vector_db.qdrant'
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse.
@@ -1725,41 +1802,56 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/langgraph.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude — Opus for supervisor, Sonnet for specialists.
@@ -1870,44 +1962,60 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/memory/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/langgraph.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/vector-qdrant.md
     required: true
     when: capabilities contains 'vector_db.qdrant'
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude + Zep for memory, OpenAI for embeddings.
@@ -2034,41 +2142,56 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/crewai.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude — Sonnet for each specialist.
@@ -2163,41 +2286,56 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/workflows/parallel-calls/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude Haiku for the enrichment fan-out.
@@ -2291,41 +2429,56 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/react/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/vercel-ai-sdk.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../cross-cutting/auth-jwt.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/rate-limiting.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude + Tavily web search + local Postgres/Redis/Langfuse.
@@ -2495,67 +2648,95 @@ recipes:
   load_list:
   - path: ../../vendored/blueprints/patterns/event_driven/overview.md
     required: true
+    cache_tier: hot
   - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
     required: true
+    cache_tier: hot
   - path: ../frameworks/langgraph.md
     required: true
     when: language == 'python'
+    cache_tier: hot
   - path: ../frameworks/mastra.md
     required: true
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../cross-cutting/project-layout.md
     required: true
+    cache_tier: hot
   - path: ../stack/llm-claude.md
     required: true
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
+    cache_tier: hot
   - path: ../stack/api-hono.md
     required: false
     when: language == 'typescript'
+    cache_tier: hot
   - path: ../stack/relational-postgres.md
     required: false
     when: capabilities contains 'relational.postgres'
+    cache_tier: hot
   - path: ../stack/cache-redis.md
     required: false
     when: capabilities contains 'cache.redis'
+    cache_tier: hot
   - path: ../stack/tracing-langfuse.md
     required: false
     when: capabilities contains 'obs.langfuse'
+    cache_tier: hot
   - path: ../stack/secrets-management.md
     required: true
+    cache_tier: hot
   - path: ../cross-cutting/idempotency.md
     required: true
+    cache_tier: warm
   - path: ../cross-cutting/resilience.md
     required: true
+    cache_tier: warm
   - path: ../cross-cutting/backpressure.md
     required: true
+    cache_tier: warm
   - path: ../cross-cutting/dlq-operations.md
     required: true
+    cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/observability.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/testing-strategy.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/multi-tenancy.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/cost-tracking.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/model-routing.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/health-graceful-shutdown.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/security-hardening.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/authorization-rbac.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/audit-logging.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/pii-gdpr.md
     required: false
+    cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
     required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude + Redis Streams + Postgres + Langfuse.
