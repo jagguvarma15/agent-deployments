@@ -172,7 +172,19 @@ Structured, machine-readable companion to the prose `### Load list` H3 section e
 - **Entry shape:**
   - `path` *(required)*: relative path from the recipe to the doc. Use `../patterns/<name>.md`, `../frameworks/<id>.md`, `../cross-cutting/<topic>.md`, `../stack/<id>.md`.
   - `required` *(required, bool)*: `true` for docs the scaffold must include regardless of context budget (pattern, framework, project-layout, llm). `false` for docs that may be dropped first when the budget tightens.
-  - `when` *(optional, string)*: Python-like predicate over the resolver scope `{language, framework, capabilities, topology}`. Examples: `"language == 'python'"`, `"framework == 'pydantic_ai'"`, `"capabilities contains 'obs.langfuse'"`. Absent / empty predicate means "always applicable".
+  - `when` *(optional, string)*: predicate over the resolver scope `{language, framework, capabilities, topology}`. Absent / empty means "always applicable". This is **not** free-form Python — exactly two forms are valid:
+
+    ```ebnf
+    predicate    = scalar_eq | contains ;
+    scalar_eq    = ( "language" | "framework" | "topology" ) , "==" , quoted_value ;
+    contains     = "capabilities" , "contains" , quoted_value ;
+    quoted_value = "'" , value_chars , "'" | '"' , value_chars , '"' ;
+    value_chars  = any characters except quote marks (non-empty) ;
+    ```
+
+    Whitespace around tokens is insignificant. Examples: `"language == 'python'"`, `"framework == 'pydantic_ai'"`, `"topology == 'single'"`, `"capabilities contains 'obs.langfuse'"`. There is no negation, no `and`/`or`, no other left-hand attributes — split a doc into multiple entries instead.
+
+    **Enforcement is asymmetric by design.** The catalog generator fails *closed*: any predicate outside this grammar (and any `capabilities contains` id with no `docs/capabilities/` entry) hard-fails the build, so a typo never ships. Consumers evaluate *fail-open*: a predicate they can't parse loads the doc anyway (with a warning), so a newer grammar never silently drops a required doc from an older consumer's context. The generator's regexes mirror the scaffold's `context.evaluate_load_list_predicate` exactly — change them together.
 - **Example:**
 
   ```yaml
@@ -661,11 +673,12 @@ Coarse estimate of the recipe's whole-file token cost. Lets a consumer budget it
 - **Consumer:** v0.3+ (informational; surfaces in the wizard preview).
 - **Example:** `est_tokens: 4200`
 
-#### `acceptance_contracts` *(optional)*
+#### `acceptance_contracts` *(mandatory for validated recipes)*
 
 Machine-checkable contracts the consumer validates the generated project against after `docker compose up` + smoke pass. Lets external tooling (CI smoke jobs, scaffold doctor) answer "did the generated project actually conform?" without re-reading the recipe body.
 
-- **Type:** mapping with four optional sub-blocks. Each sub-block has its own shape (see below). The generator validates structure + reference resolution when the block is present.
+- **Type:** mapping with four sub-blocks. Each sub-block has its own shape (see below). The generator validates structure + reference resolution when the block is present.
+- **Requiredness:** for recipes with `status: Blueprint (validated)`, the block **and all four sub-keys** must be declared — an explicit empty list (`required_compose_services: []`) is fine, silence is a hard generator error. Design-spec recipes get a soft warning when the block is missing (it becomes mandatory the moment the recipe flips to validated). Additionally, every `required_env` entry with `source: capability:<id>` must appear in the recipe's derived `env_contract` — a contract promising an env var no capability declares is unsatisfiable by consumers and fails the build.
 - **Consumer:** v0.3+ (additive; ignored by older builds via Pydantic `extra: ignore`).
 - **Sub-blocks:**
 
