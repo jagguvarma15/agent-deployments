@@ -79,7 +79,7 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
-GENERATOR_VERSION = "1.3.0"
+GENERATOR_VERSION = "1.4.0"
 
 # Contract version: semantic guarantees consumers can pin against. Independent
 # of schema_version (YAML shape). Bumped when stable-field semantics change or
@@ -90,6 +90,33 @@ CONTRACT_VERSION = 1
 # Valid enum for recipes[].load_list[].cache_tier. Maps to Anthropic
 # cache_control TTLs in the schema doc; the generator only enforces the enum.
 VALID_CACHE_TIERS = frozenset(["hot", "warm", "dynamic"])
+
+# Formal grammar for recipes[].load_list[].when predicates. These regexes
+# mirror the consumer-side evaluator in agent-scaffold's
+# context.evaluate_load_list_predicate EXACTLY — the consumer stays fail-open
+# (an unparseable predicate loads the doc, with a warning) while this
+# generator fails CLOSED so a malformed predicate never ships in the catalog.
+# Grammar (see docs/recipes/SCHEMA.md § load_list[].when):
+#   predicate := scalar_eq | contains
+#   scalar_eq := ("language" | "framework" | "topology") "==" quoted_value
+#   contains  := "capabilities" "contains" quoted_value
+#   quoted_value := "'" <non-quote chars> "'" | '"' <non-quote chars> '"'
+LOAD_LIST_PRED_EQ_RE = re.compile(
+    r"^\s*(language|framework|topology)\s*==\s*['\"]([^'\"]+)['\"]\s*$"
+)
+LOAD_LIST_PRED_CONTAINS_RE = re.compile(
+    r"^\s*capabilities\s+contains\s+['\"]([^'\"]+)['\"]\s*$"
+)
+
+# acceptance_contracts sub-blocks that every "Blueprint (validated)" recipe
+# must explicitly declare (empty lists are allowed — the author consciously
+# states "none" — but the key must be present).
+ACCEPTANCE_CONTRACT_BLOCKS = (
+    "http_endpoints",
+    "required_env",
+    "required_compose_services",
+    "smoke_assertions",
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
@@ -591,14 +618,32 @@ def validate_recipe_references(
                 if not isinstance(item, dict):
                     continue
                 ct = item.get("cache_tier")
-                if ct is None:
-                    continue
-                if ct not in VALID_CACHE_TIERS:
+                if ct is not None and ct not in VALID_CACHE_TIERS:
                     errors.append(
                         f"{path}: load_list[{i}].cache_tier={ct!r} must be one of "
                         f"{sorted(VALID_CACHE_TIERS)}"
                     )
-        # Optional acceptance_contracts block.
+                _validate_load_list_predicate(
+                    item.get("when"), f"{path}: load_list[{i}].when", cap_ids, errors
+                )
+        # acceptance_contracts: shape-validated when present; PRESENCE of the
+        # block and all four sub-keys is mandatory for validated recipes
+        # (declared emptiness is fine; silence is not).
+        ac = r.get("acceptance_contracts")
+        is_validated = "validated" in str(r.get("status") or "").lower()
+        if ac is None:
+            msg = f"{path}: missing 'acceptance_contracts'"
+            if is_validated:
+                errors.append(msg + " — mandatory for 'Blueprint (validated)' recipes")
+            else:
+                soft_errors.append(msg + " (mandatory once the recipe flips to validated)")
+        elif is_validated and isinstance(ac, dict):
+            for block in ACCEPTANCE_CONTRACT_BLOCKS:
+                if block not in ac:
+                    errors.append(
+                        f"{path}: acceptance_contracts.{block} must be declared "
+                        f"(an explicit empty list is allowed) on validated recipes"
+                    )
         _validate_acceptance_contracts(r, cap_ids, cap_docker_services, errors)
         smoke = r.get("smoke_test")
         if smoke is None:
@@ -661,6 +706,86 @@ def validate_recipe_references(
 
     if errors:
         raise SystemExit("error: catalog validation failed:\n  - " + "\n  - ".join(errors))
+
+
+def _validate_load_list_predicate(
+    predicate: Any,
+    label: str,
+    cap_ids: set[str],
+    errors: list[str],
+) -> None:
+    """Hard-fail on any ``when`` predicate the consumer grammar can't parse.
+
+    The scaffold's evaluator is fail-open (a malformed predicate loads the
+    doc rather than dropping it), so the only place a typo can be caught
+    before it silently degrades context selection is here, at catalog build.
+    ``capabilities contains`` ids must also resolve — a predicate gated on a
+    capability that doesn't exist would never fire.
+    """
+    if predicate is None:
+        return
+    if not isinstance(predicate, str) or not predicate.strip():
+        errors.append(f"{label} must be a non-empty string when present")
+        return
+    if LOAD_LIST_PRED_EQ_RE.match(predicate):
+        return
+    m = LOAD_LIST_PRED_CONTAINS_RE.match(predicate)
+    if m is not None:
+        cap_id = m.group(1)
+        if cap_id not in cap_ids:
+            errors.append(
+                f"{label}: 'capabilities contains' references unknown capability {cap_id!r}"
+            )
+        return
+    errors.append(
+        f"{label}: unparseable predicate {predicate!r} — grammar is "
+        f"\"<language|framework|topology> == '<value>'\" or "
+        f"\"capabilities contains '<cap.id>'\" (see docs/recipes/SCHEMA.md)"
+    )
+
+
+def validate_required_env_against_contract(recipes: list[dict[str, Any]]) -> None:
+    """Cross-check ``acceptance_contracts.required_env`` against the derived
+    ``env_contract``.
+
+    Runs AFTER :func:`derive_env_contracts`. Every capability-sourced
+    required_env entry (``source: capability:<id>``) must appear in the
+    recipe's derived env_contract — a mismatch means the acceptance contract
+    promises an env var the capability layer never declares, which a consumer
+    can neither prompt for nor pre-flight. Prompted / recipe-local sources
+    are exempt (they're recipe-specific by definition).
+    """
+    errors: list[str] = []
+    for r in recipes:
+        path = r.get("path", "<unknown>")
+        ac = r.get("acceptance_contracts")
+        if not isinstance(ac, dict):
+            continue
+        required_env = ac.get("required_env")
+        if not isinstance(required_env, list):
+            continue
+        contract_names = {
+            str(e.get("name", "")).upper()
+            for e in (r.get("env_contract") or [])
+            if isinstance(e, dict)
+        }
+        for i, ev in enumerate(required_env):
+            if not isinstance(ev, dict):
+                continue
+            name = str(ev.get("name", "") or "")
+            source = str(ev.get("source", "") or "")
+            if not name or not source.startswith("capability:"):
+                continue
+            if name.upper() not in contract_names:
+                errors.append(
+                    f"{path}: acceptance_contracts.required_env[{i}] {name!r} "
+                    f"(source {source!r}) is not in the derived env_contract — "
+                    f"the capability doesn't declare it"
+                )
+    if errors:
+        raise SystemExit(
+            "error: required_env/env_contract cross-check failed:\n  - " + "\n  - ".join(errors)
+        )
 
 
 def _validate_acceptance_contracts(
@@ -1043,6 +1168,11 @@ def build_catalog(
     # env_vars + the recipe's env_overrides. Runs after validation so we
     # never derive against an unresolved capability id.
     derive_env_contracts(catalog["recipes"], catalog["capabilities"])
+
+    # Cross-check acceptance contracts against what was just derived: a
+    # capability-sourced required_env entry that the capability layer never
+    # declares is a contract the consumer cannot satisfy.
+    validate_required_env_against_contract(catalog["recipes"])
 
     # Per-combo stack recommendations for the current upstream pin. Empty
     # block when no version dir exists yet (post-purge waiting state).

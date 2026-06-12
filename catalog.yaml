@@ -2,7 +2,7 @@
 # Edit source docs (their YAML frontmatter) or the upstream blueprints
 # catalog, then regenerate.
 schema_version: 1
-generator_version: 1.3.0
+generator_version: 1.4.0
 contract_version: 1
 LAYER_ORDER:
 - id: infrastructure
