@@ -55,6 +55,9 @@ jobs:
       - name: Install generator dependencies
         run: pip install -r scripts/requirements.txt
 
+      - name: Catalog validation self-tests
+        run: python scripts/test_catalog_validation.py
+
       - name: Regenerate catalog
         run: python scripts/generate_catalog.py --out /tmp/catalog.yaml
 
