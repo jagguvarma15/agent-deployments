@@ -73,7 +73,8 @@ Recipes' `agent_pattern:` frontmatter field uses these canonical ids. The `alias
 
 ```yaml
 schema_version: 1
-generator_version: 1.2.0
+generator_version: 1.3.0
+contract_version: 1
 
 # Pointer + convention block that lets consumers reach blueprints content
 # without hardcoding repo names, branches, URL patterns, or entry conventions.
@@ -156,6 +157,29 @@ Layers are explicit (not derived from a topological sort of `requires:`) for two
 
 Deliberately **no `catalog_url`** and **no `upstream_sha`** fields. Both would be environment-dependent and would make drift CI flap (the URL differs between local-dev and CI runs; the SHA changes whenever blueprints pushes to main outside this PR's control). Blueprints version tracking happens implicitly via the embedded `patterns[]` / `workflows[]` / `compositions[]` content — if blueprints changes, those blocks change, and the catalog diffs.
 
+### `schema_version` and `contract_version` (the split-version model)
+
+Two top-level integers, intentionally independent:
+
+| Field | Meaning | When it bumps | Who pins to it |
+|---|---|---|---|
+| `schema_version` | YAML shape of `catalog.yaml`. The set of top-level keys and the nested mapping/list shapes consumers must accept. | When a key is renamed or its type changes (`list[str]` → `list[object]`, key removed, etc.). | Consumers that hand-parse the catalog and need to know the bytes-on-the-wire layout. |
+| `contract_version` | Semantic guarantees the generator promises to consumers. Which fields are required, which are stable, which enum values are recognized, which validation rules the generator enforces. | When a previously-optional field graduates to required, when an enum's allowed values change in a non-additive way, when a validation rule tightens. | Consumers that build on top of the catalog's *meaning* and want a single number to gate "the contract I tested against still holds." |
+
+Adding a new optional field with a path-based default does NOT bump either version. Renaming `cost_profile.tier` to `cost_profile.pricing_tier` would bump `schema_version` (the shape moved). Making `cache_tier` mandatory on every `load_list[]` entry (today it's auto-defaulted) would bump `contract_version` (the consumer contract tightens).
+
+The consumer pin rule:
+
+```python
+# Read the catalog and assert your consumer was written against a
+# compatible contract.
+assert catalog["contract_version"] <= CONSUMER_MAX_CONTRACT_VERSION
+```
+
+A consumer with `CONSUMER_MAX_CONTRACT_VERSION = 1` accepts every contract_version 1 catalog. When the generator emits `contract_version: 2`, that consumer halts with a clear message rather than silently mishandling the new semantics — and the human upgrading the consumer reads the changelog from version 1 to 2 to know what changed.
+
+This mirrors the [MCP Registry](https://registry.modelcontextprotocol.io/) `manifest_version` + forward-compatible-warning pattern: pin to the version you tested against, surface a warning rather than silently misinterpret newer-version entries.
+
 ### `patterns[]`, `workflows[]`, `primitives[]`, `modifiers[]`, `compositions[]` (embedded from blueprints)
 
 Pass-through from the blueprints catalog. See [agent-blueprints/PATTERNS_CATALOG_SCHEMA.md](https://github.com/jagguvarma15/agent-blueprints/blob/main/PATTERNS_CATALOG_SCHEMA.md) for the field-level spec. The embedded data is whatever blueprints publishes at the URL we fetched.
@@ -188,13 +212,14 @@ Recipe frontmatter references these via `agent_pattern:`, `primitives:`, and `mo
 | `guardrails` | string[] | no | Capability ids (`kind: guardrail`) wrapping the agent's tool-call surface. |
 | `sandbox` | string \| null | no | Capability id (`kind: sandbox`) for the code-execution environment LLM-emitted code runs in. |
 | `durable_workflow` | string \| null | no | Capability id (`kind: durable`) for the workflow engine when the agent's success criterion is long-running. |
-| `runtime_modes` | object | yes (v0.3+) | Named runtime modes with concrete capability swaps; at minimum a `default` mode. Generator validates each swap's `from`/`to` resolve. |
+| `runtime_modes` | object | yes (v0.3+) | Named runtime modes with concrete capability swaps; at minimum a `default` mode. Generator validates each swap's `from`/`to` resolve. Each mode may declare `context_budget: {input_max, output_max}`. |
 | `smoke_test` | object | yes (v0.3+) | `{ready, exercise, assert_jq}` shell-string commands. All three keys required. |
 | `cost_profile` | object | yes (v0.3+) | `{tier, sources[], typical_run_usd?}`. `tier` and `sources` required. |
 | `model_recommendation` | string \| object | no | Single model id (single-agent) or per-role map (multi-agent). |
 | `env_overrides` | object | no | App-level env var defaults merged on top of the auto-derived `env_contract`. |
 | `env_contract` | object | **auto-derived** | Generator-emitted dedup of every selected capability's `env_vars` with source annotations. Authors do NOT include this in frontmatter. |
 | `est_tokens` | int | no | Coarse whole-file token estimate; consumer's context-window budget hint. |
+| `acceptance_contracts` | object | no | Machine-checkable contracts a consumer can validate the generated project against. See `### recipes[].acceptance_contracts` below. |
 
 All optional fields are passed through verbatim from the recipe's frontmatter. New optional fields can be added in source recipes without bumping `schema_version` (consumers use forward-compat parsing).
 
@@ -225,6 +250,78 @@ The generator validates all three keys are non-empty strings.
 The generator's `build_catalog` walks each recipe's `capabilities[]`, collects every capability's `env_vars`, dedupes (case-insensitive on the var name), and emits a list of `{name, source_capability, default?}` entries. `env_overrides` is merged on top (recipe-author defaults win over capability-author defaults). The result is what a consumer renders into `.env.example`.
 
 Authors must not hand-author `env_contract:` in recipe frontmatter — the generator raises if it's present at parse time.
+
+#### `recipes[].load_list[].cache_tier`
+
+Optional per-load_list-entry enum (`hot` | `warm` | `dynamic`) telling consumers which prompt-cache tier each doc belongs in. Path-based defaults are computed by the generator when an entry doesn't author one; authored values win after enum validation.
+
+**Path-based defaults:**
+
+| Path pattern | Default tier | Rationale |
+|---|---|---|
+| `vendored/blueprints/**` | `hot` | Pattern overviews are stable across many requests. |
+| `frameworks/**` | `hot` | Framework guides change at release cadence. |
+| `stack/**` | `hot` | Stack docs (llm-claude, api-fastapi, etc.) are foundational. |
+| `cross-cutting/project-layout.md` | `hot` | The canonical project layout is consumed by every recipe. |
+| `cross-cutting/**` (other) | `warm` | Topic-specific cross-cutting docs are loaded lazily. |
+| `capabilities/**` | `warm` | Capability docs are loaded only when the recipe references the capability. |
+| `recipes/**` (recipe body) | `warm` | The recipe body itself is loaded once per generation. |
+| anything else | `dynamic` | Conservative default — no cache. |
+
+**Anthropic `cache_control` TTL mapping:**
+
+| `cache_tier` | Anthropic TTL | Write cost | Read cost | When to use |
+|---|---|---|---|---|
+| `hot` | `1h` ephemeral | 2.0× input | 0.10× input | Pattern + framework + project-layout + llm-claude — stable across many requests. |
+| `warm` | `5m` ephemeral | 1.25× input | 0.10× input | Capability docs, recipe body — lazy-loaded, churn possible. |
+| `dynamic` | no `cache_control` | n/a | 1.0× input | User input, tool results, anything that changes per request. |
+
+**4-breakpoint budget callout:** Anthropic's `cache_control` allows **at most 4 breakpoints per request** (across tools / system / messages, in that order, with a 20-block lookback window). The canonical assembly places breakpoints at the hot/warm boundary, the warm/dynamic boundary, and (for conversational recipes) just before the most recent assistant turn — leaving the 4th slot available. If a recipe's `load_list` implies >4 breakpoints, the consumer collapses adjacent same-tier entries. The generator does not enforce the 4-cap; the schema doc states the rule so authors don't write recipes that imply 5+ breakpoints.
+
+The generator emits a `cache_tier` value on every `load_list[]` entry (computed when not authored). Consumers reading the catalog can therefore rely on the field being present and only handle the three enum values.
+
+#### `recipes[].runtime_modes[<mode>].context_budget`
+
+Optional `{input_max, output_max}` map declaring the per-mode context-window envelope. Both fields must be positive integers when present. The generator validates types but not magnitude — consumers interpret the numbers per their model class.
+
+Recommended values per model class (informational, not enforced):
+
+| Model class | `input_max` | `output_max` | Notes |
+|---|---|---|---|
+| Claude Sonnet 4.6 (default mode) | 80000 | 8000 | Leaves headroom under the 200k context window for cache-write overhead + dynamic input. |
+| Llama 3.1 8B (local_only mode) | 32000 | 4000 | Smaller envelope matches the smaller effective context. |
+| Llama 3.1 70B (local_only mode) | 80000 | 8000 | Mirrors Sonnet envelope; vLLM stack default. |
+| Higher-throughput hybrid modes | 80000 | 8000 | Default envelope; raise only if the recipe genuinely requires more. |
+
+When `context_budget` is absent, consumers should fall back to their own per-model defaults rather than treating the absence as "unlimited."
+
+#### `recipes[].acceptance_contracts`
+
+Optional block of machine-checkable contracts the consumer validates the generated project against after `docker compose up` + smoke pass. Lets the consumer answer "did the project I just generated actually match the spec?" without re-reading the recipe markdown.
+
+```yaml
+acceptance_contracts:
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+    - {path: /research, method: POST, status: 200, response_schema_ref: "#/data/ResearchResponse"}
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+    - {name: DATABASE_URL,      source: capability:relational.postgres}
+  required_compose_services: [postgres, redis, langfuse]
+  smoke_assertions:
+    - {jq: ".answer | length > 0", against: smoke_test.exercise.stdout}
+```
+
+**Sub-block contracts (generator-enforced when present):**
+
+| Key | Type | Rules |
+|---|---|---|
+| `http_endpoints` | object[] | Each entry is a mapping. `path` must be a string starting with `/`. `method`, `status`, and `response_schema_ref` are free-form (typically `GET`/`POST` and HTTP status integers). |
+| `required_env` | object[] | Each entry has `name` (env-var name) and `source`. `source: prompted` means the consumer asks the user. `source: capability:<id>` must resolve to a declared capability id. |
+| `required_compose_services` | string[] | Every string must match some capability's `docker_service`. The validator surfaces unmatched names as errors. |
+| `smoke_assertions` | object[] | Each entry has a `jq` expression (non-empty string) and an `against` field naming which stream to evaluate against. Consumers run the jq against the named stream and require truthy. |
+
+The block is optional in the current contract version; populating it is the consumer-facing handshake that lets external tooling (CI smoke jobs, the `agent-scaffold doctor` command) verify the generated project conforms.
 
 ### Capability fields (the v0.3 additions in detail)
 
@@ -257,6 +354,30 @@ Optional coarse string (`instant`, `~10s`, `~60s`, `~5min`). Consumers render th
 #### `capabilities[].est_tokens`
 
 Optional integer estimate of the doc's whole-file token cost. Lets a consumer budget its context window when whole-file-loading capability docs into LLM context.
+
+#### `capabilities[].tags` and `capabilities[].when_to_load`
+
+Two optional hybrid-intake discovery fields. Together they let a consumer (or an AI tool) decide whether this capability is even worth fetching without reading the body.
+
+| Field | Type | Notes |
+|---|---|---|
+| `tags` | string[] | Lowercase tokens describing the capability's category, deployment model, and shape. Conventionally: `card.capabilities_provided[]` values + the `kind` + 1–3 descriptive tokens. Examples: `cache.redis` → `[cache, in-memory, rate-limiting, session-store]`; `mcp.tavily` → `[mcp, web-search, hosted]`. |
+| `when_to_load` | string | One-line semantic predicate over the resolver scope `{recipe.capabilities, recipe.framework, recipe.runtime_mode}`. Free-form prose; consumers may interpret as a hint or as an enforced gate. Examples: `"recipe declares cache.redis"`, `"recipe declares any vector_db.*"`. |
+
+Both fields are pass-through — the generator surfaces them verbatim under `capabilities[].tags` and `capabilities[].when_to_load` without further validation beyond type. Authoring them is encouraged but not required; consumers that need lazy intake build their own indexes from these.
+
+### Framework fields (additive)
+
+#### `frameworks[].tags` and `frameworks[].when_to_load`
+
+Same shape as the capability versions above, applied to framework docs.
+
+| Field | Type | Notes |
+|---|---|---|
+| `tags` | string[] | Conventionally language + paradigm tokens. Examples: `pydantic_ai` → `[python, type-safe, mcp-native, agentic-loop]`; `vercel_ai_sdk` → `[typescript, streaming, mcp-native, edge-friendly]`. |
+| `when_to_load` | string | One-line predicate. Conventionally `"recipe.framework == '<id>'"`. |
+
+Both pass-through; consumers use them for hybrid-intake discovery the same way they use the capability versions.
 
 ### Advanced recipe fields
 
@@ -320,9 +441,16 @@ The 2026-SOTA cohort lands without bumping `schema_version` because:
 
 ### `stack[]`, `cross_cutting_docs[]`, `pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`
 
-Flat arrays of repo-root-relative paths only. These docs are referenced by recipes (via `load_list`, prose mentions, or alias matches) but don't carry structured frontmatter the catalog needs to expose beyond their existence + path.
+Arrays of repo-root-relative paths. Most entries are bare path strings; entries with `tags` or `when_to_load` in frontmatter are emitted as `{path, tags?, when_to_load?}` mappings (the hybrid-intake discovery metadata defined in `### Framework fields` above applies equally to stack/cross-cutting docs).
 
-The three blueprint-side lists (`pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`) enumerate `vendored/blueprints/<cohort>/<id>/overview.md` paths — one entry per id. `pattern_docs[]` covers both `patterns/` and `workflows/` for back-compat with older consumers that walked one combined list.
+The heterogeneous shape (`str | {path, tags?, when_to_load?}`) is intentional: it keeps existing consumers reading `stack[]` as `list[str]` working for every doc that hasn't authored discovery metadata, and surfaces the metadata only where it exists. Consumers wanting full uniformity can normalize at read time:
+
+```python
+def normalize(entry):
+    return entry if isinstance(entry, dict) else {"path": entry}
+```
+
+The three blueprint-side lists (`pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`) remain plain string arrays — they enumerate `vendored/blueprints/<cohort>/<id>/overview.md` paths and don't carry deployment-side frontmatter. `pattern_docs[]` covers both `patterns/` and `workflows/` for back-compat with older consumers that walked one combined list.
 
 ### `suggestions` (per-combo stack recommendations)
 
