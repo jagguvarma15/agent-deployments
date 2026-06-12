@@ -7,10 +7,12 @@ runtime_modes:
   default:
     description: "Anthropic Claude + E2B sandbox for running test repros."
     swaps: {}
+    context_budget: {input_max: 80000, output_max: 8000}
   local_only:
     description: "Self-hosted vLLM. Sandbox stays on E2B (no fully-local alternative yet)."
     swaps:
       stack/llm-claude: stack/llm-local-vllm
+    context_budget: {input_max: 32000, output_max: 4000}
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |
@@ -62,6 +64,16 @@ capabilities:
   - cache.redis
   - obs.langfuse
   - eval.promptfoo
+acceptance_contracts:
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+    - {path: /review, method: POST, status: 200}
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+    - {name: DATABASE_URL, source: 'capability:relational.postgres'}
+  required_compose_services: [postgres, redis, langfuse]
+  smoke_assertions:
+    - {jq: '.findings | length >= 0', against: smoke_test.exercise.stdout}
 topology: chain
 load_list:
   - {path: ../../vendored/blueprints/patterns/plan_and_execute/overview.md, required: true}

@@ -7,10 +7,12 @@ runtime_modes:
   default:
     description: "Anthropic Claude Haiku for the enrichment fan-out."
     swaps: {}
+    context_budget: {input_max: 80000, output_max: 8000}
   local_only:
     description: "Self-hosted vLLM."
     swaps:
       stack/llm-claude: stack/llm-local-vllm
+    context_budget: {input_max: 32000, output_max: 4000}
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |
@@ -59,6 +61,15 @@ capabilities:
   - cache.redis
   - obs.langfuse
   - eval.promptfoo
+acceptance_contracts:
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+    - {path: /enrich, method: POST, status: 200}
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+  required_compose_services: [redis, langfuse]
+  smoke_assertions:
+    - {jq: '.results | length > 0', against: smoke_test.exercise.stdout}
 topology: parallel
 load_list:
   - {path: ../../vendored/blueprints/workflows/parallel-calls/overview.md, required: true}

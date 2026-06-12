@@ -1048,6 +1048,9 @@ recipes:
     default:
       description: Anthropic Claude via Claude Agent SDK — Sonnet for host, Sonnet for subagents.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/ask \\\n  -H 'content-type: application/json' \\\n  -d '{\"question\":\"what files are in this repo?\"}'\n"
@@ -1061,6 +1064,22 @@ recipes:
   env_overrides:
     APP_PORT: 8000
   est_tokens: 4400
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /ask
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    required_compose_services:
+    - langfuse
+    smoke_assertions:
+    - jq: .answer | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1181,10 +1200,16 @@ recipes:
     default:
       description: Anthropic Claude + E2B sandbox for running test repros.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM. Sandbox stays on E2B (no fully-local alternative yet).
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/review \\\n  -H 'content-type: application/json' \\\n  -d '{\"diff_url\":\"https://example.com/test.diff\"}'\n"
@@ -1200,6 +1225,26 @@ recipes:
     APP_PORT: 8000
     MAX_STEPS: 10
   est_tokens: 4500
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /review
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - langfuse
+    smoke_assertions:
+    - jq: .findings | length >= 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1331,10 +1376,16 @@ recipes:
     default:
       description: Anthropic Claude Sonnet across all chain steps.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM serving Llama 3 70B for content steps.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/generate \\\n  -H 'content-type: application/json' \\\n  -d '{\"topic\":\"smoke test\"}'\n"
@@ -1348,6 +1399,26 @@ recipes:
   env_overrides:
     APP_PORT: 8000
   est_tokens: 3800
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /generate
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - langfuse
+    smoke_assertions:
+    - jq: .draft | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1506,10 +1577,16 @@ recipes:
     default:
       description: Anthropic Claude — Haiku for classification, Sonnet for specialists.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM serving Llama 3 8B + 70B.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/support \\\n  -H 'content-type: application/json' \\\n  -d '{\"message\":\"I have a billing question\"}'\n"
@@ -1527,6 +1604,26 @@ recipes:
   env_overrides:
     APP_PORT: 8000
   est_tokens: 4800
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /support
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - langfuse
+    smoke_assertions:
+    - jq: .category | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1669,10 +1766,16 @@ recipes:
     default:
       description: Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM + BGE embeddings + BGE-reranker, no SaaS keys.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/ask \\\n  -H 'content-type: application/json' \\\n  -d '{\"question\":\"What is the canonical stack?\"}'\n"
@@ -1689,6 +1792,27 @@ recipes:
     APP_PORT: 8000
     TOP_K: 5
   est_tokens: 4200
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /ask
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - qdrant
+    - langfuse
+    smoke_assertions:
+    - jq: .answer | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1856,10 +1980,16 @@ recipes:
     default:
       description: Anthropic Claude — Opus for supervisor, Sonnet for specialists.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM serving Llama 3 70B for all roles.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/task \\\n  -H 'content-type: application/json' \\\n  -d '{\"task\":\"write a one-paragraph explainer about Postgres MVCC\"}'\n"
@@ -1877,6 +2007,26 @@ recipes:
   env_overrides:
     APP_PORT: 8000
   est_tokens: 5000
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /task
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - langfuse
+    smoke_assertions:
+    - jq: .deliverable | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2020,10 +2170,16 @@ recipes:
     default:
       description: Anthropic Claude + Zep for memory, OpenAI for embeddings.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM + Zep (OSS image). Embeddings stay on OpenAI for now.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/chat \\\n  -H 'content-type: application/json' \\\n  -d '{\"user_id\":\"smoke\",\"message\":\"remember that my favorite color is blue\"}'\n"
@@ -2038,6 +2194,27 @@ recipes:
   env_overrides:
     APP_PORT: 8000
   est_tokens: 4200
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /chat
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - qdrant
+    - langfuse
+    smoke_assertions:
+    - jq: .reply | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2196,10 +2373,16 @@ recipes:
     default:
       description: Anthropic Claude — Sonnet for each specialist.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM serving Llama 3 70B for all specialists.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/investigate \\\n  -H 'content-type: application/json' \\\n  -d '{\"incident\":\"smoke test - DB connection pool saturated\"}'\n"
@@ -2216,6 +2399,26 @@ recipes:
   env_overrides:
     APP_PORT: 8000
   est_tokens: 4600
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /investigate
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - langfuse
+    smoke_assertions:
+    - jq: .report | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2340,10 +2543,16 @@ recipes:
     default:
       description: Anthropic Claude Haiku for the enrichment fan-out.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/enrich \\\n  -H 'content-type: application/json' \\\n  -d '{\"items\":[{\"id\":1,\"text\":\"smoke test\"}]}'\n"
@@ -2358,6 +2567,23 @@ recipes:
     APP_PORT: 8000
     CONCURRENCY: 10
   est_tokens: 3500
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /enrich
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    required_compose_services:
+    - redis
+    - langfuse
+    smoke_assertions:
+    - jq: .results | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -2483,10 +2709,16 @@ recipes:
     default:
       description: Anthropic Claude + Tavily web search + local Postgres/Redis/Langfuse.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     local_only:
       description: Self-hosted vLLM (no Anthropic key needed) + SearXNG search.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "curl -sf -X POST http://localhost:8000/research \\\n  -H 'content-type: application/json' \\\n  -d '{\"question\":\"smoke test\",\"max_steps\":2}'\n"
@@ -2502,6 +2734,26 @@ recipes:
     APP_PORT: 8000
     MAX_STEPS: 5
   est_tokens: 4500
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /research
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - langfuse
+    smoke_assertions:
+    - jq: .answer | length > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2741,10 +2993,16 @@ recipes:
     default:
       description: Anthropic Claude + Redis Streams + Postgres + Langfuse.
       swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
     hybrid_kafka:
       description: Same as default but Kafka instead of Redis Streams for >10k events/sec.
       swaps:
         queue.redis-streams: queue.kafka
+      context_budget:
+        input_max: 80000
+        output_max: 8000
   smoke_test:
     ready: curl -sf http://localhost:8000/health
     exercise: "# Publish a synthetic cancellation event onto the input stream\ndocker compose exec -T redis redis-cli XADD reservations.cancelled '*' \\\n  reservation_id smoke-1 customer_id smoke party_size 2 cancel_window_minutes 60\n# Wait briefly for the worker to process\nsleep 2\n# Read back any rebooked-event the worker emitted\ndocker compose exec -T redis redis-cli XLEN reservations.rebooked\n"
@@ -2762,6 +3020,25 @@ recipes:
   env_overrides:
     APP_PORT: 8000
   est_tokens: 5200
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - redis
+    - qdrant
+    - langfuse
+    - grafana
+    smoke_assertions:
+    - jq: tonumber > 0
+      against: smoke_test.exercise.stdout
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis

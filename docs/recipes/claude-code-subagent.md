@@ -12,6 +12,7 @@ runtime_modes:
   default:
     description: "Anthropic Claude via Claude Agent SDK — Sonnet for host, Sonnet for subagents."
     swaps: {}
+    context_budget: {input_max: 80000, output_max: 8000}
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |
@@ -54,6 +55,15 @@ recipe_dependencies:
 external_services: []
 capabilities:
   - obs.langfuse
+acceptance_contracts:
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+    - {path: /ask, method: POST, status: 200}
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+  required_compose_services: [langfuse]
+  smoke_assertions:
+    - {jq: '.answer | length > 0', against: smoke_test.exercise.stdout}
 topology: single
 load_list:
   - {path: ../frameworks/claude-agent-sdk.md, required: true, when: "language == 'python'"}

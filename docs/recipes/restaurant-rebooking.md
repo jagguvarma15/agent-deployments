@@ -16,10 +16,12 @@ runtime_modes:
   default:
     description: "Anthropic Claude + Redis Streams + Postgres + Langfuse."
     swaps: {}
+    context_budget: {input_max: 80000, output_max: 8000}
   hybrid_kafka:
     description: "Same as default but Kafka instead of Redis Streams for >10k events/sec."
     swaps:
       queue.redis-streams: queue.kafka
+    context_budget: {input_max: 80000, output_max: 8000}
 smoke_test:
   ready: "curl -sf http://localhost:8000/health"
   exercise: |
@@ -98,6 +100,15 @@ bootstrap_config:
     - { name: reservations.cancelled, maxlen: 10000, consumer_group: rebooker }
     - { name: reservations.rebooked, maxlen: 10000 }
     - { name: reservations.cancelled.dlq, maxlen: 10000 }
+acceptance_contracts:
+  http_endpoints:
+    - {path: /health, method: GET, status: 200}
+  required_env:
+    - {name: ANTHROPIC_API_KEY, source: prompted}
+    - {name: DATABASE_URL, source: 'capability:relational.postgres'}
+  required_compose_services: [postgres, redis, qdrant, langfuse, grafana]
+  smoke_assertions:
+    - {jq: 'tonumber > 0', against: smoke_test.exercise.stdout}
 topology: multi-agent-flat
 roles:
   - name: intake
