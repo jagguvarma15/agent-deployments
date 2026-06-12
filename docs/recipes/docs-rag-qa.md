@@ -2,6 +2,7 @@
 status: Blueprint (validated)
 languages: [python, typescript]
 agent_pattern: rag
+primitives: []
 runtime_modes:
   default:
     description: "Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse."
