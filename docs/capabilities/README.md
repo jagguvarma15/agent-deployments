@@ -94,6 +94,8 @@ card:                                # required — MCP-Server-Card-style discov
   description: "Self-hosted vector database with first-class HTTP/gRPC clients and named collections."
   capabilities_provided: [vector_search, hybrid_search, payload_filtering]
   required_credentials: []           # for hosted/SaaS capabilities, list env vars carrying secrets
+tags: [vector-search, retrieval, self-hosted]    # optional — hybrid-intake discovery tokens
+when_to_load: "recipe declares vector_db.qdrant" # optional — one-line predicate
 docs: |                              # short markdown block injected into the LLM context tier
   Free-form. One paragraph max — depth lives in the body below the frontmatter
   and in the linked stack/ doc.
@@ -128,6 +130,8 @@ docs: |                              # short markdown block injected into the LL
 | `card.required_credentials` | Env-var names carrying secrets the consumer must prompt for. For hosted/SaaS capabilities. |
 | `emit_files` | List of `{source, dest}` pairs. `source` is relative to the capability's directory; `dest` is relative to project root. Glob `**` supported. |
 | `deploy_configs` | Only for `kind: host`. See below. |
+| `tags` | List of lowercase tokens for hybrid-intake discovery. Convention: `card.capabilities_provided[]` + the `kind` + 1–3 descriptive tokens (e.g. `cache.redis` → `[cache, in-memory, rate-limiting, session-store]`). Consumers index on these to lazy-load only the capabilities a recipe needs. |
+| `when_to_load` | One-line semantic predicate over `{recipe.capabilities, recipe.framework, recipe.runtime_mode}` (e.g. `"recipe declares cache.redis"`, `"recipe declares any vector_db.*"`). Free-form prose; consumers may treat as a hint or enforce. |
 
 ## Frontend capability shape
 
