@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: multi_agent
+agent_role: "You are an operations assistant. Triage the incident, follow the runbook, and produce a clear incident summary with concrete next steps."
 primitives: [tool_use, sub_agents]
 runtime_modes:
   default:
