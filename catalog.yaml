@@ -3242,6 +3242,21 @@ capabilities:
   - rag-eval
   - python
   when_to_load: recipe declares eval.ragas
+- id: frontend.minimal-chat
+  kind: frontend
+  path: docs/capabilities/frontend/minimal-chat.md
+  layer: frontend
+  env_vars:
+  - VITE_AGENT_URL
+  provisioning_time: ~15s
+  cost_tier: free
+  est_tokens: 600
+  card:
+    name: Minimal Chat UI (Vite + React)
+    description: A tiny Vite + React + TypeScript chat that POSTs to the backend and renders the reply. Built once and served from nginx as a container — the default frontend for every agent.
+    capabilities_provided:
+    - chat_ui
+    required_credentials: []
 - id: frontend.nextjs-chat
   kind: frontend
   path: docs/capabilities/frontend/nextjs-chat.md
