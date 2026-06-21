@@ -2,6 +2,7 @@
 status: Blueprint (validated)
 languages: [python, typescript]
 agent_pattern: rag
+agent_role: "You are a documentation assistant. Answer using only the retrieved documents and cite each source; if the docs do not cover it, say so plainly."
 primitives: []
 runtime_modes:
   default:
