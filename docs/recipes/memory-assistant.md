@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: react
+agent_role: "You are a personal assistant with long-term memory. Recall relevant prior context, help the user, and remember new facts they share."
 primitives: [tool_use, memory]
 runtime_modes:
   default:
