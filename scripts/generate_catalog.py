@@ -312,6 +312,7 @@ def collect_recipes(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
             "topology",
             "complexity",
             "agent_pattern",
+            "agent_role",
             "primitives",
             "modifiers",
             "required_files",
