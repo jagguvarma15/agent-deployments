@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: parallel-calls
+agent_role: "You are a data enrichment assistant. Enrich each input record by gathering attributes in parallel and returning a consolidated result."
 primitives: []
 runtime_modes:
   default:

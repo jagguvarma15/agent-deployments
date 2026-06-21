@@ -10,10 +10,14 @@ COPY package*.json ./
 # (Copying package*.json before the source keeps the deps layer cached.)
 RUN npm install --no-audit --no-fund
 COPY . .
-# VITE_AGENT_URL is baked at build time (Vite client env). The default points at
-# the host-mapped backend; override with --build-arg VITE_AGENT_URL=... if needed.
+# VITE_* values are baked at build time (Vite client env). VITE_AGENT_URL points
+# at the host-mapped backend; VITE_AGENT_TITLE labels the chat UI. The scaffold
+# passes both as build args (normalize_frontend_service); override with
+# --build-arg VITE_AGENT_URL=... / VITE_AGENT_TITLE=... when building by hand.
 ARG VITE_AGENT_URL=http://localhost:8000
 ENV VITE_AGENT_URL=$VITE_AGENT_URL
+ARG VITE_AGENT_TITLE="Agent Chat"
+ENV VITE_AGENT_TITLE=$VITE_AGENT_TITLE
 RUN npm run build
 
 FROM nginx:alpine AS runtime

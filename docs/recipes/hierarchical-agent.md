@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: multi_agent
+agent_role: "You are the lead of a hierarchical agent team. Break the goal into subtasks, delegate to workers, and synthesize their results into a final answer."
 primitives: [tool_use, sub_agents]
 runtime_modes:
   default:

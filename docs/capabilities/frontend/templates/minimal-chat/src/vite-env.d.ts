@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_AGENT_URL?: string;
+  readonly VITE_AGENT_TITLE?: string;
 }
 
 interface ImportMeta {

@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: react
+agent_role: "You are a focused coding subagent. Execute the delegated task precisely using the available tools, and report a concise result."
 primitives: [tool_use, sub_agents, skills]
 runtime_modes:
   # Note: `local_only` mode is intentionally omitted. Claude Agent SDK's

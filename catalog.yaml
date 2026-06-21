@@ -960,6 +960,7 @@ recipes:
   - typescript
   topology: single
   agent_pattern: react
+  agent_role: You are a focused coding subagent. Execute the delegated task precisely using the available tools, and report a concise result.
   primitives:
   - tool_use
   - sub_agents
@@ -1103,6 +1104,7 @@ recipes:
   - typescript
   topology: chain
   agent_pattern: plan_and_execute
+  agent_role: You are a code review assistant. Review the provided changes for correctness, security, and style; cite specific lines and suggest concrete fixes.
   primitives:
   - tool_use
   required_files:
@@ -1283,6 +1285,7 @@ recipes:
   - typescript
   topology: chain
   agent_pattern: prompt-chaining
+  agent_role: You are a content production assistant. Turn the user's brief into polished, on-brand content through draft, edit, and finalize stages.
   primitives: []
   required_files:
   - Dockerfile
@@ -1454,6 +1457,7 @@ recipes:
   - typescript
   topology: multi-agent-hierarchical
   agent_pattern: routing
+  agent_role: You are a customer support agent. Understand the user's issue, route it to the right specialty, and respond clearly and empathetically.
   primitives:
   - tool_use
   required_files:
@@ -1659,6 +1663,7 @@ recipes:
   - typescript
   topology: single
   agent_pattern: rag
+  agent_role: You are a documentation assistant. Answer using only the retrieved documents and cite each source; if the docs do not cover it, say so plainly.
   primitives: []
   required_files:
   - Dockerfile
@@ -1855,6 +1860,7 @@ recipes:
   - typescript
   topology: multi-agent-hierarchical
   agent_pattern: multi_agent
+  agent_role: You are the lead of a hierarchical agent team. Break the goal into subtasks, delegate to workers, and synthesize their results into a final answer.
   primitives:
   - tool_use
   - sub_agents
@@ -2062,6 +2068,7 @@ recipes:
   - typescript
   topology: single
   agent_pattern: react
+  agent_role: You are a personal assistant with long-term memory. Recall relevant prior context, help the user, and remember new facts they share.
   primitives:
   - tool_use
   - memory
@@ -2254,6 +2261,7 @@ recipes:
   - typescript
   topology: multi-agent-flat
   agent_pattern: multi_agent
+  agent_role: You are an operations assistant. Triage the incident, follow the runbook, and produce a clear incident summary with concrete next steps.
   primitives:
   - tool_use
   - sub_agents
@@ -2454,6 +2462,7 @@ recipes:
   - typescript
   topology: parallel
   agent_pattern: parallel-calls
+  agent_role: You are a data enrichment assistant. Enrich each input record by gathering attributes in parallel and returning a consolidated result.
   primitives: []
   required_files:
   - Dockerfile
@@ -2614,6 +2623,7 @@ recipes:
   - typescript
   topology: single
   agent_pattern: react
+  agent_role: You are a research assistant. Plan the investigation, use tools to gather evidence, and deliver a well-sourced, structured answer.
   primitives:
   - tool_use
   required_files:
@@ -2792,6 +2802,7 @@ recipes:
   - typescript
   topology: multi-agent-flat
   agent_pattern: event_driven
+  agent_role: You are a restaurant rebooking assistant. When a reservation is disrupted, find suitable alternatives and confirm a new booking with the user.
   primitives:
   - tool_use
   required_files:

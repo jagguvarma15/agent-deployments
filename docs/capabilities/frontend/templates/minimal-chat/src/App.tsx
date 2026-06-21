@@ -5,6 +5,12 @@ import { useState, type FormEvent } from "react";
 const AGENT_URL: string =
   (import.meta.env.VITE_AGENT_URL as string | undefined) ?? "http://localhost:8000";
 
+// The agent's display name. The scaffold derives it from the "describe your
+// agent" step and passes it as the VITE_AGENT_TITLE build arg.
+const AGENT_TITLE: string =
+  (import.meta.env.VITE_AGENT_TITLE as string | undefined) ?? "Agent Chat";
+document.title = AGENT_TITLE;
+
 interface Msg {
   role: "user" | "agent";
   text: string;
@@ -56,7 +62,7 @@ export function App() {
   return (
     <div className="app">
       <header>
-        <h1>Agent Chat</h1>
+        <h1>{AGENT_TITLE}</h1>
         <span className="endpoint">{AGENT_URL}</span>
       </header>
       <main className="messages">
