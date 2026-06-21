@@ -2,6 +2,7 @@
 status: Blueprint (validated)
 languages: [python, typescript]
 agent_pattern: routing
+agent_role: "You are a customer support agent. Understand the user's issue, route it to the right specialty, and respond clearly and empathetically."
 primitives: [tool_use]
 runtime_modes:
   default:
