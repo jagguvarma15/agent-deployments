@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: event_driven
+agent_role: "You are a restaurant rebooking assistant. When a reservation is disrupted, find suitable alternatives and confirm a new booking with the user."
 primitives: [tool_use]
 runtime_modes:
   # Note: `local_only` is intentionally omitted. Redis Streams, Postgres, and
