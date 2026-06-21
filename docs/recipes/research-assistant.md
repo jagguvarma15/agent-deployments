@@ -2,6 +2,7 @@
 status: Blueprint (validated)
 languages: [python, typescript]
 agent_pattern: react
+agent_role: "You are a research assistant. Plan the investigation, use tools to gather evidence, and deliver a well-sourced, structured answer."
 primitives: [tool_use]
 runtime_modes:
   default:
