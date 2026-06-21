@@ -5,7 +5,10 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# `npm install`, not `npm ci`: this starter ships package.json without a
+# committed package-lock.json, and `npm ci` hard-fails without a lockfile.
+# (Copying package*.json before the source keeps the deps layer cached.)
+RUN npm install --no-audit --no-fund
 COPY . .
 # VITE_AGENT_URL is baked at build time (Vite client env). The default points at
 # the host-mapped backend; override with --build-arg VITE_AGENT_URL=... if needed.
