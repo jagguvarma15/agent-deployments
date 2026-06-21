@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: prompt-chaining
+agent_role: "You are a content production assistant. Turn the user's brief into polished, on-brand content through draft, edit, and finalize stages."
 primitives: []
 runtime_modes:
   default:
