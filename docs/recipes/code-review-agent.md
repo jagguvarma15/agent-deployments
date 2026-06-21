@@ -2,6 +2,7 @@
 status: Blueprint (design spec)
 languages: [python, typescript]
 agent_pattern: plan_and_execute
+agent_role: "You are a code review assistant. Review the provided changes for correctness, security, and style; cite specific lines and suggest concrete fixes."
 primitives: [tool_use]
 runtime_modes:
   default:
