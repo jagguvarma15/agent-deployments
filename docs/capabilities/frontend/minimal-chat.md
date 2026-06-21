@@ -39,5 +39,9 @@ automatically when a recipe declares no other `frontend.*` capability.
   `{"answer": "..."}`), or plain text. **The agent's backend should expose a
   `POST /chat` route** returning the reply. Recipes whose backend uses a different
   route can either add a thin `/chat` alias or override `VITE_AGENT_URL`'s path.
+  The full, canonical contract lives in [`docs/reference/chat-contract.md`](../../reference/chat-contract.md).
+- **Title.** The scaffold passes a `VITE_AGENT_TITLE` build arg (from the
+  "describe your agent" step); the UI shows it as the page + header title,
+  defaulting to "Agent Chat".
 
 No credentials required.
