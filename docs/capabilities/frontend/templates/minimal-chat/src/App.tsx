@@ -5,8 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 const AGENT_URL: string =
   (import.meta.env.VITE_AGENT_URL as string | undefined) ?? "http://localhost:8000";
 
-// The agent's display name. The scaffold derives it from the "describe your
-// agent" step and passes it as the VITE_AGENT_TITLE build arg.
+// The agent's display name (scaffold passes VITE_AGENT_TITLE).
 const AGENT_TITLE: string =
   (import.meta.env.VITE_AGENT_TITLE as string | undefined) ?? "Agent Chat";
 document.title = AGENT_TITLE;
@@ -16,13 +15,29 @@ interface Msg {
   text: string;
 }
 
-interface SetupState {
-  url: string;
-  missing: string[];
+interface Field {
+  name: string;
+  required: boolean;
+  hint: string;
+  set: boolean;
 }
+
+// null = ready (show the chat). Otherwise a full-screen gate replaces the chat.
+type Gate = { type: "setup"; setupUrl: string; fields: Field[] } | { type: "unreachable" } | null;
 
 function absUrl(path: string): string {
   return path.startsWith("http") ? path : `${AGENT_URL}${path}`;
+}
+
+// The secure-setup URL with a validated return_to (so the backend redirects back
+// here after saving) and an optional error to display. Secrets are entered on
+// that page and POSTed to the backend — never held in this chat page.
+function setupHref(setupUrl: string, error?: string): string {
+  const base = absUrl(setupUrl);
+  const sep = base.includes("?") ? "&" : "?";
+  const ret = `return_to=${encodeURIComponent(window.location.href)}`;
+  const err = error ? `&error=${encodeURIComponent(error)}` : "";
+  return `${base}${sep}${ret}${err}`;
 }
 
 /** Pull the reply text out of whatever shape the backend returns. */
@@ -40,41 +55,30 @@ export function App() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  // Proactive readiness: the backend's /setup URL + which required vars are still
-  // missing (null = ready, or no setup endpoint); and whether the backend is
-  // reachable at all (distinguishes "needs config" from "not running").
-  const [setup, setSetup] = useState<SetupState | null>(null);
-  const [unreachable, setUnreachable] = useState(false);
+  const [gate, setGate] = useState<Gate>(null);
+  const [checking, setChecking] = useState(true);
 
   async function checkReady(): Promise<void> {
+    setChecking(true);
     try {
       const res = await fetch(`${AGENT_URL}/ready`);
-      setUnreachable(false);
       if (!res.ok) {
-        setSetup(null); // backend without a /ready endpoint — don't block
+        setGate(null); // backend without a /ready endpoint — don't block the chat
         return;
       }
-      const data = (await res.json()) as {
-        ready?: boolean;
-        missing_required?: string[];
-        setup_url?: string;
-      };
-      if (data.ready) {
-        setSetup(null);
-      } else {
-        setSetup({
-          url: absUrl(data.setup_url ?? "/setup"),
-          missing: Array.isArray(data.missing_required) ? data.missing_required : [],
-        });
-      }
+      const data = (await res.json()) as { ready?: boolean; setup_url?: string; fields?: Field[] };
+      if (data.ready) setGate(null);
+      else setGate({ type: "setup", setupUrl: data.setup_url ?? "/setup", fields: data.fields ?? [] });
     } catch {
-      setUnreachable(true); // couldn't reach the backend at all
+      setGate({ type: "unreachable" });
+    } finally {
+      setChecking(false);
     }
   }
 
   useEffect(() => {
     void checkReady();
-    // Re-check when the user returns from the /setup tab (focus the window).
+    // Re-check when the user returns to this tab (e.g. back from the setup page).
     const onFocus = () => void checkReady();
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
@@ -94,76 +98,113 @@ export function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
-      setUnreachable(false);
       if (res.status === 409) {
+        // Missing or invalid credential → go to the secure setup page (full-page
+        // redirect; the backend sends us back here, and /ready re-checks).
         let path = "/setup";
+        let error: string | undefined;
         try {
-          const data = (await res.json()) as { setup_url?: string };
-          if (typeof data.setup_url === "string") path = data.setup_url;
+          const d = (await res.json()) as { setup_url?: string; error?: string };
+          if (typeof d.setup_url === "string") path = d.setup_url;
+          if (typeof d.error === "string") error = d.error;
         } catch {
-          /* fall back to /setup */
+          /* defaults */
         }
-        setSetup({ url: absUrl(path), missing: [] });
-        setMessages((m) => [
-          ...m,
-          {
-            role: "agent",
-            text: `I'm not configured yet — use "Configure your agent" above, then send again.`,
-          },
-        ]);
-      } else {
-        const reply = res.ok
-          ? await readReply(res)
-          : `Request failed (${res.status}).`;
-        if (res.ok) setSetup(null); // working now — hide the banner
-        setMessages((m) => [...m, { role: "agent", text: reply }]);
+        window.location.href = setupHref(path, error);
+        return;
       }
+      const reply = res.ok ? await readReply(res) : `Request failed (${res.status}).`;
+      setMessages((m) => [...m, { role: "agent", text: reply }]);
     } catch {
-      setUnreachable(true);
+      setGate({ type: "unreachable" });
       setMessages((m) => [
         ...m,
-        {
-          role: "agent",
-          text: `Can't reach the agent at ${AGENT_URL}. Is it running? Try \`docker compose up\`.`,
-        },
+        { role: "agent", text: `Can't reach the agent at ${AGENT_URL}. Is it running?` },
       ]);
     } finally {
       setBusy(false);
     }
   }
 
-  const banner = unreachable ? (
-    <div className="setup-banner unreachable">
-      <span>
-        Can't reach the agent at {AGENT_URL} — is it running? Try <code>docker compose up</code>.
-      </span>
-      <button type="button" onClick={() => void checkReady()}>
-        Retry
-      </button>
-    </div>
-  ) : setup ? (
-    <div className="setup-banner">
-      <span>
-        Configure your agent{setup.missing.length ? ` — missing: ${setup.missing.join(", ")}` : ""}.
-      </span>
-      <span className="actions">
-        <button type="button" onClick={() => window.open(setup.url, "_blank", "noopener")}>
-          Configure
-        </button>
-        <button type="button" className="ghost" onClick={() => void checkReady()}>
-          Re-check
-        </button>
-      </span>
-    </div>
-  ) : null;
+  // --- Full-screen gates (replace the chat until the agent can communicate) ---
+
+  if (gate?.type === "unreachable") {
+    return (
+      <div className="app gate">
+        <div className="gate-card">
+          <h1>Can't reach the agent</h1>
+          <p>
+            The backend at <code>{AGENT_URL}</code> isn't responding. Make sure the stack is up:
+          </p>
+          <pre>docker compose up</pre>
+          <button type="button" onClick={() => void checkReady()}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (gate?.type === "setup") {
+    const required = gate.fields.filter((f) => f.required);
+    const optional = gate.fields.filter((f) => !f.required);
+    const renderRows = (fields: Field[]) =>
+      fields.map((f) => (
+        <li key={f.name}>
+          <code>{f.name}</code>
+          {f.hint ? ` — ${f.hint}` : ""}
+        </li>
+      ));
+    return (
+      <div className="app gate">
+        <div className="gate-card">
+          <h1>Set up {AGENT_TITLE}</h1>
+          <p>
+            This agent needs a few environment values before it can reply. You'll enter them on a{" "}
+            <strong>secure page</strong> — they go straight to the agent's backend, never into this
+            chat.
+          </p>
+          {required.length > 0 && (
+            <>
+              <h3>Required</h3>
+              <ul>{renderRows(required)}</ul>
+            </>
+          )}
+          {optional.length > 0 && (
+            <>
+              <h3>Optional</h3>
+              <ul>{renderRows(optional)}</ul>
+            </>
+          )}
+          <button type="button" onClick={() => (window.location.href = setupHref(gate.setupUrl))}>
+            Configure →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (checking) {
+    return (
+      <div className="app gate">
+        <div className="gate-card">
+          <p>Checking agent…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Ready: the chat ---
 
   return (
     <div className="app">
       <header>
         <h1>{AGENT_TITLE}</h1>
         <span className="endpoint">{AGENT_URL}</span>
+        <a className="settings" href={setupHref("/setup")} title="Configure environment">
+          ⚙
+        </a>
       </header>
-      {banner}
       <main className="messages">
         {messages.length === 0 && <p className="empty">Say hello to your agent…</p>}
         {messages.map((m, i) => (
