@@ -1,7 +1,7 @@
 ---
 id: auth.key-bootstrap
 kind: auth
-layer: backend
+layer: identity
 provides: [runtime_key_capture]
 env_vars: []
 docker: null
