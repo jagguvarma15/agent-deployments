@@ -31,13 +31,25 @@ import urllib.parse
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 KEY_NAME = "ANTHROPIC_API_KEY"
 ENV_FILE = Path(os.environ.get("AGENT_ENV_FILE", ".env.local"))
 _CSRF_TOKEN = secrets.token_urlsafe(16)
 _SECRET_TOKENS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "PASSWD", "CREDENTIAL", "_PAT")
+# Errors that mean "the credential is missing/wrong" → bounce the chat back to
+# /setup instead of surfacing a raw 500, so the loop continues until it works.
+_AUTH_ERROR_MARKERS = (
+    "api_key",
+    "api key",
+    "x-api-key",
+    "authentication",
+    "unauthorized",
+    "401",
+    "invalid key",
+    "permission",
+)
 
 router = APIRouter()
 
@@ -118,9 +130,47 @@ def key_setup_required() -> JSONResponse | None:
     )
 
 
+def credential_error_response(exc: Exception) -> JSONResponse | None:
+    """Map a credential/auth failure to a 409 → /setup, else ``None``.
+
+    Call in the ``POST /chat`` ``except`` block: a key that's *set but wrong*
+    raises an auth error from the model/tool SDK; bounce the chat back to setup
+    (``needs_setup``) instead of a raw 500 so the loop continues until the agent
+    can actually communicate. Non-credential errors return ``None`` (re-raise).
+    The exception text is truncated and never includes the key.
+    """
+    text = str(exc).lower()
+    if not any(marker in text for marker in _AUTH_ERROR_MARKERS):
+        return None
+    return JSONResponse(
+        status_code=409,
+        content={"error": str(exc)[:200], "setup_url": "/setup", "needs_setup": True},
+    )
+
+
 def _setup_enabled() -> bool:
     """Dev sandbox: on by default; ``AGENT_KEY_SETUP=0`` disables it (prod)."""
     return os.environ.get("AGENT_KEY_SETUP", "1") != "0"
+
+
+def _validate_return_to(raw: str | None) -> str | None:
+    """A loopback-only return URL for the post-setup redirect (open-redirect guard).
+
+    Accepts only ``http://localhost[:port]`` / ``http://127.0.0.1[:port]`` URLs —
+    the chat is always served from the host. Anything else (or absent) → ``None``,
+    so ``/setup`` falls back to a static "return to your chat" page.
+    """
+    if not raw:
+        return None
+    try:
+        parsed = urllib.parse.urlparse(raw)
+    except ValueError:
+        return None
+    if parsed.scheme not in ("http", "https"):
+        return None
+    if (parsed.hostname or "") not in ("localhost", "127.0.0.1", "::1"):
+        return None
+    return raw
 
 
 @router.get("/ready")
@@ -151,6 +201,8 @@ _FORM_HEAD = """<!doctype html>
   button { margin-top: 18px; padding: 8px 18px; font-size: 14px; cursor: pointer; }
   .hint { color: #666; font-size: 13px; font-weight: 400; margin-top: 2px; }
   .req { color: #b00; } .opt { color: #888; font-weight: 400; }
+  .error { color: #911; background: #fde8e8; border: 1px solid #f5c2c2;
+           padding: 8px 12px; border-radius: 6px; font-size: 14px; margin-top: 8px; }
   code { background: #f3f3f3; padding: 1px 4px; border-radius: 3px; }
 </style></head>
 <body>
@@ -196,21 +248,29 @@ def _field_row(field: dict[str, Any]) -> str:
     )
 
 
-def _render_form() -> str:
+def _render_form(return_to: str | None, error: str | None) -> str:
     rows = "\n".join(_field_row(f) for f in _fields())
     csrf = f'<input type="hidden" name="csrf" value="{_CSRF_TOKEN}">\n'
-    return _FORM_HEAD + csrf + rows + _FORM_TAIL
+    ret = (
+        f'<input type="hidden" name="return_to" value="{html.escape(return_to, quote=True)}">\n'
+        if return_to
+        else ""
+    )
+    err = f'<p class="error">{html.escape(error)}</p>\n' if error else ""
+    return _FORM_HEAD + err + csrf + ret + rows + _FORM_TAIL
 
 
 @router.get("/setup", response_class=HTMLResponse)
-def setup_form() -> HTMLResponse:
+def setup_form(request: Request) -> HTMLResponse:
     if not _setup_enabled():
         return HTMLResponse("setup is disabled", status_code=404)
-    return HTMLResponse(_render_form())
+    return_to = _validate_return_to(request.query_params.get("return_to"))
+    error = request.query_params.get("error") or None
+    return HTMLResponse(_render_form(return_to, error))
 
 
-@router.post("/setup", response_class=HTMLResponse)
-async def setup_submit(request: Request) -> HTMLResponse:
+@router.post("/setup")
+async def setup_submit(request: Request) -> Response:
     if not _setup_enabled():
         return HTMLResponse("setup is disabled", status_code=404)
     raw = (await request.body()).decode("utf-8", errors="replace")
@@ -226,6 +286,11 @@ async def setup_submit(request: Request) -> HTMLResponse:
             saved += 1
     if saved == 0:
         return HTMLResponse("nothing to save — all fields were empty", status_code=400)
+    # Redirect back to the chat (303 → GET) so the form is never re-shown; the
+    # chat re-checks /ready and loops here again if a mandatory var is still unset.
+    return_to = _validate_return_to((posted.get("return_to") or [""])[0])
+    if return_to is not None:
+        return RedirectResponse(return_to, status_code=303)
     return HTMLResponse(_DONE_HTML)
 
 
