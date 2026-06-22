@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 // The backend URL. The scaffold wires VITE_AGENT_URL to the host-mapped backend
 // port; the default works for the local docker sandbox (backend on :8000).
@@ -16,6 +16,15 @@ interface Msg {
   text: string;
 }
 
+interface SetupState {
+  url: string;
+  missing: string[];
+}
+
+function absUrl(path: string): string {
+  return path.startsWith("http") ? path : `${AGENT_URL}${path}`;
+}
+
 /** Pull the reply text out of whatever shape the backend returns. */
 async function readReply(res: Response): Promise<string> {
   const contentType = res.headers.get("content-type") ?? "";
@@ -31,9 +40,46 @@ export function App() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  // Set when the backend reports it has no API key yet (HTTP 409 from /chat):
-  // the URL of its /setup form, surfaced as a "Connect API key" button.
-  const [setupUrl, setSetupUrl] = useState<string | null>(null);
+  // Proactive readiness: the backend's /setup URL + which required vars are still
+  // missing (null = ready, or no setup endpoint); and whether the backend is
+  // reachable at all (distinguishes "needs config" from "not running").
+  const [setup, setSetup] = useState<SetupState | null>(null);
+  const [unreachable, setUnreachable] = useState(false);
+
+  async function checkReady(): Promise<void> {
+    try {
+      const res = await fetch(`${AGENT_URL}/ready`);
+      setUnreachable(false);
+      if (!res.ok) {
+        setSetup(null); // backend without a /ready endpoint — don't block
+        return;
+      }
+      const data = (await res.json()) as {
+        ready?: boolean;
+        missing_required?: string[];
+        setup_url?: string;
+      };
+      if (data.ready) {
+        setSetup(null);
+      } else {
+        setSetup({
+          url: absUrl(data.setup_url ?? "/setup"),
+          missing: Array.isArray(data.missing_required) ? data.missing_required : [],
+        });
+      }
+    } catch {
+      setUnreachable(true); // couldn't reach the backend at all
+    }
+  }
+
+  useEffect(() => {
+    void checkReady();
+    // Re-check when the user returns from the /setup tab (focus the window).
+    const onFocus = () => void checkReady();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -48,8 +94,8 @@ export function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
+      setUnreachable(false);
       if (res.status === 409) {
-        // The agent has no API key yet — surface its /setup form.
         let path = "/setup";
         try {
           const data = (await res.json()) as { setup_url?: string };
@@ -57,30 +103,59 @@ export function App() {
         } catch {
           /* fall back to /setup */
         }
-        setSetupUrl(path.startsWith("http") ? path : `${AGENT_URL}${path}`);
+        setSetup({ url: absUrl(path), missing: [] });
         setMessages((m) => [
           ...m,
           {
             role: "agent",
-            text: 'I need an API key first — click "Connect API key" above, paste your key, then send your message again.',
+            text: `I'm not configured yet — use "Configure your agent" above, then send again.`,
           },
         ]);
       } else {
         const reply = res.ok
           ? await readReply(res)
-          : `Request failed (${res.status}). Is the backend running at ${AGENT_URL}?`;
-        if (res.ok) setSetupUrl(null); // key works now — hide the banner
+          : `Request failed (${res.status}).`;
+        if (res.ok) setSetup(null); // working now — hide the banner
         setMessages((m) => [...m, { role: "agent", text: reply }]);
       }
-    } catch (err) {
+    } catch {
+      setUnreachable(true);
       setMessages((m) => [
         ...m,
-        { role: "agent", text: `Could not reach the agent at ${AGENT_URL}: ${String(err)}` },
+        {
+          role: "agent",
+          text: `Can't reach the agent at ${AGENT_URL}. Is it running? Try \`docker compose up\`.`,
+        },
       ]);
     } finally {
       setBusy(false);
     }
   }
+
+  const banner = unreachable ? (
+    <div className="setup-banner unreachable">
+      <span>
+        Can't reach the agent at {AGENT_URL} — is it running? Try <code>docker compose up</code>.
+      </span>
+      <button type="button" onClick={() => void checkReady()}>
+        Retry
+      </button>
+    </div>
+  ) : setup ? (
+    <div className="setup-banner">
+      <span>
+        Configure your agent{setup.missing.length ? ` — missing: ${setup.missing.join(", ")}` : ""}.
+      </span>
+      <span className="actions">
+        <button type="button" onClick={() => window.open(setup.url, "_blank", "noopener")}>
+          Configure
+        </button>
+        <button type="button" className="ghost" onClick={() => void checkReady()}>
+          Re-check
+        </button>
+      </span>
+    </div>
+  ) : null;
 
   return (
     <div className="app">
@@ -88,24 +163,19 @@ export function App() {
         <h1>{AGENT_TITLE}</h1>
         <span className="endpoint">{AGENT_URL}</span>
       </header>
-      {setupUrl && (
-        <div className="setup-banner">
-          <span>This agent needs an Anthropic API key to reply.</span>
-          <button type="button" onClick={() => window.open(setupUrl, "_blank", "noopener")}>
-            Connect API key
-          </button>
-        </div>
-      )}
+      {banner}
       <main className="messages">
-        {messages.length === 0 && (
-          <p className="empty">Say hello to your agent…</p>
-        )}
+        {messages.length === 0 && <p className="empty">Say hello to your agent…</p>}
         {messages.map((m, i) => (
           <div key={i} className={`msg ${m.role}`}>
             <div className="bubble">{m.text}</div>
           </div>
         ))}
-        {busy && <div className="msg agent"><div className="bubble">…</div></div>}
+        {busy && (
+          <div className="msg agent">
+            <div className="bubble">…</div>
+          </div>
+        )}
       </main>
       <form className="composer" onSubmit={send}>
         <input
