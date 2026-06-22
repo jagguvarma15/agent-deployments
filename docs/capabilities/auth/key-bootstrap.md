@@ -44,24 +44,37 @@ it); absent, the form defaults to just the Anthropic key.
 1. **Mount the router** on the FastAPI app:
 
    ```python
-   from agent_key_setup import router as key_setup_router, key_setup_required
+   from agent_key_setup import (
+       router as key_setup_router,
+       key_setup_required,
+       credential_error_response,
+   )
    app.include_router(key_setup_router)
    ```
 
-2. **Gate `POST /chat`** so it returns the 409 when no key is configured (the
-   frontend turns the returned `setup_url` into a "Connect your API key" button):
+2. **Gate `POST /chat`** — return the 409 when a required var is missing, AND bounce
+   back to setup when a key is set but *wrong* (an auth error from the SDK). The
+   chat redirects to the secure `/setup` page on either, looping until it works:
 
    ```python
    @app.post("/chat")
    async def chat(req: ChatRequest):
        gate = key_setup_required()
        if gate is not None:
-           return gate            # 409 {"setup_url": "/setup"}
-       ...                        # build the Anthropic client; return {"reply": ...}
+           return gate                       # 409 {"setup_url": "/setup"}
+       try:
+           ...                               # build the client; return {"reply": ...}
+       except Exception as exc:              # noqa: BLE001
+           redirect = credential_error_response(exc)
+           if redirect is not None:
+               return redirect               # 409 {"setup_url", "needs_setup": true}
+           raise
    ```
 
-3. Nothing else — `agent_key_setup` loads `.env.local` at import, so a key
-   bootstrapped on a previous run is picked up automatically on the next restart.
+3. Nothing else — `agent_key_setup` loads `.env.local` at import, so values
+   configured on a previous run are picked up automatically on the next restart.
+   The router also serves `GET /ready` (the chat's proactive check) and the
+   `GET/POST /setup` form, which redirects back to the chat after saving.
 
 ## Notes
 
