@@ -3097,6 +3097,26 @@ recipes:
     source_capability: restaurant-rebooking
     default: 8000
 capabilities:
+- id: auth.key-bootstrap
+  kind: auth
+  path: docs/capabilities/auth/key-bootstrap.md
+  layer: identity
+  env_vars: []
+  provisioning_time: instant
+  cost_tier: free
+  est_tokens: 450
+  card:
+    name: Runtime API-key bootstrap
+    description: Lets the chat UI capture the agent's Anthropic API key at runtime via a CSRF-guarded /setup form on the backend, when it wasn't pre-wired — so a freshly-cloned project can `docker compose up` and start chatting after pasting a key once. Dev sandbox only.
+    capabilities_provided:
+    - runtime_key_capture
+    required_credentials: []
+  tags:
+  - auth
+  - api-key
+  - bootstrap
+  - dev
+  when_to_load: a chat frontend is present and the agent needs a key to reply
 - id: cache.redis
   kind: cache
   path: docs/capabilities/cache/redis.md

@@ -35,6 +35,27 @@ header {
 header h1 { font-size: 18px; margin: 0; }
 .endpoint { color: var(--muted); font-size: 12px; }
 
+.setup-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #3a2d12;
+  border-bottom: 1px solid #5a4a1f;
+  font-size: 14px;
+}
+.setup-banner button {
+  background: var(--user);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .messages {
   flex: 1;
   overflow-y: auto;
