@@ -69,6 +69,13 @@ LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
 | `LANGCHAIN_PROJECT` | *(project name)* | Project bucket for runs in the LangSmith UI |
 | `LANGCHAIN_ENDPOINT` | `https://api.smith.langchain.com` | Override only if using LangSmith on-prem |
 
+> **`LANGCHAIN_*` vs `LANGSMITH_*`.** Recent LangSmith SDKs accept `LANGSMITH_API_KEY`
+> / `LANGSMITH_TRACING` / `LANGSMITH_PROJECT` / `LANGSMITH_ENDPOINT` as aliases for the
+> `LANGCHAIN_*` names above. This capability standardizes on the `LANGCHAIN_*` names
+> (broadest compatibility); set the `LANGSMITH_*` form too only if a newer SDK requires
+> it. Connect the key + a custom project from the scaffold REPL with `/config
+> LANGCHAIN_API_KEY` and `/config LANGCHAIN_PROJECT`.
+
 ## Client integration
 
 LangSmith auto-instruments LangChain / LangGraph via env vars. No explicit client wiring required when `LANGCHAIN_TRACING_V2=true`.

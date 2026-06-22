@@ -74,9 +74,26 @@ await r.set("session:abc123", JSON.stringify({ userId: 42 }), "EX", 3600);
 const session = JSON.parse((await r.get("session:abc123"))!);
 ```
 
-## Cloud / production
+## Sandbox vs managed
 
-- **Managed** — Upstash, Redis Enterprise Cloud, AWS ElastiCache. Same `REDIS_URL` shape.
+By default this capability runs Redis as an **in-sandbox container** — `REDIS_URL`
+defaults to `redis://localhost:6379` and the compose fragment supplies it, so the
+agent works with no credentials.
+
+To point the agent at a **managed Redis** instead (Upstash, Redis Enterprise
+Cloud, AWS ElastiCache), set `REDIS_URL` to the provider's connection string —
+same shape, with two common additions:
+
+| Concern | Sandbox | Managed |
+|---------|---------|---------|
+| Scheme  | `redis://` | `rediss://` (TLS — most managed providers require it) |
+| Auth    | none | `:<password>@` (or `<user>:<password>@`) before the host |
+| Example | `redis://localhost:6379` | `rediss://:s3cr3t@my-db.upstash.io:6380` |
+
+In the scaffold REPL, connect one over the sandbox default with the secure
+config entry: `/config REDIS_URL`. The value is exported to the run env and
+`up` forwards it; the in-sandbox container is simply unused.
+
 - **Self-hosted at scale** — Redis Sentinel for HA; Redis Cluster for sharded throughput. Enable `appendonly yes` if you cannot tolerate event loss on restart.
 
 ## Troubleshoot
