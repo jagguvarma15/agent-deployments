@@ -34,39 +34,37 @@ header {
 
 header h1 { font-size: 18px; margin: 0; }
 .endpoint { color: var(--muted); font-size: 12px; }
+.settings { margin-left: auto; color: var(--muted); text-decoration: none; font-size: 16px; }
+.settings:hover { color: var(--text); }
 
-.setup-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 20px;
-  background: #3a2d12;
-  border-bottom: 1px solid #5a4a1f;
-  font-size: 14px;
+/* Full-screen setup / unreachable gate (replaces the chat until ready). */
+.app.gate { align-items: center; justify-content: center; }
+.gate-card {
+  max-width: 460px;
+  width: 100%;
+  margin: 0 20px;
+  padding: 28px 28px 32px;
+  background: var(--panel);
+  border: 1px solid #262b34;
+  border-radius: 12px;
 }
-.setup-banner.unreachable {
-  background: #3a1212;
-  border-bottom-color: #5a1f1f;
-}
-.setup-banner .actions {
-  display: flex;
-  gap: 8px;
-}
-.setup-banner button {
+.gate-card h1 { font-size: 20px; margin: 0 0 12px; }
+.gate-card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;
+                color: var(--muted); margin: 18px 0 6px; }
+.gate-card p { color: var(--text); font-size: 14px; line-height: 1.5; }
+.gate-card ul { margin: 0; padding-left: 18px; }
+.gate-card li { font-size: 14px; margin: 4px 0; color: var(--muted); }
+.gate-card li code { color: var(--text); }
+.gate-card pre { background: #0b0d12; padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+.gate-card button {
+  margin-top: 20px;
   background: var(--user);
   color: #fff;
   border: 0;
-  border-radius: 6px;
-  padding: 6px 14px;
-  font-size: 13px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
   cursor: pointer;
-  white-space: nowrap;
-}
-.setup-banner button.ghost {
-  background: transparent;
-  border: 1px solid var(--muted);
-  color: var(--text);
 }
 
 .messages {
