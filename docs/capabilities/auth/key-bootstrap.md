@@ -23,14 +23,19 @@ tags: [auth, api-key, bootstrap, dev]
 when_to_load: "a chat frontend is present and the agent needs a key to reply"
 ---
 
-# Runtime API-key bootstrap
+# Runtime environment bootstrap
 
 Emits `agent_key_setup.py` (FastAPI, copied **verbatim** into the project root) so
-a chat agent can capture its `ANTHROPIC_API_KEY` at runtime when the environment
-doesn't already have one: the chat UI shows "Connect your API key", the user
-pastes it into a CSRF-guarded `/setup` form served by the backend, and the agent
-starts replying. The key is written to `.env.local` (mode 0600) and the process
-env — it never goes to the browser or into a model prompt, and is never logged.
+a chat agent can configure its environment at runtime when it wasn't pre-wired —
+the mandatory `ANTHROPIC_API_KEY` plus any optional services (LangSmith, a managed
+Redis, …). The chat UI calls `GET /ready` on load and, if anything mandatory is
+missing, shows a "Configure your agent" panel that opens a CSRF-guarded `/setup`
+form. Values are written to `.env.local` (mode 0600) and the process env — never
+sent to the browser, placed in a model prompt, or logged.
+
+The router exposes `GET /ready`, `GET/POST /setup` automatically. The scaffold
+passes the fields to offer via the `AGENT_SETUP_FIELDS` env var (you don't author
+it); absent, the form defaults to just the Anthropic key.
 
 ## Wiring (do this in the generated backend)
 
