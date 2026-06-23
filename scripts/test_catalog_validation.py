@@ -145,6 +145,46 @@ def test_validated_recipe_requires_all_acceptance_blocks() -> None:
         raise AssertionError("missing smoke_assertions must fail on validated recipes")
 
 
+def test_topology_must_be_in_canonical_list() -> None:
+    """A recipe's `topology` must be one of SCHEMA.md's canonical values — the
+    producer-side mirror of the scaffold's Topology enum."""
+    base = {"path": "docs/recipes/t.md"}
+
+    # Out-of-list topology → hard error naming the offending value.
+    bad = dict(base)
+    bad["topology"] = "swarm"  # never canonical; dropped from the list
+    try:
+        g.validate_recipe_references([bad], [], {}, allow_missing_required=True)
+    except SystemExit as exc:
+        assert "topology" in str(exc)
+        assert "swarm" in str(exc)
+    else:
+        raise AssertionError("out-of-list topology must fail validation")
+
+    # Every canonical value passes (no topology error raised).
+    for ok_topology in sorted(g.VALID_TOPOLOGIES):
+        ok = dict(base)
+        ok["topology"] = ok_topology
+        g.validate_recipe_references([ok], [], {}, allow_missing_required=True)
+
+    # Absent topology is allowed — the consumer infers a default.
+    g.validate_recipe_references([dict(base)], [], {}, allow_missing_required=True)
+
+
+def test_canonical_topologies_match_schema_doc() -> None:
+    """VALID_TOPOLOGIES must equal SCHEMA.md's documented allowed values — the
+    doc is the source of truth; this guards the generator against drifting."""
+    import re
+
+    schema = (g.REPO_ROOT / "docs" / "recipes" / "SCHEMA.md").read_text(encoding="utf-8")
+    # The `#### topology` section's "Allowed values:" line lists `value` codes.
+    line = next(
+        ln for ln in schema.splitlines() if "Allowed values:" in ln and "`single`" in ln
+    )
+    documented = set(re.findall(r"`([a-z-]+)`", line))
+    assert documented == set(g.VALID_TOPOLOGIES), (documented, set(g.VALID_TOPOLOGIES))
+
+
 def main() -> int:
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for test in tests:

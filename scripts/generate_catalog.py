@@ -170,6 +170,19 @@ LAYER_IDS = frozenset(layer_id for layer_id, _ in LAYER_ORDER)
 
 VALID_COST_TIERS = frozenset(["free", "fixed-monthly", "per-call"])
 VALID_RECIPE_COST_TIERS = frozenset(["free", "low", "medium", "high"])
+# Canonical recipe `topology` values — the single source of truth documented in
+# docs/recipes/SCHEMA.md (#### topology → Allowed values). The scaffold's
+# Topology enum mirrors this list; its tests/test_topology.py fails on drift.
+VALID_TOPOLOGIES = frozenset(
+    [
+        "single",
+        "chain",
+        "parallel",
+        "event-driven",
+        "multi-agent-flat",
+        "multi-agent-hierarchical",
+    ]
+)
 """Default source for the blueprints catalog. Reads the vendored snapshot at
 ``vendored/blueprints/patterns-catalog.yaml``. The vendored tree is managed
 by ``vendir`` (see ``vendir.yml``). Override via ``--blueprints-catalog-url``
@@ -570,6 +583,15 @@ def validate_recipe_references(
         for cap in r.get("capabilities") or []:
             if cap not in cap_ids:
                 errors.append(f"{path}: capabilities[] {cap!r} has no docs/capabilities/ entry")
+        # Topology must be one of the canonical SCHEMA.md values (the scaffold's
+        # Topology enum mirrors the same list). Absent is allowed — the consumer
+        # infers a default. A bad value here would otherwise silently mis-model
+        # the recipe downstream.
+        topology = r.get("topology")
+        if topology is not None and topology not in VALID_TOPOLOGIES:
+            errors.append(
+                f"{path}: topology={topology!r} must be one of {sorted(VALID_TOPOLOGIES)}"
+            )
         # v0.3 local-bringup contract.
         rmodes = r.get("runtime_modes")
         if rmodes is None:
