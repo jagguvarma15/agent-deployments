@@ -183,6 +183,70 @@ VALID_TOPOLOGIES = frozenset(
         "multi-agent-hierarchical",
     ]
 )
+# Canonical capability `kind` values — the single source of truth documented in
+# docs/capabilities/README.md (## Capability kinds) and docs/recipes/SCHEMA.md
+# (Allowed kinds). The scaffold's capabilities._KNOWN_KINDS mirrors this list;
+# its tests/test_content_lint.py fails on drift. Unlike the consumer (which
+# carries an unknown kind as `unresolved`), the producer fails CLOSED so a
+# typo'd kind never ships in the catalog.
+VALID_CAPABILITY_KINDS = frozenset(
+    [
+        # v0.2 infrastructure cohort.
+        "vector_db",
+        "cache",
+        "relational",
+        "queue",
+        "obs",
+        "eval",
+        "frontend",
+        "host",
+        # 2026-SOTA agent-native cohort.
+        "mcp",
+        "sandbox",
+        "durable",
+        "memory_store",
+        "guardrail",
+        "embedding",
+        "live_data",
+        "rerank",
+        # Runtime key bootstrap (auth.key-bootstrap).
+        "auth",
+    ]
+)
+
+# Recognized backend entry-point basenames. A recipe that ships application
+# source must list one of these in `required_files`, or run (which discovers
+# the entry point) has nothing the generation contract guaranteed. Mirrors the
+# heuristics in agent-scaffold's steps/launch_backend.py.
+ENTRY_POINT_BASENAMES = frozenset(
+    [
+        "main.py",
+        "app.py",
+        "server.py",
+        "__main__.py",
+        "index.ts",
+        "index.js",
+        "main.ts",
+        "server.ts",
+        "app.ts",
+    ]
+)
+
+# Providers that, when named in a runtime_modes mode description, must be backed
+# by a matching capability id (substring) AND a recipe dependency (substring).
+# Keyed by the lowercase token to scan for. The base LLM (Anthropic/Claude) and
+# local-swap runtimes (vLLM/Llama/SearXNG) are intentionally absent — they are
+# stack/llm swaps, not capabilities. Used by the advisory advertisement-coherence
+# check (warns; never fails the build).
+ADVERTISED_PROVIDERS: dict[str, tuple[str, str]] = {
+    # token: (capability-id substring, dependency-name substring)
+    "qdrant": ("qdrant", "qdrant"),
+    "chroma": ("chroma", "chroma"),
+    "pgvector": ("pgvector", "pgvector"),
+    "openai": ("embedding.openai", "openai"),
+    "cohere": ("rerank.cohere", "cohere"),
+    "zep": ("memory_store.zep", "zep"),
+}
 """Default source for the blueprints catalog. Reads the vendored snapshot at
 ``vendored/blueprints/patterns-catalog.yaml``. The vendored tree is managed
 by ``vendir`` (see ``vendir.yml``). Override via ``--blueprints-catalog-url``
@@ -399,6 +463,11 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
         docker = fm.get("docker")
         if isinstance(docker, dict) and "service" in docker:
             entry["docker_service"] = docker["service"]
+        # Surface the host:container port bindings so consumers (and the
+        # port-collision validator below) can detect two services contending
+        # for the same host port without re-parsing the source markdown.
+        if isinstance(docker, dict) and docker.get("ports"):
+            entry["ports"] = list(docker["ports"])
         if fm.get("bootstrap_step"):
             entry["bootstrap_step"] = fm["bootstrap_step"]
         if fm.get("probe"):
@@ -519,6 +588,35 @@ def collect_pattern_docs() -> list[str]:
     return out
 
 
+def _host_port(binding: Any) -> str | None:
+    """Return the host side of a ``"HOST:CONTAINER"`` docker port binding, or
+    None when the binding doesn't name a host port (container-only form)."""
+    if not isinstance(binding, str) or ":" not in binding:
+        return None
+    return binding.split(":", 1)[0].strip() or None
+
+
+def _resolve_capability_stack(
+    declared: list[str], cap_requires: dict[str, list[str]]
+) -> list[str]:
+    """Expand a recipe's declared capability ids to include transitive
+    ``requires`` dependencies — the full service set ``docker compose up``
+    brings online, which is what must be checked for host-port collisions."""
+    seen: set[str] = set()
+    stack: list[str] = []
+    queue = list(declared)
+    while queue:
+        cid = queue.pop()
+        if cid in seen:
+            continue
+        seen.add(cid)
+        stack.append(cid)
+        for dep in cap_requires.get(cid, []):
+            if dep not in seen:
+                queue.append(dep)
+    return stack
+
+
 def validate_recipe_references(
     recipes: list[dict[str, Any]],
     capabilities: list[dict[str, Any]],
@@ -547,6 +645,8 @@ def validate_recipe_references(
     cap_docker_services = {
         c["docker_service"] for c in capabilities if c.get("docker_service")
     }
+    cap_ports = {c["id"]: (c.get("ports") or []) for c in capabilities if "id" in c}
+    cap_requires = {c["id"]: (c.get("requires") or []) for c in capabilities if "id" in c}
     cohort_ids = {
         cohort: {e["id"] for e in (blueprints_catalog.get(cohort) or []) if "id" in e}
         for cohort in ("patterns", "primitives", "modifiers")
@@ -592,6 +692,41 @@ def validate_recipe_references(
             errors.append(
                 f"{path}: topology={topology!r} must be one of {sorted(VALID_TOPOLOGIES)}"
             )
+        # required_files must name a recognized backend entry point. Run
+        # discovers the entry by basename (steps/launch_backend.py), so a recipe
+        # that ships application source but lists no entry point can pass every
+        # generation check yet SKIP/FAIL at launch. Empty required_files is left
+        # to the v0.3 completeness checks elsewhere; this fires only once a
+        # recipe declares files at all.
+        required_files = r.get("required_files") or []
+        if isinstance(required_files, list) and required_files:
+            has_entry = any(
+                isinstance(f, str) and f.rsplit("/", 1)[-1] in ENTRY_POINT_BASENAMES
+                for f in required_files
+            )
+            if not has_entry:
+                errors.append(
+                    f"{path}: required_files names no recognized entry point "
+                    f"(one of {sorted(ENTRY_POINT_BASENAMES)}) — run cannot launch it"
+                )
+        # No two compose services in the recipe's resolved capability stack may
+        # bind the same host port (the project-layout port-allocation contract).
+        # The app itself claims env_overrides.APP_PORT (default 8000).
+        declared_caps = [c for c in (r.get("capabilities") or []) if c in cap_ids]
+        stack = _resolve_capability_stack(declared_caps, cap_requires)
+        app_port = str((r.get("env_overrides") or {}).get("APP_PORT", "8000"))
+        host_ports: dict[str, list[str]] = {app_port: ["app"]}
+        for cid in stack:
+            for binding in cap_ports.get(cid, []):
+                hp = _host_port(binding)
+                if hp is not None:
+                    host_ports.setdefault(hp, []).append(cid)
+        for hp, owners in sorted(host_ports.items()):
+            if len(owners) > 1:
+                errors.append(
+                    f"{path}: host port {hp} is bound by multiple services in the "
+                    f"resolved stack: {', '.join(sorted(owners))}"
+                )
         # v0.3 local-bringup contract.
         rmodes = r.get("runtime_modes")
         if rmodes is None:
@@ -636,6 +771,7 @@ def validate_recipe_references(
         # Path-based defaults are applied in collect_recipes; this catches
         # hand-authored invalid values.
         load_list = r.get("load_list") or []
+        recipe_dir = (REPO_ROOT / path).parent if path != "<unknown>" else None
         if isinstance(load_list, list):
             for i, item in enumerate(load_list):
                 if not isinstance(item, dict):
@@ -649,6 +785,17 @@ def validate_recipe_references(
                 _validate_load_list_predicate(
                     item.get("when"), f"{path}: load_list[{i}].when", cap_ids, errors
                 )
+                # Every load_list path must resolve to a file on disk. The
+                # scaffold consumer fails open (loads what it can, warns on the
+                # rest), so the producer is the only place a dead load-list link
+                # gets caught — fail CLOSED here. Paths are recipe-relative.
+                rel = item.get("path")
+                if recipe_dir is not None and isinstance(rel, str) and rel:
+                    if not (recipe_dir / rel).resolve().exists():
+                        errors.append(
+                            f"{path}: load_list[{i}].path {rel!r} does not resolve "
+                            f"to a file on disk"
+                        )
         # acceptance_contracts: shape-validated when present; PRESENCE of the
         # block and all four sub-keys is mandatory for validated recipes
         # (declared emptiness is fine; silence is not).
@@ -695,6 +842,14 @@ def validate_recipe_references(
     # --- Capability-side -----------------------------------------------
     for c in capabilities:
         path = c.get("path", "<unknown>")
+        # kind drives the consumer's resolver bucket + id-prefix convention.
+        # The consumer carries an unknown kind as `unresolved`; the producer
+        # fails closed so a typo'd kind never ships in the catalog.
+        kind = c.get("kind")
+        if kind is not None and kind not in VALID_CAPABILITY_KINDS:
+            errors.append(
+                f"{path}: kind={kind!r} must be one of {sorted(VALID_CAPABILITY_KINDS)}"
+            )
         layer = c.get("layer")
         if layer is None:
             soft_errors.append(f"{path}: missing required field 'layer' (v0.3)")
