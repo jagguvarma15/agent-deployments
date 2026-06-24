@@ -191,8 +191,8 @@ Single source of truth for the **host** ports each capability service binds. Two
 | Zep | `8003` | `8000` | `ZEP_API_URL` |
 | Kafka | `9092` | `9092` | `KAFKA_BOOTSTRAP_SERVERS` |
 | Langfuse | `3001` | `3000` | `LANGFUSE_HOST` |
-| Grafana | `3002` | `3000` | — |
-| Temporal | `7233` (gRPC), `8233` (UI) | `7233` / `8233` | `TEMPORAL_HOST_URL` |
+| Grafana | `3002` | `3000` | `GRAFANA_URL` |
+| Temporal | `7233` (gRPC), `8233` (UI) | `7233` / `8233` | `TEMPORAL_HOST` |
 | Containerized frontend (minimal-chat / Vite) | `3000` | `3000` | `VITE_AGENT_URL` → backend |
 | Next.js chat (host `pnpm dev`) | `3000` | — | `NEXT_PUBLIC_AGENT_URL` → backend |
 | Streamlit chat (host `streamlit run`) | `8501` | — | `AGENT_URL` → backend |
