@@ -18,6 +18,12 @@ docker:
     KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
     KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
     ALLOW_PLAINTEXT_LISTENER: "yes"
+  healthcheck:
+    test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+    interval: 10s
+    timeout: 10s
+    retries: 5
+    start_period: 30s
 probe: kafka_topic_list
 bootstrap_step: bootstrap_kafka
 provisioning_time: ~30s
