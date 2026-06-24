@@ -103,7 +103,7 @@ roles:
     tools: [account_lookup, kb_search]
 load_list:
   - {path: ../../vendored/blueprints/patterns/routing/overview.md, required: true}
-  - {path: ../../vendored/blueprints/patterns/tool_use/overview.md, required: true}
+  - {path: ../../vendored/blueprints/primitives/tool_use/overview.md, required: true}
   - {path: ../frameworks/pydantic-ai.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -126,7 +126,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Routing](../../vendored/blueprints/patterns/routing/overview.md) + [Tool Use](../../vendored/blueprints/patterns/tool_use/overview.md)
+- Pattern: [Routing](../../vendored/blueprints/patterns/routing/overview.md) + [Tool Use](../../vendored/blueprints/primitives/tool_use/overview.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (structured classification + specialist agents)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (`generateObject` for classification, `generateText` for specialists)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -138,7 +138,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/customer-support-triage.md` — this blueprint
-- `vendored/blueprints/patterns/routing/overview.md` and `vendored/blueprints/patterns/tool_use/overview.md` — the routing + tool use composition
+- `vendored/blueprints/patterns/routing/overview.md` and `vendored/blueprints/primitives/tool_use/overview.md` — the routing + tool use composition
 - `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 
