@@ -10,7 +10,7 @@ env_vars: [ZEP_API_URL, ZEP_API_KEY, ZEP_AUTH_SECRET]
 docker:
   service: zep
   image: ghcr.io/getzep/zep:latest
-  ports: ["8000:8000"]
+  ports: ["8003:8000"]
   environment:
     ZEP_STORE_TYPE: postgres
     ZEP_STORE_POSTGRES_DSN: "postgres://agent:agent@postgres:5432/zep?sslmode=disable"
@@ -52,7 +52,7 @@ when_to_load: "recipe declares memory_store.zep"
 
 The compose fragment runs Zep against the existing Postgres. The bootstrap step creates the `zep` database and the per-tenant user record on first run.
 
-Web admin: `http://localhost:8000/admin`. Rotate `ZEP_AUTH_SECRET` off the default in production.
+Web admin: `http://localhost:8003/admin` (host-mapped; the container listens on 8000). Rotate `ZEP_AUTH_SECRET` off the default in production.
 
 ## Bootstrap (post docker_up)
 
@@ -66,7 +66,7 @@ Web admin: `http://localhost:8000/admin`. Rotate `ZEP_AUTH_SECRET` off the defau
 
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `ZEP_API_URL` | `http://zep:8000` | Zep API base URL |
+| `ZEP_API_URL` | `http://zep:8000` (in compose) / `http://localhost:8003` (from host) | Zep API base URL — in-network uses the container port 8000; the host binding is 8003 |
 | `ZEP_API_KEY` | *(generated)* | API key issued by Zep on first boot |
 | `ZEP_AUTH_SECRET` | `change-me` | JWT signing secret — **must rotate** |
 
@@ -127,7 +127,7 @@ const results = await zep.memory.searchSessions({
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `connection refused 8000` | Zep not up yet | `docker compose logs zep` — wait for "Server listening" |
+| `connection refused 8003` | Zep not up yet | `docker compose logs zep` — wait for "Server listening" |
 | `database "zep" does not exist` | bootstrap_zep didn't run | `docker compose exec postgres createdb -U agent zep` |
 | `401 unauthorized` (cloud) | Wrong key tier | Cloud keys are project-scoped; recreate per project |
 | Summarization quality poor | Default summarizer uses small model | Configure a stronger summarizer via Zep env vars (see vendor docs) |

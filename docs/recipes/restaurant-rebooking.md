@@ -50,6 +50,19 @@ required_files:
   - Dockerfile
   - docker-compose.yml
   - .github/workflows/ci.yml
+  - app/main.py
+  - app/settings.py
+  - app/consumer/redis_streams.py
+  - app/orchestrator/graph.py
+  - app/orchestrator/prompts.py
+  - app/tools/enrichment.py
+  - app/tools/actions.py
+  - app/adapters/reservation_platform.py
+  - app/adapters/notification.py
+  - app/models/events.py
+  - app/db/models.py
+  - app/api/admin.py
+  - app/observability/tracing.py
   - tests/unit/test_orchestrator.py
   - tests/integration/test_event_loop.py
   - tests/eval/test_rebooking_decisions.py
@@ -110,7 +123,7 @@ acceptance_contracts:
   required_compose_services: [postgres, redis, qdrant, langfuse, grafana]
   smoke_assertions:
     - {jq: 'tonumber > 0', against: smoke_test.exercise.stdout}
-topology: multi-agent-flat
+topology: event-driven
 roles:
   - name: intake
     role_kind: worker
@@ -604,20 +617,20 @@ Return a `RebookingDecision` object.
 
 | File | Role |
 |------|------|
-| `src/{project_name}/main.py` | Entrypoint: configure logging, build adapters, start consumer loop. Exports `agent` for smoke-check import. |
-| `src/{project_name}/settings.py` | pydantic-settings: env-var-backed config (Redis URL, Postgres URL, stream + group names, retry knobs). |
-| `src/{project_name}/consumer/redis_streams.py` | Consumer loop: `XREADGROUP`, idempotency check, dispatch to orchestrator, ACK/DLQ. |
-| `src/{project_name}/orchestrator/graph.py` | LangGraph state machine: enrich → decide → act → persist → emit. |
-| `src/{project_name}/orchestrator/prompts.py` | System prompt (see Prompt Specifications). |
-| `src/{project_name}/tools/enrichment.py` | `get_waitlist`, `get_customer_preferences`, `check_availability`. |
-| `src/{project_name}/tools/actions.py` | `notify_customer`, `modify_reservation`, `emit_outcome_event`. |
-| `src/{project_name}/adapters/reservation_platform.py` | `ReservationPlatform` ABC + `MockReservationPlatform` (v1). Resy/OpenTable/Toast subclasses are stubs for v2. |
-| `src/{project_name}/adapters/notification.py` | `NotificationChannel` ABC + Mock implementation (SMS/email stubs that log only). |
-| `src/{project_name}/models/events.py` | Pydantic models (see Data Models). |
-| `src/{project_name}/db/models.py` | SQLAlchemy: `RebookingOutcome` table. |
-| `src/{project_name}/db/migrations/` | Alembic migrations. |
-| `src/{project_name}/api/admin.py` | FastAPI router: `/health`, `/metrics`, `/admin/replay`, `/admin/dlq`. |
-| `src/{project_name}/observability/tracing.py` | Langfuse integration; `trace_id` propagation from event payload through tool calls. |
+| `app/main.py` | Entrypoint: configure logging, build adapters, start the consumer loop under `__main__`. Exports no importable `agent` — the smoke check imports `build_graph` from `app/orchestrator/graph.py` instead (see Generation instructions). |
+| `app/settings.py` | pydantic-settings: env-var-backed config (Redis URL, Postgres URL, stream + group names, retry knobs). |
+| `app/consumer/redis_streams.py` | Consumer loop: `XREADGROUP`, idempotency check, dispatch to orchestrator, ACK/DLQ. |
+| `app/orchestrator/graph.py` | LangGraph state machine: enrich → decide → act → persist → emit. |
+| `app/orchestrator/prompts.py` | System prompt (see Prompt Specifications). |
+| `app/tools/enrichment.py` | `get_waitlist`, `get_customer_preferences`, `check_availability`. |
+| `app/tools/actions.py` | `notify_customer`, `modify_reservation`, `emit_outcome_event`. |
+| `app/adapters/reservation_platform.py` | `ReservationPlatform` ABC + `MockReservationPlatform` (v1). Resy/OpenTable/Toast subclasses are stubs for v2. |
+| `app/adapters/notification.py` | `NotificationChannel` ABC + Mock implementation (SMS/email stubs that log only). |
+| `app/models/events.py` | Pydantic models (see Data Models). |
+| `app/db/models.py` | SQLAlchemy: `RebookingOutcome` table. |
+| `app/db/migrations/` | Alembic migrations. |
+| `app/api/admin.py` | FastAPI router: `/health`, `/metrics`, `/admin/replay`, `/admin/dlq`. |
+| `app/observability/tracing.py` | Langfuse integration; `trace_id` propagation from event payload through tool calls. |
 | `tests/unit/test_orchestrator.py` | Mock the LLM; assert state-machine transitions for each action. |
 | `tests/integration/test_event_loop.py` | Spin up real Redis (via testcontainers or docker-compose); publish events; assert outcomes. |
 | `tests/eval/test_rebooking_decisions.py` | Golden dataset: 20+ cancellation scenarios with expected decisions; eval via DeepEval or Promptfoo. |
@@ -902,10 +915,10 @@ These instructions apply to the LLM emitting the project, **not** to the runtime
 
 ### Smoke check override (required)
 
-The default Python language-hint smoke check is `uv run python -c 'from {project_name}.main import agent; print("ok")'`. That shape assumes a request/response agent — wrong for an event-driven consumer. **Override `smoke_check` in your generation output to:**
+The default Python language-hint smoke check is `uv run python -c 'from app.main import agent; print("ok")'`. That shape assumes a request/response agent — wrong for an event-driven consumer. **Override `smoke_check` in your generation output to:**
 
 ```
-uv run python -c 'from {project_name}.orchestrator.graph import build_graph; build_graph(); print("ok")'
+uv run python -c 'from app.orchestrator.graph import build_graph; build_graph(); print("ok")'
 ```
 
 For TypeScript, override to:
@@ -924,11 +937,11 @@ These verify the orchestrator wires up without requiring Redis, Postgres, or any
 - Run the consumer loop under `if __name__ == "__main__":` (Python) or `import.meta.url === ...` (TS):
 
 ```python
-# src/{project_name}/main.py
+# app/main.py
 import asyncio
 import structlog
-from {project_name}.consumer.redis_streams import run_consumer
-from {project_name}.settings import settings
+from app.consumer.redis_streams import run_consumer
+from app.settings import settings
 
 logger = structlog.get_logger()
 
@@ -957,7 +970,7 @@ If you genuinely need a package that isn't listed, **stop and emit a `known_limi
 Since this is a fresh "design spec" recipe (not "validated"), the snippets below are pseudocode for the load-bearing pieces — the consumer loop and the orchestrator state graph. Generate the rest of the project from the file-by-file table.
 
 <details>
-<summary><code>src/{project_name}/consumer/redis_streams.py</code> (pseudocode)</summary>
+<summary><code>app/consumer/redis_streams.py</code> (pseudocode)</summary>
 
 ```python
 """Redis Streams consumer loop with idempotency, retries, and DLQ."""
@@ -967,8 +980,8 @@ import asyncio
 import redis.asyncio as redis
 import structlog
 
-from {project_name}.orchestrator.graph import run_orchestrator
-from {project_name}.settings import settings
+from app.orchestrator.graph import run_orchestrator
+from app.settings import settings
 
 logger = structlog.get_logger()
 
@@ -1048,17 +1061,17 @@ async def _handle_one(client, msg_id, fields) -> None:
 </details>
 
 <details>
-<summary><code>src/{project_name}/orchestrator/graph.py</code> (pseudocode)</summary>
+<summary><code>app/orchestrator/graph.py</code> (pseudocode)</summary>
 
 ```python
 """LangGraph rebooking orchestrator: enrich -> decide -> act -> persist -> emit."""
 
 from langgraph.graph import END, StateGraph
 
-from {project_name}.models.events import CancellationEvent, RebookingAction, RebookingDecision
-from {project_name}.orchestrator.prompts import ORCHESTRATOR_SYSTEM_PROMPT
-from {project_name}.tools.actions import emit_outcome_event, modify_reservation, notify_customer
-from {project_name}.tools.enrichment import (
+from app.models.events import CancellationEvent, RebookingAction, RebookingDecision
+from app.orchestrator.prompts import ORCHESTRATOR_SYSTEM_PROMPT
+from app.tools.actions import emit_outcome_event, modify_reservation, notify_customer
+from app.tools.enrichment import (
     check_availability,
     get_customer_preferences,
     get_waitlist,
@@ -1138,7 +1151,7 @@ async def run_orchestrator(event_fields: dict) -> None:
 </details>
 
 <details>
-<summary><code>src/{project_name}/adapters/reservation_platform.py</code> (interface only)</summary>
+<summary><code>app/adapters/reservation_platform.py</code> (interface only)</summary>
 
 ```python
 """ReservationPlatform ABC + MockReservationPlatform (v1).

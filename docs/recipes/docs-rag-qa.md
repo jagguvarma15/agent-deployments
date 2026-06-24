@@ -6,11 +6,11 @@ agent_role: "You are a documentation assistant. Answer using only the retrieved 
 primitives: []
 runtime_modes:
   default:
-    description: "Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse."
+    description: "Anthropic Claude + in-memory keyword retriever + Postgres + Redis + Langfuse. Boots with only ANTHROPIC_API_KEY; Qdrant ships in compose as the production retrieval swap (point QDRANT_URL at it and replace retriever.py)."
     swaps: {}
     context_budget: {input_max: 80000, output_max: 8000}
   local_only:
-    description: "Self-hosted vLLM + BGE embeddings + BGE-reranker, no SaaS keys."
+    description: "Self-hosted vLLM instead of Anthropic Claude — same in-memory keyword retriever, no SaaS keys."
     swaps:
       stack/llm-claude: stack/llm-local-vllm
     context_budget: {input_max: 32000, output_max: 4000}
@@ -23,7 +23,7 @@ smoke_test:
   assert_jq: '.answer | length > 0'
 cost_profile:
   tier: low
-  sources: [anthropic, openai, cohere]
+  sources: [anthropic]
   typical_run_usd: 0.005
 model_recommendation: claude-sonnet-4-6
 env_overrides:
@@ -573,7 +573,7 @@ See [eval-data guide](../cross-cutting/eval-data.md) for generation + curation p
 ## Design Decisions
 
 - **Agentic RAG over naive RAG:** The LLM decides when to retrieve, enabling multi-turn refinement. Trade-off: slightly higher latency from the tool-call round trip.
-- **In-memory retriever as default:** Keeps `make up` instant with no embedding model dependency. Production swap: point `QDRANT_URL` at a real Qdrant instance and replace `retriever.py` with Qdrant client calls.
+- **In-memory retriever as default:** Keeps `make up` instant with no embedding model dependency, so the `default` runtime mode boots with only `ANTHROPIC_API_KEY`. Production retrieval is the documented swap, not a separate runtime mode (the swap grammar replaces capabilities rather than adding them, and no local embedding/rerank capability exists to pair against): point `QDRANT_URL` at the Qdrant instance that already ships in `docker-compose.yml`, replace `retriever.py` with Qdrant client calls, and — for higher recall — embed with OpenAI (`OPENAI_API_KEY`) and re-rank with Cohere (`COHERE_API_KEY`). Those two SaaS sources are billed only when you opt into hosted retrieval, which is why `cost_profile.sources` lists only `anthropic` for the default.
 - **Pydantic AI over LangGraph (Python):** For a single-agent RAG pipeline, Pydantic AI's tool decorator is simpler than a LangGraph state graph. LangGraph becomes the better choice if you add multi-step retrieval, re-ranking, or human-in-the-loop.
 - **Vercel AI SDK over Mastra (TypeScript):** The `generateText` + `tool()` pattern is clean and minimal for this use case. Mastra would add value if you needed built-in RAG primitives or workflow orchestration.
 

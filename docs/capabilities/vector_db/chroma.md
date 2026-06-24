@@ -7,7 +7,7 @@ env_vars: [CHROMA_URL, CHROMA_TENANT, CHROMA_DATABASE]
 docker:
   service: chroma
   image: chromadb/chroma:0.5.20
-  ports: ["8000:8000"]
+  ports: ["8002:8000"]
   volumes: ["chroma_data:/chroma/chroma"]
   healthcheck:
     test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
@@ -61,7 +61,7 @@ Optional dep in the generated project: `chromadb` (Python) or fetch directly via
 
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `CHROMA_URL` | `http://localhost:8000` | HTTP endpoint |
+| `CHROMA_URL` | `http://localhost:8002` | HTTP endpoint (host-mapped; in compose use `http://chroma:8000`) |
 | `CHROMA_TENANT` | `default_tenant` | Multi-tenant scope |
 | `CHROMA_DATABASE` | `default_database` | Database within tenant |
 
@@ -109,10 +109,10 @@ Chroma Cloud (beta as of 2026) provides hosted instances. For self-hosted produc
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `Connection refused 8000` | Container not up yet | `docker compose logs chroma` — heartbeat returns 200 once ready |
+| `Connection refused 8002` | Container not up yet | `docker compose logs chroma` — heartbeat returns 200 once ready |
 | `Collection 'X' does not exist` | `get_collection` called before bootstrap | Use `get_or_create_collection` or re-run `bootstrap_vector_db` |
 | Embeddings dimension mismatch | Collection created with default dim, app emits different size | Drop the collection and re-create with the right `dim` in metadata |
-| Port `8000` conflicts with FastAPI app | Both default to 8000 | Remap one in compose: `ports: ["8002:8000"]` and update `CHROMA_URL` |
+| Host port `8002` conflicts with another service | Chroma defaults to host **8002** so the app keeps 8000 (see [port allocation](../../cross-cutting/project-layout.md#9-host-port-allocation)) | Remap in compose, e.g. `ports: ["8004:8000"]`, and update `CHROMA_URL` to match |
 
 ## See also
 
