@@ -1017,7 +1017,7 @@ recipes:
   - path: ../../vendored/blueprints/patterns/routing/overview.md
     required: true
     cache_tier: hot
-  - path: ../../vendored/blueprints/patterns/tool_use/overview.md
+  - path: ../../vendored/blueprints/primitives/tool_use/overview.md
     required: true
     cache_tier: hot
   - path: ../cross-cutting/project-layout.md
@@ -1323,7 +1323,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../../vendored/blueprints/workflows/prompt-chaining/overview.md
+  - path: ../../vendored/blueprints/patterns/prompt-chaining/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -1525,7 +1525,7 @@ recipes:
   - path: ../../vendored/blueprints/patterns/routing/overview.md
     required: true
     cache_tier: hot
-  - path: ../../vendored/blueprints/patterns/tool_use/overview.md
+  - path: ../../vendored/blueprints/primitives/tool_use/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -1769,13 +1769,13 @@ recipes:
     cache_tier: warm
   runtime_modes:
     default:
-      description: Anthropic + OpenAI embeddings + Cohere rerank + Qdrant + Langfuse.
+      description: Anthropic Claude + in-memory keyword retriever + Postgres + Redis + Langfuse. Boots with only ANTHROPIC_API_KEY; Qdrant ships in compose as the production retrieval swap (point QDRANT_URL at it and replace retriever.py).
       swaps: {}
       context_budget:
         input_max: 80000
         output_max: 8000
     local_only:
-      description: Self-hosted vLLM + BGE embeddings + BGE-reranker, no SaaS keys.
+      description: Self-hosted vLLM instead of Anthropic Claude — same in-memory keyword retriever, no SaaS keys.
       swaps:
         stack/llm-claude: stack/llm-local-vllm
       context_budget:
@@ -1789,8 +1789,6 @@ recipes:
     tier: low
     sources:
     - anthropic
-    - openai
-    - cohere
     typical_run_usd: 0.005
   model_recommendation: claude-sonnet-4-6
   env_overrides:
@@ -2117,7 +2115,7 @@ recipes:
       vector_size: 1536
       distance: cosine
   load_list:
-  - path: ../../vendored/blueprints/patterns/memory/overview.md
+  - path: ../../vendored/blueprints/primitives/memory/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/langgraph.md
@@ -2496,7 +2494,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../../vendored/blueprints/workflows/parallel-calls/overview.md
+  - path: ../../vendored/blueprints/patterns/parallel-calls/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -2800,7 +2798,7 @@ recipes:
   languages:
   - python
   - typescript
-  topology: multi-agent-flat
+  topology: event-driven
   agent_pattern: event_driven
   agent_role: You are a restaurant rebooking assistant. When a reservation is disrupted, find suitable alternatives and confirm a new booking with the user.
   primitives:
@@ -2809,6 +2807,19 @@ recipes:
   - Dockerfile
   - docker-compose.yml
   - .github/workflows/ci.yml
+  - app/main.py
+  - app/settings.py
+  - app/consumer/redis_streams.py
+  - app/orchestrator/graph.py
+  - app/orchestrator/prompts.py
+  - app/tools/enrichment.py
+  - app/tools/actions.py
+  - app/adapters/reservation_platform.py
+  - app/adapters/notification.py
+  - app/models/events.py
+  - app/db/models.py
+  - app/api/admin.py
+  - app/observability/tracing.py
   - tests/unit/test_orchestrator.py
   - tests/integration/test_event_loop.py
   - tests/eval/test_rebooking_decisions.py
