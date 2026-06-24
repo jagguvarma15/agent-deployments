@@ -4,6 +4,8 @@ directories:
   - git:
       commitTitle: 'Merge pull request #55 from jagguvarma15/feat/tier-3-tooling-and-code...'
       sha: dfd824d905ec28d49eea01c286ba684246dab81f
+      tags:
+      - v0.2.330-30-gdfd824d
     path: .
   path: vendored/blueprints
 kind: LockConfig
