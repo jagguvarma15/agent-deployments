@@ -67,7 +67,7 @@ flowchart LR
 | Are new to LLM systems | [Foundations](./foundations/README.md) — concepts, terminology, mental models |
 | Need to pick a pattern | [Choosing a Pattern](./foundations/choosing-a-pattern.md) — decision flowchart |
 | Want structured LLM pipelines | [Workflows](./workflows/README.md) — 4 pre-agent patterns |
-| Want autonomous LLM behavior | [Agent Patterns](./patterns/README.md) — 11 agent architectures |
+| Want autonomous LLM behavior | [Agent Patterns](./patterns/README.md) — <!-- AUTO:count cohort=patterns filter=category:agent -->10<!-- /AUTO --> agent architectures |
 | Are designing a production system | [Composition](./composition/README.md) — how patterns combine |
 | Want a production-shaped agent | [Blueprints → Deployments](./composition/blueprints-to-deployments.md) — which patterns power which deployments |
 | Want to generate a starter project | [Blueprint → Spec → Scaffold](./composition/blueprint-to-spec-to-scaffold.md) — end-to-end walkthrough |
@@ -174,12 +174,12 @@ Each agent pattern includes an [evolution.md](./patterns/react/evolution.md) doc
 ```
 agent-blueprints/
 ├── foundations/          # Core concepts, terminology, pattern selection
-├── patterns/             # 12 flow shapes (8 agent + 4 workflow, distinguished
-│                           by the `category` field on each metadata.json)
-├── primitives/           # 3 building blocks the agent uses
-│                           (tool_use, memory, skills)
-├── modifiers/            # 1 transformation layered on a pattern
-│                           (human_in_the_loop)
+├── patterns/             # Flow shapes: agent (LLM-controlled) + workflow
+│                           (code-controlled), split by the `category` field
+├── primitives/           # Building blocks the agent uses
+│                           (tool_use, memory, skills, sub_agents)
+├── modifiers/            # Transformations layered on a pattern
+│                           (guardrails, human_in_the_loop)
 ├── composition/          # How patterns + primitives + modifiers combine
 ├── meta/                 # Contributing, style guide, roadmap
 └── code/                 # Reference implementations under
@@ -203,7 +203,7 @@ See the [Contributing Guide](./meta/contributing.md) and [Style Guide](./meta/st
 
 ## Roadmap
 
-This is Phase 1 (documentation). Code implementations, advanced patterns, and tooling are planned for future phases. See the [full roadmap](./ROADMAP.md).
+The knowledge base, framework-agnostic Python and TypeScript reference implementations for every pattern, and the documentation website are delivered. Advanced patterns and scaffolding tooling are ongoing — see the [full roadmap](./ROADMAP.md).
 
 ## License
 

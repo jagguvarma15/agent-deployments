@@ -4104,8 +4104,8 @@ modifier_docs:
 - vendored/blueprints/modifiers/guardrails/overview.md
 - vendored/blueprints/modifiers/human_in_the_loop/overview.md
 suggestions:
-  blueprints_version: dfd824d
-  description: Per-combo stack recommendations scoped to upstream blueprints version dfd824d. One file per pattern × primitives × modifiers combination.
+  blueprints_version: 7420e28
+  description: Per-combo stack recommendations scoped to upstream blueprints version 7420e28. One file per pattern × primitives × modifiers combination.
   readme_path: docs/suggestions/README.md
   combos:
   - applies_to:
@@ -4113,7 +4113,7 @@ suggestions:
       primitives:
       - tool_use
       modifiers: []
-    path: docs/suggestions/dfd824d/event_driven+tool_use.md
+    path: docs/suggestions/7420e28/event_driven+tool_use.md
     recommends:
       framework: langgraph
       llm: stack/llm-claude
@@ -4144,7 +4144,7 @@ suggestions:
       - sub_agents
       - tool_use
       modifiers: []
-    path: docs/suggestions/dfd824d/multi_agent+sub_agents+tool_use.md
+    path: docs/suggestions/7420e28/multi_agent+sub_agents+tool_use.md
     recommends:
       framework: crewai
       llm: stack/llm-claude
@@ -4171,7 +4171,7 @@ suggestions:
       pattern: parallel-calls
       primitives: []
       modifiers: []
-    path: docs/suggestions/dfd824d/parallel-calls.md
+    path: docs/suggestions/7420e28/parallel-calls.md
     recommends:
       framework: vercel_ai_sdk
       llm: stack/llm-claude
@@ -4199,7 +4199,7 @@ suggestions:
       primitives:
       - tool_use
       modifiers: []
-    path: docs/suggestions/dfd824d/plan_and_execute+tool_use.md
+    path: docs/suggestions/7420e28/plan_and_execute+tool_use.md
     recommends:
       framework: langgraph
       llm: stack/llm-claude
@@ -4226,7 +4226,7 @@ suggestions:
       pattern: prompt-chaining
       primitives: []
       modifiers: []
-    path: docs/suggestions/dfd824d/prompt-chaining.md
+    path: docs/suggestions/7420e28/prompt-chaining.md
     recommends:
       framework: vercel_ai_sdk
       llm: stack/llm-claude
@@ -4253,7 +4253,7 @@ suggestions:
       pattern: rag
       primitives: []
       modifiers: []
-    path: docs/suggestions/dfd824d/rag.md
+    path: docs/suggestions/7420e28/rag.md
     recommends:
       framework: langgraph
       llm: stack/llm-claude
@@ -4282,7 +4282,7 @@ suggestions:
       - memory
       - tool_use
       modifiers: []
-    path: docs/suggestions/dfd824d/react+memory+tool_use.md
+    path: docs/suggestions/7420e28/react+memory+tool_use.md
     recommends:
       framework: pydantic_ai
       llm: stack/llm-claude
@@ -4312,7 +4312,7 @@ suggestions:
       - sub_agents
       - tool_use
       modifiers: []
-    path: docs/suggestions/dfd824d/react+skills+sub_agents+tool_use.md
+    path: docs/suggestions/7420e28/react+skills+sub_agents+tool_use.md
     recommends:
       framework: claude_agent_sdk_python
       llm: stack/llm-claude
@@ -4338,7 +4338,7 @@ suggestions:
       primitives:
       - tool_use
       modifiers: []
-    path: docs/suggestions/dfd824d/react+tool_use.md
+    path: docs/suggestions/7420e28/react+tool_use.md
     recommends:
       framework: pydantic_ai
       llm: stack/llm-claude
@@ -4367,7 +4367,7 @@ suggestions:
       primitives:
       - tool_use
       modifiers: []
-    path: docs/suggestions/dfd824d/routing+tool_use.md
+    path: docs/suggestions/7420e28/routing+tool_use.md
     recommends:
       framework: langgraph
       llm: stack/llm-claude

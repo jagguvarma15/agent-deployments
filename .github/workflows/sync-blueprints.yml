@@ -104,7 +104,7 @@ jobs:
         uses: carvel-dev/setup-action@v2
         with:
           only: vendir
-          vendir: v0.40.0
+          vendir: v0.45.4
 
       - name: Sync vendored tree
         run: vendir sync

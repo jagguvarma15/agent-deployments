@@ -1,6 +1,6 @@
 # Patterns
 
-Patterns are **flow shapes** — control structures with a beginning, middle, and end. This directory holds **12 patterns** split by who controls the flow:
+Patterns are **flow shapes** — control structures with a beginning, middle, and end. This directory holds **<!-- AUTO:count cohort=patterns -->14<!-- /AUTO --> patterns** split by who controls the flow:
 
 - **Agent patterns** (`category: agent`) — the LLM decides what to do next at each step. ReAct, RAG, Multi-Agent, etc.
 - **Workflows** (`category: workflow`) — the developer's code defines the flow; the LLM fills in the content at each step. Prompt Chaining, Parallel Calls, etc.

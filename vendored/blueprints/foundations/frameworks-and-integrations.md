@@ -54,7 +54,7 @@ MCP is the dominant standard for tool-distribution and lives at the intersection
 
 **Where it intersects this repo's patterns:**
 
-- [Tool Use](../primitives/tool_use/overview.md) — MCP is the standardized form of the tool registry. Instead of bespoke `function_schemas`, you connect to MCP servers and the agent gets tools by reference. See `patterns/tool_use/design.md` for how this maps to the registry component.
+- [Tool Use](../primitives/tool_use/overview.md) — MCP is the standardized form of the tool registry. Instead of bespoke `function_schemas`, you connect to MCP servers and the agent gets tools by reference. See `primitives/tool_use/design.md` for how this maps to the registry component.
 - [RAG](../patterns/rag/overview.md) — A vector DB MCP server lets multiple agents share one retrieval surface without re-implementing chunking/embedding/search per agent.
 - [Memory](../primitives/memory/overview.md) — MCP resources are well-suited for cross-agent memory (one server, many readers).
 - [Multi-Agent](../patterns/multi_agent/overview.md) — Sub-agents inheriting the same MCP server set share a tool vocabulary without explicit handoff logic.

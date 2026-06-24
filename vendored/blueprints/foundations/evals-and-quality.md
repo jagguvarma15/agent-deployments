@@ -85,6 +85,15 @@ Slow, expensive, gold standard. Reserve for:
 
 Don't try to scale human grading by hiring more graders — scale it by improving the model-graded substitute until human review becomes a calibration sample, not a workflow.
 
+### Trajectory vs outcome
+
+Two orthogonal axes, both worth grading:
+
+- **Outcome (state-based)** — did the agent reach the right end state or final answer? This is what users feel, and what should gate releases.
+- **Trajectory** — did it take a sensible path: the right tool calls, in a reasonable order, without thrashing? Surfaced by the per-pattern signals below (iteration-count distribution, plan adherence, trace consistency).
+
+The 2026 consensus (see Anthropic's [*Demystifying evals for AI agents*](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)) is to **grade the outcome and track the trajectory as a metric, not a strict assertion**. Asserting an exact tool-call sequence makes evals brittle — a better path that reaches the same outcome shouldn't fail the suite. Use trajectory signals to explain *why* an outcome regressed, and to catch silent inefficiency (cost or step creep) the outcome score hides.
+
 ## Online vs offline evals
 
 ### Offline evals
@@ -111,7 +120,7 @@ Evals cost LLM calls — sometimes a lot. Sizing the suite is itself an engineer
 
 A rough heuristic:
 
-- **Offline suite, per PR:** 50–500 cases. Costs $1–$50 per PR depending on model size and case complexity.
+- **Offline suite, tiered by trigger:** a fast PR-gated regression set (≥30 cases, drawn from past failures) on every PR; an extended suite (~200 cases) on any model-version change or prompt overhaul; the full benchmark (500+ cases) on a weekly cut. Costs $1–$50+ per run depending on tier, model size, and case complexity.
 - **Online sampling, per day:** 1–5% of production traffic. Costs scale with traffic.
 - **Human review, calibration:** 50–100 cases per quarter. Costs human time, not LLM tokens.
 
@@ -127,7 +136,7 @@ Operational rule: a fix without an eval is incomplete. Block the PR.
 
 ## The reliability gap (and why cadence matters)
 
-A persistent 2026 finding across enterprise agent deployments: **task-completion benchmarks systematically overestimate production reliability**. Reports place the gap between published benchmark scores and observed production success at ~37 percentage points, with the dominant failure modes being long-horizon brittleness, tool-error compounding, and silent degradation under traffic the benchmark didn't sample.
+A persistent finding: **task-completion benchmarks systematically overestimate production reliability**. The clearest measured example is run-to-run consistency — [τ-bench](https://arxiv.org/abs/2406.12045)'s pass^k metric shows a single-run success rate around 61% falling below 25% once the *same* tasks must succeed across 8 consecutive runs. Production exposes the same brittleness the headline number hides: long-horizon failures, tool errors compounding across steps, and silent degradation under traffic the benchmark never sampled.
 
 This is why offline + online evals together are not optional — and why **cadence** is the lever that matters most.
 
@@ -142,7 +151,7 @@ Teams that run their full eval suite weekly report meaningfully fewer production
 
 Practical consequences:
 
-- Treat single-run benchmark scores (AgentBench, ToolBench, API-Bank) as upper bounds, not targets. Apply a "production discount" when you cite them.
+- Treat single-run benchmark scores (τ-bench/τ²-bench, SWE-bench Verified, GAIA/Gaia2, Terminal-Bench; AgentBench and ToolBench are first-generation) as upper bounds, not targets. Apply a "production discount" when you cite them.
 - Include reliability axes the headline benchmarks don't measure: cost efficiency, step efficiency, plan adherence, trace consistency, refusal correctness, abstention rate. See `agent-deployments/docs/cross-cutting/observability.md` for the operational instrumentation that feeds these.
 - Long-horizon patterns (`patterns/long_horizon/`) need their own reliability lens — a "task completion rate" that ignores how many resumes a task took hides exactly the reliability gap that matters at scale. Track resumes per task, replan rate, stuck-task rate alongside completion.
 
