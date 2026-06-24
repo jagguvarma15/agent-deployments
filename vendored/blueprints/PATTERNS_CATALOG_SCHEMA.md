@@ -20,7 +20,7 @@ The generator is deterministic: same source files → byte-identical output. The
 schema_version: 2
 generator_version: 2.0.0
 
-patterns:       # flow shapes — 12 entries (8 agent + 4 workflow, by category)
+patterns:       # flow shapes — agent + workflow entries, by category
   - id: react
     name: ReAct
     category: agent           # 'agent' (LLM-controlled) or 'workflow' (code-controlled)
@@ -53,7 +53,7 @@ workflows:      # DERIVED VIEW — patterns[] filtered to category=workflow
     category: workflow
     # … same entry shape as the patterns[] entry it derives from.
 
-primitives:     # building blocks the agent uses — 3 entries
+primitives:     # building blocks the agent uses
   - id: tool_use
     name: Tool Use
     category: primitive
@@ -67,7 +67,7 @@ primitives:     # building blocks the agent uses — 3 entries
     costTier: low
     latencyTier: low
 
-modifiers:      # transformations layered on a pattern — 1 entry
+modifiers:      # transformations layered on a pattern
   - id: human_in_the_loop
     name: Human in the Loop
     category: modifier

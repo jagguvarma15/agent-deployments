@@ -75,5 +75,5 @@ For now, the pattern is mature enough to ship and immature enough that conventio
 ## See also
 
 - [`overview.md`](./overview.md) — the headline concept.
-- [`patterns/tool_use/evolution.md`](../tool_use/evolution.md) — the pattern this evolved from.
+- [`primitives/tool_use/evolution.md`](../tool_use/evolution.md) — the pattern this evolved from.
 - [`foundations/agent-protocols.md`](../../foundations/agent-protocols.md) — how skills, MCP, and A2A are the three connectivity primitives.

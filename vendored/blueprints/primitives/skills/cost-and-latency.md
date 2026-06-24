@@ -110,5 +110,5 @@ Address each in <1 sprint when noticed. Skills' economics are forgiving until th
 - [`overview.md`](./overview.md) — when to use skills at all.
 - [`design.md`](./design.md) — the components these costs map to.
 - [`implementation.md`](./implementation.md) — body caps and per-skill limits.
-- [`patterns/tool_use/cost-and-latency.md`](../tool_use/cost-and-latency.md) — comparable pattern costs.
+- [`primitives/tool_use/cost-and-latency.md`](../tool_use/cost-and-latency.md) — comparable pattern costs.
 - [`foundations/cost-and-model-selection.md`](../../foundations/cost-and-model-selection.md) — model choice for Stage 2.

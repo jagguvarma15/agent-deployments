@@ -1,6 +1,6 @@
 apiVersion: vendir.k14s.io/v1alpha1
 kind: Config
-minimumRequiredVersion: 0.40.0
+minimumRequiredVersion: 0.45.4
 
 # Vendored snapshot of agent-blueprints — fetched from upstream + pinned in
 # vendir.lock.yml for determinism. This makes agent-deployments the single
@@ -41,8 +41,12 @@ directories:
       - path: .
         git:
           url: https://github.com/jagguvarma15/agent-blueprints
-          ref: dfd824d905ec28d49eea01c286ba684246dab81f
-          depth: 1
+          ref: 7420e28781af27a5f1a78e47da5dfdbeb0d2c2ff
+          # No shallow `depth:` — a SHA pin is only fetchable at depth 1 while
+          # it is the upstream tip. Once upstream advances past it, a shallow
+          # fetch of the new tip can't reach the pinned commit ("unable to
+          # read tree"). A full fetch reaches any commit reachable from a ref,
+          # so the pin stays syncable as upstream moves on.
         includePaths:
           - "patterns/**"
           - "workflows/**"

@@ -1,6 +1,6 @@
 ---
 role: reflector
-pattern: plan-and-execute
+pattern: plan_and_execute
 inputs:
   - {name: original_goal, type: string, description: "The goal the plan was supposed to achieve."}
   - {name: plan, type: object, description: "The current Plan ({goal, steps, rationale})."}

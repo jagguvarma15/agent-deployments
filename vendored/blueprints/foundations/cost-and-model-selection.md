@@ -75,6 +75,10 @@ Patterns have characteristic cost profiles. Use this table to estimate before yo
 | [Sub-agents](../primitives/sub_agents/overview.md) | One agent loop per spawn; per-role model selection | Often *lower* total cost than a monolithic agent thanks to per-role tiering. |
 | [Guardrails](../modifiers/guardrails/overview.md) | Per-layer detectors + optional quarantined-LLM call per untrusted tool result | Paid per request, every request; dual-LLM is the dominant cost driver. |
 
+### How much more than a single chat turn?
+
+The table above is about cost *shape*; this is cost *magnitude*. A useful baseline from [Anthropic's multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system): a tool-using agent burns **roughly 4× the tokens of a plain chat turn**, and a **multi-agent system roughly 15×**. The same report found that **token usage alone explains ~80% of the variance** in task performance (the number of tool calls and the model choice are the other two factors) — which is why this guide is token-centric throughout. Treat these as order-of-magnitude planning numbers, not guarantees: the multiplier moves with task complexity, iteration caps, and how much context each step accumulates. The practical takeaway — before reaching for multi-agent, confirm the task genuinely warrants ~15× the budget of answering it in one pass (see [the multi-agent anti-pattern](./anti-patterns.md)).
+
 ## The latency / cost / quality triangle
 
 Pick two. Most architectural decisions trade off one of these against the others:

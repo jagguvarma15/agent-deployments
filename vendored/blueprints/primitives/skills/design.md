@@ -156,7 +156,7 @@ See [`implementation.md`](./implementation.md) for the loader and matcher pseudo
 
 ## See also
 
-- [`patterns/tool_use/design.md`](../tool_use/design.md) — skills typically *call* tools; the tool catalog and skill registry are complementary.
+- [`primitives/tool_use/design.md`](../tool_use/design.md) — skills typically *call* tools; the tool catalog and skill registry are complementary.
 - [`patterns/routing/design.md`](../../patterns/routing/design.md) — the routing layer for large skill registries.
 - [`foundations/agent-protocols.md`](../../foundations/agent-protocols.md) — skills vs MCP vs A2A.
 - [`foundations/sandboxed-execution.md`](../../foundations/sandboxed-execution.md) — when skill helper scripts need a sandbox.

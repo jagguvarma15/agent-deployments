@@ -128,6 +128,17 @@ All three variants run the same researcher → writer → reviewer delegation ag
 - For simple routing without agent autonomy — use [Routing](../routing/overview.md)
 - When the overhead of multiple agents isn't justified by the task complexity
 
+## The single-writer debate
+
+Whether to reach for multiple agents at all is genuinely contested, and the two best-known data points look contradictory until you see what separates them.
+
+- **Against** — Cognition's [*Don't Build Multi-Agents*](https://cognition.com/blog/dont-build-multi-agents) argues that parallel sub-agents making independent decisions produce conflicting, incoherent results. Its first principle: *share context, and share full agent traces, not just individual messages* — and keep **writes single-threaded** so one actor owns the evolving state.
+- **For** — Anthropic's [multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) reported a multi-agent setup outperforming a single Claude Opus 4 agent by **90.2%** on their internal research eval.
+
+The reconciliation is the nature of the work. Multi-agent wins when the task is **read-heavy and parallelizable** — many independent sub-questions explored concurrently, then synthesized by a single writer (research, broad retrieval, fan-out review). It loses when the task needs **tight coherence across interleaved decisions**, where splitting the work means agents make conflicting choices the synthesizer can't reconcile after the fact. Cognition's 2026 follow-up, [*Multi-Agents: What's Actually Working*](https://cognition.com/blog/multi-agents-working), lands on the same shape: multiple agents may contribute *intelligence* (planning, review), but the **writes stay single-threaded**.
+
+Practical rule: parallelize reads, serialize writes. If your sub-agents would each be making decisions that must agree, reach for one agent (or one writer with advisory sub-agents), not a committee.
+
 ## Related Patterns
 
 - **Evolves from:** [Orchestrator-Worker](../orchestrator-worker/overview.md) + [Routing](../routing/overview.md) — see [evolution.md](./evolution.md)
