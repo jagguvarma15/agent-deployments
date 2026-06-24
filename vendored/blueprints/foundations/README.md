@@ -79,6 +79,7 @@ The vocabulary, mental models, and decision frameworks you'll use everywhere els
 - **[Terminology](./terminology.md)** — Precise definitions of agent, workflow, tool, and other overloaded terms
 - **[Anatomy of an Agent](./anatomy-of-an-agent.md)** — The components every agent has and what distinguishes agents from workflows
 - **[Choosing a Pattern](./choosing-a-pattern.md)** — Decision flowchart and guidance for selecting the right pattern
+- **[Prompt Engineering](./prompt-engineering.md)** — Prompt anatomy, core techniques, output contracts, and the boundary with context engineering
 - **[Anti-Patterns](./anti-patterns.md)** — What not to build, why people build it anyway, and the correct alternative
 
 ### Production concerns — read before shipping

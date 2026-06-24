@@ -111,6 +111,8 @@ Within a topology, agents communicate via one of three protocols:
 
 **Guideline:** Start with hub-and-spoke. Add a shared-state layer for read-only cross-agent context (history, retrieved facts) without breaking the hub-and-spoke control flow. Promote to peer-to-peer only for specific pair-wise interactions, not as a general default.
 
+**Single-writer constraint.** Whatever the protocol, keep state mutation single-threaded — one actor owns each piece of evolving state. Parallel agents may *read* shared context freely, but concurrent *writes* produce conflicting decisions the synthesizer can't reconcile after the fact (the shared-state conflict in the Failure Modes table below). This is the design expression of [the single-writer debate](./overview.md#the-single-writer-debate): route decisions that must agree through one writer rather than merging them later.
+
 ## Supervisor Design Choices
 
 The supervisor is the orchestration intelligence. Three design dimensions matter:

@@ -139,6 +139,6 @@ Some vendors expose VM snapshots — pause a sandbox, restore it later in the sa
 
 - [`security-and-safety.md`](./security-and-safety.md) — broader threat model the sandbox is one mitigation within.
 - [`agent-protocols.md`](./agent-protocols.md) — MCP's tool-call surface is the boundary the sandbox sits behind.
-- [`patterns/tool_use/overview.md`](../primitives/tool_use/overview.md) — the pattern that most often needs sandboxing.
+- [`primitives/tool_use/overview.md`](../primitives/tool_use/overview.md) — the pattern that most often needs sandboxing.
 - [`agent-deployments/docs/capabilities/sandbox/`](https://github.com/jagguvarma15/agent-deployments/tree/main/docs/capabilities/sandbox) — production-shape capability docs for specific sandbox vendors.
 - [`composition/agentic-eval-pipeline.md`](../composition/agentic-eval-pipeline.md) — how to evaluate that a sandboxed agent is actually safer, not just slower.

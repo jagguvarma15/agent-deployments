@@ -33,7 +33,7 @@ jobs:
         uses: carvel-dev/setup-action@v2
         with:
           only: vendir
-          vendir: v0.40.0
+          vendir: v0.45.4
 
       - name: Verify vendored tree matches vendir.yml
         run: |

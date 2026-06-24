@@ -1,5 +1,5 @@
 ---
-blueprints_version: dfd824d
+blueprints_version: 7420e28
 applies_to:
   pattern: react
   primitives: [skills, sub_agents, tool_use]

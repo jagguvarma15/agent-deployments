@@ -1,6 +1,6 @@
 ---
 role: planner
-pattern: plan-and-execute
+pattern: plan_and_execute
 inputs:
   - {name: goal, type: string, description: "Objective the plan addresses."}
   - {name: context, type: ["string", "null"], description: "Optional prior context or constraints."}

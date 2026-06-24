@@ -56,6 +56,16 @@ or a sub-task that requires a fundamentally different model or toolset.
 **Rule of thumb:** One agent with N tools beats N agents when the task is sequential or
 when the sub-tasks share significant context.
 
+**The deeper why:** the failure isn't only cost — it's coherence. As Cognition's
+[*Don't Build Multi-Agents*](https://cognition.com/blog/dont-build-multi-agents) argues,
+parallel sub-agents making independent decisions produce conflicting results a synthesizer
+can't cleanly merge; keeping *writes single-threaded* is the fix. The flip side, from
+[Anthropic's research system](https://www.anthropic.com/engineering/multi-agent-research-system)
+(which beat a single Claude Opus 4 agent by 90.2% on an internal eval): multi-agent
+genuinely wins for **read-heavy, parallelizable** work — many independent explorations
+gathered by sub-agents and combined by one writer. Parallelize reads; serialize writes.
+See [Multi-Agent → the single-writer debate](../patterns/multi_agent/overview.md#the-single-writer-debate).
+
 ---
 
 ## 3. Reflection Without Measurable Criteria
@@ -353,9 +363,10 @@ internal evals. Citing it is easier than building a regression suite.
 **The problem:** Static benchmarks measure one-shot, lab-bounded task completion. Production
 agents deal with traffic the benchmark never sampled — long-horizon brittleness, tool
 errors that compound across steps, upstream-model drift, cost / latency degradation under
-load. 2026 industry reports place the gap between benchmark scores and production reliability
-at roughly **37 percentage points**, with cost efficiency, plan adherence, and trace
-consistency among the dominant blind spots. A benchmark score is an upper bound, not a
+load. The gap is measurable: [τ-bench](https://arxiv.org/abs/2406.12045)'s pass^k metric
+shows a single-run success rate around 61% dropping below 25% once the *same* tasks must
+pass 8 runs in a row — and production adds blind spots the benchmark never sampled (cost
+efficiency, plan adherence, trace consistency). A benchmark score is an upper bound, not a
 target.
 
 **Use instead:** Run the eval cadence that matters more than the suite's size. Pair an

@@ -234,9 +234,9 @@ Mitigations live in [`security-and-safety.md`](./security-and-safety.md) and (fo
 
 ## See also
 
-- [`patterns/tool_use/overview.md`](../primitives/tool_use/overview.md) — the cognitive pattern MCP plugs into.
+- [`primitives/tool_use/overview.md`](../primitives/tool_use/overview.md) — the cognitive pattern MCP plugs into.
 - [`patterns/multi_agent/overview.md`](../patterns/multi_agent/overview.md) — the cognitive pattern A2A plugs into.
-- [`patterns/skills/overview.md`](../primitives/skills/overview.md) — the third connectivity primitive (skills are procedural knowledge, MCP is access, A2A is delegation).
+- [`primitives/skills/overview.md`](../primitives/skills/overview.md) — the third connectivity primitive (skills are procedural knowledge, MCP is access, A2A is delegation).
 - [`foundations/security-and-safety.md`](./security-and-safety.md) — the broader threat model these protocols inherit from.
 - [`foundations/sandboxed-execution.md`](./sandboxed-execution.md) — what to do when a tool execution itself is untrusted.
 - [`composition/blueprints-to-deployments.md`](../composition/blueprints-to-deployments.md) — how cognitive patterns + protocols compose into production recipes.

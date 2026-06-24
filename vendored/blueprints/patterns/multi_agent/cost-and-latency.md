@@ -21,6 +21,12 @@ Relative cost tier: High. Multi-Agent multiplies the cost of every sub-agent by 
 number of delegations. Misuse of this pattern for tasks that a single ReAct agent
 could handle is the most common source of unexpectedly high LLM bills.
 
+As a planning baseline, [Anthropic reports](https://www.anthropic.com/engineering/multi-agent-research-system)
+that multi-agent systems use **roughly 15× the tokens of a plain chat turn** (versus
+~4× for a single tool-using agent), and that token usage alone explains ~80% of the
+variance in task performance. The bar for choosing this pattern, then, is that the
+task is worth ~15× the budget of answering it once.
+
 ---
 
 ## Call Breakdown

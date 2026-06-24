@@ -1,6 +1,6 @@
 ---
 role: executor
-pattern: plan-and-execute
+pattern: plan_and_execute
 inputs:
   - {name: step, type: object, description: "The Step to execute: {id, description, tool_hint, depends_on}."}
   - {name: available_tools, type: array, description: "Tools the executor may call."}

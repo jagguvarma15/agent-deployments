@@ -6,7 +6,7 @@ This doc covers the cross-cutting frame. Per-pattern context specifics still liv
 
 ## Context is a finite resource
 
-The context window is not a bucket you fill; it's an attention budget you spend. As token counts grow, recall degrades — the field calls this **context rot**: with enough irrelevant tokens, even the right token gets lost. Long-context benchmarks (needle-in-a-haystack, LOCA-bench) show measurable accuracy drops well before the published limit. Practical takeaways:
+The context window is not a bucket you fill; it's an attention budget you spend. As token counts grow, recall degrades — the field calls this **[context rot](https://research.trychroma.com/context-rot)**: with enough irrelevant tokens, even the right token gets lost. Long-context benchmarks (needle-in-a-haystack, RULER, NoLiMa) show measurable accuracy drops well before the published limit. Practical takeaways:
 
 - Treat the window as a budget with diminishing returns, not a hard limit you fill until it errors.
 - Measure tokens used per call and per loop iteration; rising tokens with flat task progress is a leading indicator of a broken loop.

@@ -53,6 +53,8 @@ Each turn: retrieve relevant long-term memories → include with short-term cont
 
 Three categories of memory differ in what they store, how they're retrieved, and what failure modes they introduce. Most production agents need at least two.
 
+These three long-term categories follow the cognitive taxonomy from the [CoALA framework](https://arxiv.org/abs/2309.02427) ("Cognitive Architectures for Language Agents"), which splits agent memory into a short-term **working memory** — the live context window, covered above as [Short-Term Memory](#short-term-memory) and in the [context-engineering memory hierarchy](../../foundations/context-engineering.md) — plus three long-term stores: episodic, semantic, and procedural. Working memory is where the others are read into each turn; the table below is what persists *outside* the window.
+
 | Type | Stores | Retrieval | Decay |
 |------|--------|-----------|-------|
 | **Episodic** | Specific past interactions ("user asked about X on May 12") | Time-ordered, recency-weighted | Stale quickly |
