@@ -176,3 +176,30 @@ Apply this layout only when ≥2 agents share infra. Single-agent projects stay 
 | Docker (single agent) | `Dockerfile` at root | `Dockerfile` at root |
 | Docker (monorepo) | `agents/<name>/Dockerfile` | `agents/<name>/Dockerfile` |
 | Shared infra (monorepo) | `infra/` | `infra/` |
+
+## 9. Host port allocation
+
+Single source of truth for the **host** ports each capability service binds. Two services must never bind the same host port in one `docker compose up`; capability docker fragments are pre-assigned here so any resolvable recipe stack is collision-free. The agent backend owns `8000`; everything that natively listens on `8000` is host-remapped off it.
+
+| Service | Host port | In-container | URL env var |
+|---------|-----------|--------------|-------------|
+| Agent backend (app) | `8000` | `8000` | `APP_PORT` |
+| Postgres | `5432` | `5432` | `DATABASE_URL` |
+| Redis | `6379` | `6379` | `REDIS_URL` |
+| Qdrant | `6333` (HTTP), `6334` (gRPC) | `6333` / `6334` | `QDRANT_URL` |
+| Chroma | `8002` | `8000` | `CHROMA_URL` |
+| Zep | `8003` | `8000` | `ZEP_API_URL` |
+| Kafka | `9092` | `9092` | `KAFKA_BOOTSTRAP_SERVERS` |
+| Langfuse | `3001` | `3000` | `LANGFUSE_HOST` |
+| Grafana | `3002` | `3000` | — |
+| Temporal | `7233` (gRPC), `8233` (UI) | `7233` / `8233` | `TEMPORAL_HOST_URL` |
+| Containerized frontend (minimal-chat / Vite) | `3000` | `3000` | `VITE_AGENT_URL` → backend |
+| Next.js chat (host `pnpm dev`) | `3000` | — | `NEXT_PUBLIC_AGENT_URL` → backend |
+| Streamlit chat (host `streamlit run`) | `8501` | — | `AGENT_URL` → backend |
+
+Rules:
+
+- **Only the host port (left of `host:container`) is remapped** to avoid collisions. The container-internal port (right side) stays at the service's native port, so a service remapped on the host is unchanged inside the network.
+- **In-network URLs use `service:<container-port>`** (e.g. `http://zep:8000`, `http://chroma:8000`), not the host port. An app running inside compose reaches a dependency by service name on its container port; only an app running on the **host** uses `localhost:<host-port>`.
+- **Healthchecks run inside the container** and target the container port (e.g. Zep's `/healthz` and Chroma's `/api/v1/heartbeat` both probe `localhost:8000`), regardless of the host remap.
+- The frontends never bind a host port simultaneously: `minimal-chat` is the only one served as a compose container (host `3000`, pinned by the scaffold's `normalize_frontend_service`); `nextjs-chat` and `streamlit` run as host dev processes and are not part of `docker compose up`.
