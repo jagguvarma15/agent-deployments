@@ -73,7 +73,7 @@ acceptance_contracts:
     - {jq: '.results | length > 0', against: smoke_test.exercise.stdout}
 topology: parallel
 load_list:
-  - {path: ../../vendored/blueprints/workflows/parallel-calls/overview.md, required: true}
+  - {path: ../../vendored/blueprints/patterns/parallel-calls/overview.md, required: true}
   - {path: ../frameworks/pydantic-ai.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -96,7 +96,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [Parallel Calls](../../vendored/blueprints/workflows/parallel-calls/overview.md)
+- Pattern: [Parallel Calls](../../vendored/blueprints/patterns/parallel-calls/overview.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (`asyncio.gather()` with multiple `agent.run()` calls)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (`Promise.all()` with `generateObject()` calls)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -108,7 +108,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/parallel-enricher.md` — this blueprint
-- `vendored/blueprints/workflows/parallel-calls/overview.md` — the parallel calls pattern
+- `vendored/blueprints/patterns/parallel-calls/overview.md` — the parallel calls pattern
 - `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 
