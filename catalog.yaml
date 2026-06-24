@@ -3135,6 +3135,8 @@ capabilities:
   env_vars:
   - REDIS_URL
   docker_service: redis
+  ports:
+  - 6379:6379
   probe: redis_ping
   provisioning_time: instant
   cost_tier: free
@@ -3167,6 +3169,9 @@ capabilities:
   - TEMPORAL_HOST
   - TEMPORAL_NAMESPACE
   docker_service: temporal
+  ports:
+  - 7233:7233
+  - 8233:8233
   bootstrap_step: bootstrap_temporal
   probe: temporal_health
   provisioning_time: ~60s
@@ -3503,6 +3508,8 @@ capabilities:
   - ZEP_API_KEY
   - ZEP_AUTH_SECRET
   docker_service: zep
+  ports:
+  - 8003:8000
   bootstrap_step: bootstrap_zep
   probe: zep_health
   provisioning_time: ~30s
@@ -3533,6 +3540,8 @@ capabilities:
   - PROMETHEUS_URL
   - TEMPO_URL
   docker_service: grafana
+  ports:
+  - 3002:3000
   bootstrap_step: bootstrap_observability
   probe: grafana_health
   provisioning_time: ~30s
@@ -3567,6 +3576,8 @@ capabilities:
   - LANGFUSE_NEXTAUTH_SECRET
   - LANGFUSE_SALT
   docker_service: langfuse
+  ports:
+  - 3001:3000
   bootstrap_step: bootstrap_langfuse
   probe: langfuse_health
   provisioning_time: ~30s
@@ -3624,6 +3635,8 @@ capabilities:
   - KAFKA_BOOTSTRAP_SERVERS
   - KAFKA_CLIENT_ID
   docker_service: kafka
+  ports:
+  - 9092:9092
   bootstrap_step: bootstrap_kafka
   probe: kafka_topic_list
   provisioning_time: ~30s
@@ -3679,6 +3692,8 @@ capabilities:
   - POSTGRES_PASSWORD
   - POSTGRES_DB
   docker_service: postgres
+  ports:
+  - 5432:5432
   probe: postgres_select_one
   provisioning_time: ~10s
   cost_tier: free
@@ -3753,6 +3768,8 @@ capabilities:
   - CHROMA_TENANT
   - CHROMA_DATABASE
   docker_service: chroma
+  ports:
+  - 8002:8000
   bootstrap_step: bootstrap_vector_db
   probe: chroma_heartbeat
   provisioning_time: ~10s
@@ -3808,6 +3825,9 @@ capabilities:
   - QDRANT_URL
   - QDRANT_API_KEY
   docker_service: qdrant
+  ports:
+  - 6333:6333
+  - 6334:6334
   bootstrap_step: bootstrap_vector_db
   probe: qdrant_collections
   provisioning_time: ~10s
