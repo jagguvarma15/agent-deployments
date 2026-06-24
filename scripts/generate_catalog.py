@@ -886,6 +886,87 @@ def validate_recipe_references(
         raise SystemExit("error: catalog validation failed:\n  - " + "\n  - ".join(errors))
 
 
+def report_content_warnings(
+    recipes: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
+    frameworks: list[dict[str, Any]],
+    blueprints_catalog: dict[str, Any],
+) -> list[str]:
+    """Advisory content-drift checks. These never fail the build — they are
+    coverage gaps and soft inconsistencies, not contract violations. Returns the
+    warning messages (also printed to stderr) so callers / tests can inspect them.
+
+    1. Advertisement coherence — a provider named in a recipe's runtime_modes
+       descriptions (openai / cohere / qdrant / …) should be backed by a
+       capability and a dependency. Unbacked => the advertised stack can't run.
+    2. Orphan blueprints — a blueprint pattern that no recipe selects via
+       agent_pattern (a coverage gap; the pattern ships with no runnable recipe).
+    3. Orphan frameworks — a framework doc that no recipe references in its
+       load_list.
+    """
+    warnings: list[str] = []
+
+    for r in recipes:
+        path = r.get("path", "<unknown>")
+        caps = r.get("capabilities") or []
+        deps = r.get("recipe_dependencies") or {}
+        dep_names = [
+            str(name).lower()
+            for lang in deps.values()
+            if isinstance(lang, dict)
+            for name in lang
+        ]
+        rmodes = r.get("runtime_modes") or {}
+        desc = " ".join(
+            str(m.get("description", ""))
+            for m in rmodes.values()
+            if isinstance(m, dict)
+        ).lower()
+        for token, (cap_sub, dep_sub) in sorted(ADVERTISED_PROVIDERS.items()):
+            if token not in desc:
+                continue
+            cap_backed = any(cap_sub in c for c in caps)
+            dep_backed = any(dep_sub in d for d in dep_names)
+            if not (cap_backed or dep_backed):
+                warnings.append(
+                    f"{path}: runtime_modes advertises {token!r} but no capability "
+                    f"or dependency backs it — capabilities + recipe_dependencies "
+                    f"should name it (or drop it from the description)"
+                )
+
+    used_patterns = {r.get("agent_pattern") for r in recipes if r.get("agent_pattern")}
+    pattern_ids = {e["id"] for e in (blueprints_catalog.get("patterns") or []) if "id" in e}
+    for orphan in sorted(pattern_ids - used_patterns):
+        warnings.append(
+            f"blueprint pattern {orphan!r} has no recipe (no agent_pattern selects it) "
+            f"— coverage gap, not a first-run breaker"
+        )
+
+    referenced_frameworks: set[str] = set()
+    for r in recipes:
+        for item in r.get("load_list") or []:
+            if isinstance(item, dict) and isinstance(item.get("path"), str):
+                rel = item["path"]
+                if "/frameworks/" in rel:
+                    referenced_frameworks.add(rel.rsplit("/", 1)[-1])
+    for fw in frameworks:
+        if not isinstance(fw, dict):
+            continue
+        fw_path = fw.get("path")
+        if not isinstance(fw_path, str):
+            continue
+        basename = fw_path.rsplit("/", 1)[-1]
+        if basename not in referenced_frameworks:
+            warnings.append(
+                f"framework {fw.get('id', basename)!r} is referenced by no recipe "
+                f"load_list — coverage gap, not a first-run breaker"
+            )
+
+    for msg in warnings:
+        print(f"warning: {msg}", file=sys.stderr)
+    return warnings
+
+
 def _validate_load_list_predicate(
     predicate: Any,
     label: str,
@@ -1342,6 +1423,16 @@ def build_catalog(
         allow_missing_required=allow_missing_required,
     )
 
+    # Advisory drift checks — coverage gaps + soft inconsistencies. Printed to
+    # stderr; never fail the build (orphans and stale advertisements are not
+    # first-run breakers).
+    report_content_warnings(
+        catalog["recipes"],
+        catalog["capabilities"],
+        catalog["frameworks"],
+        blueprints_catalog,
+    )
+
     # Derive each recipe's env_contract from the dedup of its capabilities'
     # env_vars + the recipe's env_overrides. Runs after validation so we
     # never derive against an unresolved capability id.
@@ -1430,6 +1521,15 @@ def main(argv: list[str] | None = None) -> int:
             "catches up to the schema. Reference-resolution errors still fail loud."
         ),
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "Validate content + verify the committed catalog.yaml is up to date "
+            "without writing it. Exits non-zero on a validation failure or if "
+            "regeneration would change --out. Use in CI / pre-commit."
+        ),
+    )
     args = parser.parse_args(argv)
 
     seed_path = Path(args.seed)
@@ -1454,7 +1554,27 @@ def main(argv: list[str] | None = None) -> int:
         "# Edit source docs (their YAML frontmatter) or the upstream blueprints\n"
         "# catalog, then regenerate.\n"
     )
-    Path(args.out).write_text(header + body, encoding="utf-8")
+    content = header + body
+    out_path = Path(args.out)
+
+    if args.check:
+        # Validation already ran inside build_catalog (hard failures raised
+        # SystemExit before we got here). Now confirm the committed catalog
+        # matches a fresh regeneration — without writing anything.
+        if not out_path.is_file():
+            print(f"error: --check: {out_path} does not exist", file=sys.stderr)
+            return 1
+        if out_path.read_text(encoding="utf-8") != content:
+            print(
+                f"error: --check: {out_path} is stale — regenerate with "
+                "`python scripts/generate_catalog.py`",
+                file=sys.stderr,
+            )
+            return 1
+        print(f"ok: content validates and {out_path} is up to date")
+        return 0
+
+    out_path.write_text(content, encoding="utf-8")
 
     suggestions = catalog.get("suggestions") or {}
     suggestions_version = suggestions.get("blueprints_version") or "(empty)"
