@@ -216,13 +216,19 @@ VALID_CAPABILITY_KINDS = frozenset(
 
 # Recognized backend entry-point basenames. A recipe that ships application
 # source must list one of these in `required_files`, or run (which discovers
-# the entry point) has nothing the generation contract guaranteed. Mirrors the
-# heuristics in agent-scaffold's steps/launch_backend.py.
+# the entry point by basename) has nothing the generation contract guaranteed.
+# The Python subset must stay a SUPERSET of agent-scaffold's
+# steps/launch_backend.py `_ENTRY_CANDIDATES` (main/app/server/api/asgi.py) so
+# anything run can launch is a valid declared entry point; the .ts/.js
+# basenames cover the TypeScript track. Mirrored verbatim by agent-scaffold's
+# content_lint.ENTRY_POINT_BASENAMES (pinned by a parity test in both repos).
 ENTRY_POINT_BASENAMES = frozenset(
     [
         "main.py",
         "app.py",
         "server.py",
+        "api.py",
+        "asgi.py",
         "__main__.py",
         "index.ts",
         "index.js",
@@ -232,12 +238,13 @@ ENTRY_POINT_BASENAMES = frozenset(
     ]
 )
 
-# Providers that, when named in a runtime_modes mode description, must be backed
-# by a matching capability id (substring) AND a recipe dependency (substring).
-# Keyed by the lowercase token to scan for. The base LLM (Anthropic/Claude) and
-# local-swap runtimes (vLLM/Llama/SearXNG) are intentionally absent — they are
-# stack/llm swaps, not capabilities. Used by the advisory advertisement-coherence
-# check (warns; never fails the build).
+# Providers that, when named in a runtime_modes mode description, should be
+# backed by a matching capability id (substring) OR a recipe dependency
+# (substring) — the advisory check warns only when BOTH are absent. Keyed by the
+# lowercase token to scan for. The base LLM (Anthropic/Claude) and local-swap
+# runtimes (vLLM/Llama/SearXNG) are intentionally absent — they are stack/llm
+# swaps, not capabilities. Mirrored verbatim by agent-scaffold's content_lint.py
+# (pinned by a parity test in both repos). Advisory: never fails the build.
 ADVERTISED_PROVIDERS: dict[str, tuple[str, str]] = {
     # token: (capability-id substring, dependency-name substring)
     "qdrant": ("qdrant", "qdrant"),
