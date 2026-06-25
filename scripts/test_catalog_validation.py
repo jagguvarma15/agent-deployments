@@ -473,7 +473,6 @@ def test_check_flag_freshness() -> None:
         out = os.path.join(d, "catalog.yaml")
         assert g.main(["--out", out]) == 0  # write a fresh catalog
         assert g.main(["--check", "--out", out]) == 0  # fresh → ok
-        before = Path(out).read_text(encoding="utf-8")
         with open(out, "a", encoding="utf-8") as f:
             f.write("\n# injected drift\n")
         assert g.main(["--check", "--out", out]) == 1  # stale → fail
@@ -482,7 +481,6 @@ def test_check_flag_freshness() -> None:
         os.remove(out)
         assert g.main(["--check", "--out", out]) == 1  # absent → fail
         assert not Path(out).exists()
-        del before
 
 
 def main() -> int:
