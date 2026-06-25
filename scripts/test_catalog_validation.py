@@ -359,6 +359,132 @@ def test_orphan_pattern_is_advisory_warning() -> None:
     assert not any("'rag'" in w and "no recipe" in w for w in warnings), warnings
 
 
+# Vendored copies of the producer's lint constants, pinned here so a one-sided
+# edit to generate_catalog.py fails CI. The cross-repo tie is: this copy + the
+# scaffold-side parity test (tests/test_content_lint.py) both pin their repo's
+# constant to the same literal. When a constant changes, update BOTH repos'
+# constants AND both vendored copies.
+CANONICAL_ENTRY_POINT_BASENAMES = frozenset(
+    {
+        "main.py",
+        "app.py",
+        "server.py",
+        "api.py",
+        "asgi.py",
+        "__main__.py",
+        "index.ts",
+        "index.js",
+        "main.ts",
+        "server.ts",
+        "app.ts",
+    }
+)
+CANONICAL_ADVERTISED_PROVIDERS = {
+    "qdrant": ("qdrant", "qdrant"),
+    "chroma": ("chroma", "chroma"),
+    "pgvector": ("pgvector", "pgvector"),
+    "openai": ("embedding.openai", "openai"),
+    "cohere": ("rerank.cohere", "cohere"),
+    "zep": ("memory_store.zep", "zep"),
+}
+
+
+def test_lint_constants_match_canonical() -> None:
+    """Pin ENTRY_POINT_BASENAMES + ADVERTISED_PROVIDERS to the vendored literals
+    so they can't drift from the scaffold's content_lint mirror unnoticed."""
+    assert g.ENTRY_POINT_BASENAMES == CANONICAL_ENTRY_POINT_BASENAMES
+    assert g.ADVERTISED_PROVIDERS == CANONICAL_ADVERTISED_PROVIDERS
+
+
+def test_capability_kinds_documented_in_all_docs() -> None:
+    """Every canonical kind must appear (backticked) in each doc that lists the
+    kinds — SCHEMA.md is machine-pinned by the line test above; this also guards
+    capabilities/README.md and MANIFEST_SCHEMA.md against silent drift."""
+    for doc in ("docs/capabilities/README.md", "MANIFEST_SCHEMA.md"):
+        text = (g.REPO_ROOT / doc).read_text(encoding="utf-8")
+        missing = [k for k in g.VALID_CAPABILITY_KINDS if f"`{k}`" not in text]
+        assert not missing, f"{doc} is missing kinds: {missing}"
+
+
+def test_capability_card_rules() -> None:
+    """Empty card.name/description is a hard error; a missing card entirely is a
+    soft (migration) error — downgraded under allow_missing_required."""
+    bad = {"id": "obs.x", "kind": "obs", "path": "docs/capabilities/obs/x.md",
+           "card": {"name": "", "description": "d"}}
+    try:
+        g.validate_recipe_references([], [bad], {}, allow_missing_required=True)
+    except SystemExit as exc:
+        assert "card.name" in str(exc)
+    else:
+        raise AssertionError("empty card.name must be a hard error")
+
+    # Missing card entirely is soft → no raise under allow_missing_required.
+    nocard = {"id": "obs.y", "kind": "obs", "path": "docs/capabilities/obs/y.md"}
+    g.validate_recipe_references([], [nocard], {}, allow_missing_required=True)
+
+    # ...but hard when required fields are enforced.
+    try:
+        g.validate_recipe_references([], [dict(nocard)], {}, allow_missing_required=False)
+    except SystemExit as exc:
+        assert "card" in str(exc)
+    else:
+        raise AssertionError("missing card must fail when required fields are enforced")
+
+
+def test_advertisement_backed_by_either_source() -> None:
+    """A provider backed by a capability ALONE or a dependency ALONE is clean —
+    the check warns only when BOTH are absent (OR semantics)."""
+    cap_only = {
+        "path": "docs/recipes/c.md",
+        "runtime_modes": {"default": {"description": "Claude + Qdrant retrieval."}},
+        "capabilities": ["vector_db.qdrant"],
+        "recipe_dependencies": {"python": {"fastapi": ">=0"}},
+    }
+    assert not any("qdrant" in w for w in g.report_content_warnings([cap_only], [], [], {}))
+
+    dep_only = {
+        "path": "docs/recipes/d.md",
+        "runtime_modes": {"default": {"description": "Claude + Qdrant retrieval."}},
+        "capabilities": ["cache.redis"],
+        "recipe_dependencies": {"python": {"qdrant-client": ">=1"}},
+    }
+    assert not any("qdrant" in w for w in g.report_content_warnings([dep_only], [], [], {}))
+
+
+def test_orphan_framework_warns() -> None:
+    """A framework doc no recipe references in its load_list is an advisory
+    orphan warning; a referenced framework is clean."""
+    frameworks = [{"path": "docs/frameworks/foo.md", "id": "foo"}]
+    warnings = g.report_content_warnings([], [], frameworks, {})
+    assert any("foo" in w and "framework" in w for w in warnings), warnings
+
+    user = {"path": "docs/recipes/r.md", "load_list": [{"path": "../frameworks/foo.md"}]}
+    warnings = g.report_content_warnings([user], [], frameworks, {})
+    assert not any("framework 'foo'" in w for w in warnings), warnings
+
+
+def test_check_flag_freshness() -> None:
+    """--check returns 0 when catalog.yaml is a fresh regeneration, 1 when stale
+    or absent, and never writes the file."""
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        out = os.path.join(d, "catalog.yaml")
+        assert g.main(["--out", out]) == 0  # write a fresh catalog
+        assert g.main(["--check", "--out", out]) == 0  # fresh → ok
+        before = Path(out).read_text(encoding="utf-8")
+        with open(out, "a", encoding="utf-8") as f:
+            f.write("\n# injected drift\n")
+        assert g.main(["--check", "--out", out]) == 1  # stale → fail
+        # --check must not have rewritten the file.
+        assert Path(out).read_text(encoding="utf-8").endswith("# injected drift\n")
+        os.remove(out)
+        assert g.main(["--check", "--out", out]) == 1  # absent → fail
+        assert not Path(out).exists()
+        del before
+
+
 def main() -> int:
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for test in tests:
