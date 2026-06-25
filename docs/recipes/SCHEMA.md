@@ -276,7 +276,7 @@ Dotted capability ids matching files under [`../capabilities/<kind>/<name>.md`](
 
 - **Type:** list of strings (dotted `<kind>.<name>` ids)
 - **Consumer:** v0.3+ (silently ignored on v0.2).
-- **Allowed kinds:** `vector_db`, `cache`, `relational`, `queue`, `obs`, `eval`, `frontend`, `host` (the v0.2 cohort), plus `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` (the additive 2026-SOTA cohort — see [`../../MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md#capability-kinds) and [`../capabilities/README.md`](../capabilities/README.md)).
+- **Allowed kinds:** `vector_db`, `cache`, `relational`, `queue`, `obs`, `eval`, `frontend`, `host` (the v0.2 cohort), plus `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` (the additive 2026-SOTA cohort), plus `auth` (runtime key bootstrap — auth.key-bootstrap). The generator validates each capability's kind against this list (the VALID_CAPABILITY_KINDS constant in scripts/generate_catalog.py); a kind outside it fails the catalog build. See [MANIFEST_SCHEMA.md](../../MANIFEST_SCHEMA.md#capability-kinds) and [the capabilities README](../capabilities/README.md).
 - **Examples:**
   ```yaml
   capabilities:
@@ -802,6 +802,8 @@ The recipe body opens with `## Composes`; the load list (which files to feed an 
 
 ## Conformance
 
+**Valid == the lint passes.** The executable definition of a conformant recipe/capability is "`python scripts/generate_catalog.py --check` exits 0." That command runs every producer-side rule below and verifies the committed `catalog.yaml` is a fresh regeneration. The same rule set is mirrored consumer-side by `agent-scaffold lint-content`, so a forked or custom deployments source can be validated with the same contract. When adding a recipe, capability, framework, or topology, you are done when the lint is green — see [HOW_TO_ADD_AN_ENTRY.md](../HOW_TO_ADD_AN_ENTRY.md).
+
 A recipe under `docs/recipes/*.md` is schema-conformant when:
 
 - The first line of the file is `---` (frontmatter opens).
@@ -809,8 +811,14 @@ A recipe under `docs/recipes/*.md` is schema-conformant when:
 - Either `external_services` or `capabilities` (preferably both during the v0.2 → v0.3 transition) is present.
 - Every `capabilities:` id resolves to an existing file under `docs/capabilities/<kind>/<name>.md`.
 - Every `agent_pattern:` / `primitives[]` / `modifiers[]` id resolves to a `catalog.{patterns,primitives,modifiers}[].id`.
+- `topology` (when present) is one of the canonical values; every capability `kind` is one of the allowed kinds.
+- `required_files` (when non-empty) names a recognized backend entry point (`main.py` / `app.py` / `server.py` / `index.ts` / …) — run discovers the entry by basename, so a recipe that ships source but lists no entry point passes generation yet fails at launch.
+- No two compose services in the recipe's resolved capability stack (declared capabilities + their transitive `requires`, plus the app on `APP_PORT`) bind the same host port.
+- Every `load_list[].path` resolves to a file on disk (the producer fails closed; the consumer fails open).
 - The body opens with `## Composes` followed by `### Load list`.
 - Section order matches the canonical sequence above.
+
+Advisory (warn, never fail the build): a provider named in a `runtime_modes` description should be backed by a capability + dependency (advertisement coherence); a blueprint pattern or framework that no recipe selects is flagged as a coverage gap.
 
 Spot-checks:
 

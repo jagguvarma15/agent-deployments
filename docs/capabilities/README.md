@@ -183,12 +183,13 @@ The catalog has no schema version field today. The Phase 1b loader treats unknow
 
 ## Capability kinds
 
-16 known kinds across two cohorts. The catalog's `kind:` field is a free string, so unknown values degrade gracefully (older consumers surface `unresolved`).
+17 known kinds across two cohorts plus runtime auth. The catalog's `kind:` field degrades gracefully on the consumer (unknown values surface as `unresolved`), but the **producer fails closed**: `scripts/generate_catalog.py` validates every capability's `kind` against `VALID_CAPABILITY_KINDS`, so a typo'd kind fails the catalog build rather than shipping.
 
 | Cohort | Kinds | Purpose |
 |---|---|---|
 | **v0.2 set** | `relational`, `cache`, `vector_db`, `queue`, `obs`, `eval`, `frontend`, `host` | Original infrastructure layers. |
 | **2026-SOTA set** | `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` | Tool connectivity (`mcp` / `live_data`), runtime (`sandbox` / `durable`), agent-native data layer (`memory_store` / `embedding` / `rerank`), safety (`guardrail`). |
+| **Runtime auth** | `auth` | Runtime API-key bootstrap (`auth.key-bootstrap`) — captures the agent's own provider key from the first chat turn instead of an env var. |
 
 ## Neutrality rule
 
