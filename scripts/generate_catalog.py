@@ -211,6 +211,10 @@ VALID_CAPABILITY_KINDS = frozenset(
         "rerank",
         # Runtime key bootstrap (auth.key-bootstrap).
         "auth",
+        # Core generation primitives — emitted project structure (spec / prompts
+        # / io / tool registry / step-log / tracing), seeded by the scaffold's
+        # tier presets. Not provisioned infra.
+        "core",
     ]
 )
 
