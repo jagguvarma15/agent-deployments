@@ -276,7 +276,7 @@ Dotted capability ids matching files under [`../capabilities/<kind>/<name>.md`](
 
 - **Type:** list of strings (dotted `<kind>.<name>` ids)
 - **Consumer:** v0.3+ (silently ignored on v0.2).
-- **Allowed kinds:** `vector_db`, `cache`, `relational`, `queue`, `obs`, `eval`, `frontend`, `host` (the v0.2 cohort), plus `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` (the additive 2026-SOTA cohort), plus `auth` (runtime key bootstrap — auth.key-bootstrap). The generator validates each capability's kind against this list (the VALID_CAPABILITY_KINDS constant in scripts/generate_catalog.py); a kind outside it fails the catalog build. See [MANIFEST_SCHEMA.md](../../MANIFEST_SCHEMA.md#capability-kinds) and [the capabilities README](../capabilities/README.md).
+- **Allowed kinds:** `vector_db`, `cache`, `relational`, `queue`, `obs`, `eval`, `frontend`, `host` (the v0.2 cohort), plus `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` (the additive 2026-SOTA cohort), plus `auth` (runtime key bootstrap — auth.key-bootstrap), plus `core` (emitted generation primitives — spec / prompts / io / tool-registry / step-log / tracing, seeded by the scaffold's tier presets). The generator validates each capability's kind against this list (the VALID_CAPABILITY_KINDS constant in scripts/generate_catalog.py); a kind outside it fails the catalog build. See [MANIFEST_SCHEMA.md](../../MANIFEST_SCHEMA.md#capability-kinds) and [the capabilities README](../capabilities/README.md).
 - **Examples:**
   ```yaml
   capabilities:
