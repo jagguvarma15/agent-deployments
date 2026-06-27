@@ -65,7 +65,7 @@ The dotted capability id always matches the path: `vector_db.qdrant` ⇄ `vector
 ```yaml
 ---
 id: vector_db.qdrant                 # required — dotted: <kind>.<name>; must match file path
-kind: vector_db                      # required — one of 16 known kinds (see "Capability kinds" below)
+kind: vector_db                      # required — one of 18 known kinds (see "Capability kinds" below)
 layer: data                          # required — one of catalog.LAYER_ORDER; drives bootstrap sequencing
 provides: [embeddings_store]         # optional — free-form capability tags used for substitution / dedup
 requires: []                         # optional — other capability ids this one depends on (id-resolved)
@@ -107,7 +107,7 @@ docs: |                              # short markdown block injected into the LL
 | Field | Notes |
 |-------|-------|
 | `id` | Dotted `<kind>.<name>`. Lowercase, `_` separator inside each part allowed (`vector_db.pgvector`). Must equal the file path under `capabilities/`. |
-| `kind` | One of the 16 known kinds. Adding a new kind is additive — the generator's `kind` field is a free string and unknown kinds degrade gracefully on older consumers. |
+| `kind` | One of the 18 known kinds. Adding a new kind is additive — the generator's `kind` field is a free string and unknown kinds degrade gracefully on older consumers. |
 | `layer` | One of `catalog.LAYER_ORDER`. The catalog generator validates this; the value drives bootstrap-step sequencing across capabilities. |
 | `env_vars` | List of canonical environment variable names. The generated app and `.env.example` must use exactly these names. |
 | `card.name` | Human-readable display name. |
@@ -183,13 +183,14 @@ The catalog has no schema version field today. The Phase 1b loader treats unknow
 
 ## Capability kinds
 
-17 known kinds across two cohorts plus runtime auth. The catalog's `kind:` field degrades gracefully on the consumer (unknown values surface as `unresolved`), but the **producer fails closed**: `scripts/generate_catalog.py` validates every capability's `kind` against `VALID_CAPABILITY_KINDS`, so a typo'd kind fails the catalog build rather than shipping.
+18 known kinds: two infrastructure cohorts, runtime auth, plus the `core` generation-primitive kind. The catalog's `kind:` field degrades gracefully on the consumer (unknown values surface as `unresolved`), but the **producer fails closed**: `scripts/generate_catalog.py` validates every capability's `kind` against `VALID_CAPABILITY_KINDS`, so a typo'd kind fails the catalog build rather than shipping.
 
 | Cohort | Kinds | Purpose |
 |---|---|---|
 | **v0.2 set** | `relational`, `cache`, `vector_db`, `queue`, `obs`, `eval`, `frontend`, `host` | Original infrastructure layers. |
 | **2026-SOTA set** | `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank` | Tool connectivity (`mcp` / `live_data`), runtime (`sandbox` / `durable`), agent-native data layer (`memory_store` / `embedding` / `rerank`), safety (`guardrail`). |
 | **Runtime auth** | `auth` | Runtime API-key bootstrap (`auth.key-bootstrap`) — captures the agent's own provider key from the first chat turn instead of an env var. |
+| **Core generation primitives** | `core` | Emitted project structure — spec, owned prompts, schema I/O, tool registry, step-log, tracing — seeded by the scaffold's tier presets. Not provisioned infra. |
 
 ## Neutrality rule
 
@@ -207,7 +208,7 @@ This keeps the catalog's capability layer small, machine-readable, and amenable 
 When adding or updating a capability:
 
 - [ ] `id` exactly matches the file path under `capabilities/`
-- [ ] `kind` is one of the 16 known kinds (or a new one — additive change)
+- [ ] `kind` is one of the 18 known kinds (or a new one — additive change)
 - [ ] `layer` is one of `catalog.LAYER_ORDER`
 - [ ] `env_vars` are CANONICAL (no project-specific prefixes) — the generated app uses these names verbatim
 - [ ] If `docker:` is set, image tag is pinned (no `:latest`)

@@ -405,7 +405,7 @@ These five fields are additive at the v1 schema and ignored cleanly by older sca
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `id` | string | yes | Dotted `<kind>.<name>` identifier. |
-| `kind` | enum | yes | One of `vector_db`, `cache`, `relational`, `queue`, `obs`, `frontend`, `host`, `eval`, `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank`, `auth`. The first 8 are the v0.2 set; the next 8 are additive; `auth` is the runtime-key-bootstrap kind. The generator validates `kind` against this list (`VALID_CAPABILITY_KINDS`) and fails closed on anything else (see "Capability kinds" note below). |
+| `kind` | enum | yes | One of `vector_db`, `cache`, `relational`, `queue`, `obs`, `frontend`, `host`, `eval`, `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank`, `auth`, `core`. The first 8 are the v0.2 set; the next 8 are additive; `auth` is the runtime-key-bootstrap kind; `core` is the generation-primitive kind (emitted project structure, seeded by the scaffold's tier presets). The generator validates `kind` against this list (`VALID_CAPABILITY_KINDS`) and fails closed on anything else (see "Capability kinds" note below). |
 | `path` | string | yes | Repo-root-relative path to the capability markdown. |
 | `env_vars` | string[] | no | Canonical environment variable names. |
 | `docker_service` | string | no | Lifted from `docker.service` in frontmatter — the most commonly-needed nested field. |
@@ -416,13 +416,14 @@ The full capability spec (Docker fragment, ports, volumes, healthcheck, etc.) st
 
 #### Capability kinds
 
-The catalog ships 17 known kinds: two cohorts plus runtime `auth`. Scaffold's `kind` field is a free string, so unknown kinds degrade gracefully on the consumer (they surface as `unresolved` rather than raising) — the forward-compat story when a capability lands upstream before the consumer is updated. The **producer** is stricter: `generate_catalog.py` validates `kind` against `VALID_CAPABILITY_KINDS` and fails closed, so a typo'd kind never reaches consumers.
+The catalog ships 18 known kinds: two cohorts, runtime `auth`, plus the `core` generation-primitive kind. Scaffold's `kind` field is a free string, so unknown kinds degrade gracefully on the consumer (they surface as `unresolved` rather than raising) — the forward-compat story when a capability lands upstream before the consumer is updated. The **producer** is stricter: `generate_catalog.py` validates `kind` against `VALID_CAPABILITY_KINDS` and fails closed, so a typo'd kind never reaches consumers.
 
 | Cohort | Kinds | Purpose | Default impls |
 |---|---|---|---|
 | **v0.2 set** | `relational`, `cache`, `vector_db`, `queue`, `obs`, `eval`, `frontend`, `host` | The original infrastructure layers. | postgres, redis, qdrant, kafka/redis-streams, langfuse/langsmith, promptfoo, nextjs-chat/streamlit, vercel/fly/railway |
 | **2026-SOTA set (additive)** | `embedding`, `rerank`, `memory_store`, `live_data`, `mcp`, `sandbox`, `durable`, `guardrail` | Data-layer enrichment (embedding/rerank/memory), tool connectivity (live_data/mcp), runtime (sandbox/durable), and safety (guardrail). | [`openai`](docs/capabilities/embedding/openai.md), [`cohere`](docs/capabilities/rerank/cohere.md), [`zep`](docs/capabilities/memory_store/zep.md), [`tavily`](docs/capabilities/live_data/tavily.md), [`tavily`](docs/capabilities/mcp/tavily.md), [`e2b`](docs/capabilities/sandbox/e2b.md), [`temporal`](docs/capabilities/durable/temporal.md), [`llama-guard`](docs/capabilities/guardrail/llama-guard.md) |
 | **Runtime auth** | `auth` | Runtime API-key bootstrap — captures the agent's own provider key from the first chat turn instead of an env var. | [`key-bootstrap`](docs/capabilities/auth/key-bootstrap.md) |
+| **Core generation primitives** | `core` | Emitted project structure (spec / prompts / io / tool registry / step-log / tracing), seeded by the scaffold's tier presets. | spec, prompts, io, tool-registry, step-log, tracing |
 
 The 2026-SOTA cohort lands without bumping `schema_version` because:
 - Each kind is a free string in the catalog; older consumers ignore unknown values via `unresolved`.
