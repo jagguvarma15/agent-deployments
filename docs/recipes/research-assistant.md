@@ -78,7 +78,7 @@ acceptance_contracts:
     - {jq: '.answer | length > 0', against: smoke_test.exercise.stdout}
 topology: single
 load_list:
-  - {path: ../../vendored/blueprints/patterns/react/overview.md, required: true}
+  - {path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md, required: true}
   - {path: ../frameworks/pydantic-ai.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -101,7 +101,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [ReAct](../../vendored/blueprints/patterns/react/overview.md)
+- Pattern: [ReAct](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (agent with tool-based ReAct loop)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (`generateText` with tools + `maxSteps`)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -113,7 +113,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/research-assistant.md` — this blueprint
-- `vendored/blueprints/patterns/react/overview.md` — the ReAct pattern
+- `https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md` — the ReAct pattern
 - `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 

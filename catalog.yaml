@@ -1011,13 +1011,13 @@ recipes:
     required: true
     when: language == 'typescript'
     cache_tier: hot
-  - path: ../../vendored/blueprints/patterns/react/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
     required: true
     cache_tier: hot
-  - path: ../../vendored/blueprints/patterns/routing/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
     required: true
     cache_tier: hot
-  - path: ../../vendored/blueprints/primitives/tool_use/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
     required: true
     cache_tier: hot
   - path: ../cross-cutting/project-layout.md
@@ -1146,10 +1146,10 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../../vendored/blueprints/patterns/plan_and_execute/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
     required: true
     cache_tier: hot
-  - path: ../../vendored/blueprints/patterns/reflection/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/langgraph.md
@@ -1332,7 +1332,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../../vendored/blueprints/patterns/prompt-chaining/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -1537,10 +1537,10 @@ recipes:
     - account_lookup
     - kb_search
   load_list:
-  - path: ../../vendored/blueprints/patterns/routing/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
     required: true
     cache_tier: hot
-  - path: ../../vendored/blueprints/primitives/tool_use/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -1732,7 +1732,7 @@ recipes:
       vector_size: 1536
       distance: cosine
   load_list:
-  - path: ../../vendored/blueprints/patterns/rag/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -1956,7 +1956,7 @@ recipes:
     tools:
     - evaluate_quality
   load_list:
-  - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/langgraph.md
@@ -2149,7 +2149,7 @@ recipes:
       vector_size: 1536
       distance: cosine
   load_list:
-  - path: ../../vendored/blueprints/primitives/memory/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/langgraph.md
@@ -2364,7 +2364,7 @@ recipes:
     - check_query_performance
     - check_schema_health
   load_list:
-  - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/crewai.md
@@ -2541,7 +2541,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../../vendored/blueprints/patterns/parallel-calls/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -2713,7 +2713,7 @@ recipes:
   - obs.langfuse
   - eval.promptfoo
   load_list:
-  - path: ../../vendored/blueprints/patterns/react/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/pydantic-ai.md
@@ -2978,10 +2978,10 @@ recipes:
     - email_send
     - sms_send
   load_list:
-  - path: ../../vendored/blueprints/patterns/event_driven/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
     required: true
     cache_tier: hot
-  - path: ../../vendored/blueprints/patterns/multi_agent/overview.md
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
     required: true
     cache_tier: hot
   - path: ../frameworks/langgraph.md
@@ -4720,28 +4720,28 @@ cross_cutting_docs:
 - docs/cross-cutting/testing-strategy.md
 - docs/cross-cutting/validation-strategy.md
 pattern_docs:
-- vendored/blueprints/patterns/agentic_rag/overview.md
-- vendored/blueprints/patterns/evaluator-optimizer/overview.md
-- vendored/blueprints/patterns/event_driven/overview.md
-- vendored/blueprints/patterns/long_horizon/overview.md
-- vendored/blueprints/patterns/multi_agent/overview.md
-- vendored/blueprints/patterns/orchestrator-worker/overview.md
-- vendored/blueprints/patterns/parallel-calls/overview.md
-- vendored/blueprints/patterns/plan_and_execute/overview.md
-- vendored/blueprints/patterns/prompt-chaining/overview.md
-- vendored/blueprints/patterns/rag/overview.md
-- vendored/blueprints/patterns/react/overview.md
-- vendored/blueprints/patterns/reflection/overview.md
-- vendored/blueprints/patterns/routing/overview.md
-- vendored/blueprints/patterns/saga/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
 primitive_docs:
-- vendored/blueprints/primitives/memory/overview.md
-- vendored/blueprints/primitives/skills/overview.md
-- vendored/blueprints/primitives/sub_agents/overview.md
-- vendored/blueprints/primitives/tool_use/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
 modifier_docs:
-- vendored/blueprints/modifiers/guardrails/overview.md
-- vendored/blueprints/modifiers/human_in_the_loop/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
 suggestions:
   blueprints_version: 7420e28
   description: Per-combo stack recommendations scoped to upstream blueprints version 7420e28. One file per pattern × primitives × modifiers combination.
@@ -5030,44 +5030,44 @@ suggestions:
       to: stack/llm-local-vllm
     est_tokens: 550
 aliases:
-  react: vendored/blueprints/patterns/react/overview.md
-  rag: vendored/blueprints/patterns/rag/overview.md
-  agentic_rag: vendored/blueprints/patterns/agentic_rag/overview.md
-  agentic-rag: vendored/blueprints/patterns/agentic_rag/overview.md
-  routing: vendored/blueprints/patterns/routing/overview.md
-  multi_agent: vendored/blueprints/patterns/multi_agent/overview.md
-  multi-agent: vendored/blueprints/patterns/multi_agent/overview.md
-  multi-agent-flat: vendored/blueprints/patterns/multi_agent/overview.md
-  multi-agent-hierarchical: vendored/blueprints/patterns/multi_agent/overview.md
-  plan_and_execute: vendored/blueprints/patterns/plan_and_execute/overview.md
-  plan-and-execute: vendored/blueprints/patterns/plan_and_execute/overview.md
-  plan, execute, reflect: vendored/blueprints/patterns/plan_and_execute/overview.md
-  event_driven: vendored/blueprints/patterns/event_driven/overview.md
-  event-driven: vendored/blueprints/patterns/event_driven/overview.md
-  event driven: vendored/blueprints/patterns/event_driven/overview.md
-  saga: vendored/blueprints/patterns/saga/overview.md
-  reflection: vendored/blueprints/patterns/reflection/overview.md
-  long_horizon: vendored/blueprints/patterns/long_horizon/overview.md
-  long-horizon: vendored/blueprints/patterns/long_horizon/overview.md
-  prompt chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
-  prompt-chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
-  parallel calls: vendored/blueprints/patterns/parallel-calls/overview.md
-  parallel-calls: vendored/blueprints/patterns/parallel-calls/overview.md
-  orchestrator-worker: vendored/blueprints/patterns/orchestrator-worker/overview.md
-  evaluator-optimizer: vendored/blueprints/patterns/evaluator-optimizer/overview.md
-  memory: vendored/blueprints/primitives/memory/overview.md
-  tool_use: vendored/blueprints/primitives/tool_use/overview.md
-  tool use: vendored/blueprints/primitives/tool_use/overview.md
-  tool-use: vendored/blueprints/primitives/tool_use/overview.md
-  routing-tool-use: vendored/blueprints/primitives/tool_use/overview.md
-  skills: vendored/blueprints/primitives/skills/overview.md
-  sub_agents: vendored/blueprints/primitives/sub_agents/overview.md
-  sub-agents: vendored/blueprints/primitives/sub_agents/overview.md
-  subagents: vendored/blueprints/primitives/sub_agents/overview.md
-  guardrails: vendored/blueprints/modifiers/guardrails/overview.md
-  human_in_the_loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
-  human-in-the-loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
-  hitl: vendored/blueprints/modifiers/human_in_the_loop/overview.md
+  react: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+  rag: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+  agentic_rag: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+  agentic-rag: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+  routing: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+  multi_agent: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  multi-agent: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  multi-agent-flat: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  multi-agent-hierarchical: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  plan_and_execute: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+  plan-and-execute: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+  plan, execute, reflect: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+  event_driven: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+  event-driven: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+  event driven: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+  saga: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
+  reflection: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
+  long_horizon: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
+  long-horizon: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
+  prompt chaining: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+  prompt-chaining: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+  parallel calls: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+  parallel-calls: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+  orchestrator-worker: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
+  evaluator-optimizer: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
+  memory: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
+  tool_use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  tool use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  tool-use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  routing-tool-use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  skills: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
+  sub_agents: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+  sub-agents: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+  subagents: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+  guardrails: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
+  human_in_the_loop: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
+  human-in-the-loop: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
+  hitl: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
   langgraph: docs/frameworks/langgraph.md
   pydantic ai: docs/frameworks/pydantic-ai.md
   pydantic-ai: docs/frameworks/pydantic-ai.md

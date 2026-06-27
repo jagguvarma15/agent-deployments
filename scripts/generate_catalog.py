@@ -344,6 +344,8 @@ def default_cache_tier(load_path: str) -> str:
       - ``recipes/**`` (recipe body) → warm
       - Anything not matched → dynamic
     """
+    if "/agent-blueprints/" in load_path:
+        return "hot"
     p = load_path
     while p.startswith("./"):
         p = p[2:]
@@ -722,7 +724,7 @@ def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -
     return out
 
 
-def collect_pattern_docs() -> list[str]:
+def collect_pattern_docs(blueprints_catalog: dict[str, Any]) -> list[str]:
     """Enumerate vendored blueprint cohort overviews for the catalog's
     ``pattern_docs[]``, ``primitive_docs[]``, and ``modifier_docs[]`` lists.
 
@@ -735,24 +737,17 @@ def collect_pattern_docs() -> list[str]:
     Replaces the previous enumeration of ``docs/patterns/*.md`` (the lighter
     mirror that has been retired in favor of the vendored canonical content).
     """
-    if not VENDORED_BLUEPRINTS_DIR.is_dir():
-        print(
-            "warning: vendored/blueprints/ not present — run `vendir sync`",
-            file=sys.stderr,
-        )
-        return []
     out: list[str] = []
-    for cohort_dir in ("patterns", "workflows", "primitives", "modifiers"):
-        cohort_root = VENDORED_BLUEPRINTS_DIR / cohort_dir
-        if not cohort_root.is_dir():
-            continue
-        for entry in sorted(cohort_root.iterdir()):
-            if not entry.is_dir():
-                continue
-            overview = entry / "overview.md"
-            if overview.is_file():
-                out.append(str(overview.relative_to(REPO_ROOT).as_posix()))
-    return out
+    for cohort in ("patterns", "workflows", "primitives", "modifiers"):
+        for entry in blueprints_catalog.get(cohort) or []:
+            tier_files = entry.get("tier_files") or {}
+            overview = tier_files.get("overview")
+            if not overview:
+                d = entry.get("dir")
+                overview = f"{d}/overview.md" if d else None
+            if overview:
+                out.append(BLUEPRINTS_DOC_URL_BASE + overview)
+    return sorted(set(out))
 
 
 def _host_port(binding: Any) -> str | None:
@@ -958,7 +953,11 @@ def validate_recipe_references(
                 # gets caught — fail CLOSED here. Paths are recipe-relative.
                 rel = item.get("path")
                 if recipe_dir is not None and isinstance(rel, str) and rel:
-                    if not (recipe_dir / rel).resolve().exists():
+                    # Blueprint docs are referenced as GitHub URLs (no vendoring);
+                    # the consumer resolves them against its own blueprints checkout,
+                    # so skip the on-disk check for them. Local paths still fail closed.
+                    is_blueprint_url = rel.startswith("https://") and "/agent-blueprints/" in rel
+                    if not is_blueprint_url and not (recipe_dir / rel).resolve().exists():
                         errors.append(
                             f"{path}: load_list[{i}].path {rel!r} does not resolve "
                             f"to a file on disk"
@@ -1569,7 +1568,7 @@ def build_catalog(
     # scaffold versions look for the flat pattern_docs[] (kept populated with
     # patterns + workflows for back-compat); newer consumers can use the more
     # granular siblings.
-    all_overviews = collect_pattern_docs()
+    all_overviews = collect_pattern_docs(blueprints_catalog)
     catalog["pattern_docs"] = sorted(
         p for p in all_overviews if "/patterns/" in p or "/workflows/" in p
     )

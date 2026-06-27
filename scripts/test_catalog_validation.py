@@ -325,6 +325,19 @@ def test_load_list_path_must_resolve_on_disk() -> None:
     }
     g.validate_recipe_references([ok], [], {}, allow_missing_required=True)
 
+    # A blueprint GitHub URL → exempt from the on-disk check (no vendoring; the
+    # consumer resolves it against its own blueprints checkout).
+    bp = {
+        "path": "docs/recipes/docs-rag-qa.md",
+        "load_list": [
+            {
+                "path": "https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md",
+                "required": True,
+            }
+        ],
+    }
+    g.validate_recipe_references([bp], [], {}, allow_missing_required=True)
+
 
 def test_advertisement_coherence_warns_on_unbacked_provider() -> None:
     """A provider named in a runtime_modes description but backed by neither a

@@ -85,7 +85,7 @@ acceptance_contracts:
     - {jq: '.answer | length > 0', against: smoke_test.exercise.stdout}
 topology: single
 load_list:
-  - {path: ../../vendored/blueprints/patterns/rag/overview.md, required: true}
+  - {path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md, required: true}
   - {path: ../frameworks/pydantic-ai.md, required: true, when: "language == 'python'"}
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
@@ -109,7 +109,7 @@ load_list:
 
 ## Composes
 
-- Pattern: [RAG](../../vendored/blueprints/patterns/rag/overview.md)
+- Pattern: [RAG](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md)
 - Framework (Py): [Pydantic AI](../frameworks/pydantic-ai.md) (agentic RAG with tool-based retrieval)
 - Framework (TS): [Vercel AI SDK](../frameworks/vercel-ai-sdk.md) (tool-based retrieval via `generateText`)
 - Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md), [Postgres](../stack/relational-postgres.md), [Redis](../stack/cache-redis.md), [Qdrant](../stack/vector-qdrant.md), [Langfuse](../stack/tracing-langfuse.md)
@@ -121,7 +121,7 @@ Feed these files to your AI coding assistant to build this agent:
 
 **Core (always load):**
 - `docs/recipes/docs-rag-qa.md` — this blueprint
-- `vendored/blueprints/patterns/rag/overview.md` — the RAG pattern
+- `https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md` — the RAG pattern
 - `docs/frameworks/pydantic-ai.md` (Python) or `docs/frameworks/vercel-ai-sdk.md` (TypeScript)
 - `docs/stack/llm-claude.md` — LLM integration and model selection
 

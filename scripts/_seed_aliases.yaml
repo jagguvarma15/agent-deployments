@@ -8,60 +8,60 @@
 # (so each doc owns its own alias list); the generator will then derive these
 # blocks from the docs and this seed file becomes empty / removable.
 #
-# Paths are repo-root-relative (e.g. `vendored/blueprints/patterns/react/overview.md`),
+# Paths are repo-root-relative (e.g. `https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md`),
 # not `docs/`-relative.
 
 # Lowercase prose token -> doc path. Source: scaffold/src/agent_scaffold/context.py ALIAS_TABLE.
 #
 # Pattern, primitive, and modifier aliases all resolve to canonical upstream
-# overview paths under vendored/blueprints/<cohort>/<id>/overview.md (matching
+# overview paths under https://github.com/jagguvarma15/agent-blueprints/blob/main/<cohort>/<id>/overview.md (matching
 # the catalog's blueprints.directory_entry convention). The previous
 # docs/patterns/ lighter mirror has been retired; legacy kebab-case names
 # (multi-agent-flat, event-driven, ...) are kept here as alias entries that
 # point at the canonical underscored vendored id so old prose still resolves.
 aliases:
   # --- Patterns (agent-controlled flow) ---
-  react: vendored/blueprints/patterns/react/overview.md
-  rag: vendored/blueprints/patterns/rag/overview.md
-  agentic_rag: vendored/blueprints/patterns/agentic_rag/overview.md
-  agentic-rag: vendored/blueprints/patterns/agentic_rag/overview.md
-  routing: vendored/blueprints/patterns/routing/overview.md
-  multi_agent: vendored/blueprints/patterns/multi_agent/overview.md
-  multi-agent: vendored/blueprints/patterns/multi_agent/overview.md
-  multi-agent-flat: vendored/blueprints/patterns/multi_agent/overview.md
-  multi-agent-hierarchical: vendored/blueprints/patterns/multi_agent/overview.md
-  plan_and_execute: vendored/blueprints/patterns/plan_and_execute/overview.md
-  plan-and-execute: vendored/blueprints/patterns/plan_and_execute/overview.md
-  plan, execute, reflect: vendored/blueprints/patterns/plan_and_execute/overview.md
-  event_driven: vendored/blueprints/patterns/event_driven/overview.md
-  event-driven: vendored/blueprints/patterns/event_driven/overview.md
-  event driven: vendored/blueprints/patterns/event_driven/overview.md
-  saga: vendored/blueprints/patterns/saga/overview.md
-  reflection: vendored/blueprints/patterns/reflection/overview.md
-  long_horizon: vendored/blueprints/patterns/long_horizon/overview.md
-  long-horizon: vendored/blueprints/patterns/long_horizon/overview.md
+  react: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+  rag: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+  agentic_rag: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+  agentic-rag: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+  routing: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+  multi_agent: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  multi-agent: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  multi-agent-flat: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  multi-agent-hierarchical: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+  plan_and_execute: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+  plan-and-execute: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+  plan, execute, reflect: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+  event_driven: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+  event-driven: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+  event driven: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+  saga: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
+  reflection: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
+  long_horizon: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
+  long-horizon: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
   # --- Workflows (code-controlled flow; same patterns/ dir, category=workflow) ---
-  prompt chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
-  prompt-chaining: vendored/blueprints/patterns/prompt-chaining/overview.md
-  parallel calls: vendored/blueprints/patterns/parallel-calls/overview.md
-  parallel-calls: vendored/blueprints/patterns/parallel-calls/overview.md
-  orchestrator-worker: vendored/blueprints/patterns/orchestrator-worker/overview.md
-  evaluator-optimizer: vendored/blueprints/patterns/evaluator-optimizer/overview.md
+  prompt chaining: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+  prompt-chaining: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+  parallel calls: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+  parallel-calls: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+  orchestrator-worker: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
+  evaluator-optimizer: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
   # --- Primitives (orthogonal building blocks) ---
-  memory: vendored/blueprints/primitives/memory/overview.md
-  tool_use: vendored/blueprints/primitives/tool_use/overview.md
-  tool use: vendored/blueprints/primitives/tool_use/overview.md
-  tool-use: vendored/blueprints/primitives/tool_use/overview.md
-  routing-tool-use: vendored/blueprints/primitives/tool_use/overview.md
-  skills: vendored/blueprints/primitives/skills/overview.md
-  sub_agents: vendored/blueprints/primitives/sub_agents/overview.md
-  sub-agents: vendored/blueprints/primitives/sub_agents/overview.md
-  subagents: vendored/blueprints/primitives/sub_agents/overview.md
+  memory: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
+  tool_use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  tool use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  tool-use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  routing-tool-use: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+  skills: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
+  sub_agents: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+  sub-agents: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+  subagents: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
   # --- Modifiers (transformations layered on a pattern) ---
-  guardrails: vendored/blueprints/modifiers/guardrails/overview.md
-  human_in_the_loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
-  human-in-the-loop: vendored/blueprints/modifiers/human_in_the_loop/overview.md
-  hitl: vendored/blueprints/modifiers/human_in_the_loop/overview.md
+  guardrails: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
+  human_in_the_loop: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
+  human-in-the-loop: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
+  hitl: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
   # --- Frameworks ---
   langgraph: docs/frameworks/langgraph.md
   pydantic ai: docs/frameworks/pydantic-ai.md
