@@ -123,7 +123,13 @@ DOCS_ROOT = REPO_ROOT / "docs"
 SUGGESTIONS_ROOT = DOCS_ROOT / "suggestions"
 
 VENDORED_BLUEPRINTS_DIR = REPO_ROOT / "vendored" / "blueprints"
-DEFAULT_BLUEPRINTS_CATALOG_URL = str(VENDORED_BLUEPRINTS_DIR / "patterns-catalog.yaml")
+# Blueprints is referenced directly (no vendir vendoring): the catalog is read
+# from a committed, SHA-pinned reference copy (keeps the build offline +
+# deterministic), and doc paths are emitted as GitHub URLs that the consumer
+# (agent-scaffold) resolves against its own directly-fetched blueprints checkout.
+REFERENCE_BLUEPRINTS_DIR = REPO_ROOT / "reference" / "blueprints"
+BLUEPRINTS_DOC_URL_BASE = "https://github.com/jagguvarma15/agent-blueprints/blob/main/"
+DEFAULT_BLUEPRINTS_CATALOG_URL = str(REFERENCE_BLUEPRINTS_DIR / "patterns-catalog.yaml")
 
 # ---------------------------------------------------------------------------
 # Bootstrap-sequencing contract. Every capability declares which layer it
