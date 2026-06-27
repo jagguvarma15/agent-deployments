@@ -1081,6 +1081,9 @@ recipes:
     smoke_assertions:
     - jq: .answer | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    obs:
+    - obs.langfuse
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1247,6 +1250,12 @@ recipes:
     smoke_assertions:
     - jq: .findings | length >= 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1422,6 +1431,12 @@ recipes:
     smoke_assertions:
     - jq: .draft | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1628,6 +1643,12 @@ recipes:
     smoke_assertions:
     - jq: .category | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1816,6 +1837,13 @@ recipes:
     smoke_assertions:
     - jq: .answer | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
+    vector_db: vector_db.qdrant
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2031,6 +2059,12 @@ recipes:
     smoke_assertions:
     - jq: .deliverable | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2220,6 +2254,13 @@ recipes:
     smoke_assertions:
     - jq: .reply | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
+    vector_db: vector_db.qdrant
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2425,6 +2466,12 @@ recipes:
     smoke_assertions:
     - jq: .report | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2591,6 +2638,11 @@ recipes:
     smoke_assertions:
     - jq: .results | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -2762,6 +2814,12 @@ recipes:
     smoke_assertions:
     - jq: .answer | length > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    obs:
+    - obs.langfuse
+    relational: relational.postgres
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3061,6 +3119,18 @@ recipes:
     smoke_assertions:
     - jq: tonumber > 0
       against: smoke_test.exercise.stdout
+  bindings:
+    cache: cache.redis
+    eval: eval.promptfoo
+    frontend: frontend.nextjs-chat
+    host: host.vercel
+    obs:
+    - obs.grafana-stack
+    - obs.langfuse
+    queue:
+    - queue.redis-streams
+    relational: relational.postgres
+    vector_db: vector_db.qdrant
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -4260,7 +4330,7 @@ ports:
   concern: observability
   path: docs/ports/obs.md
   required: false
-  cardinality: one
+  cardinality: many
   default: null
   interface_version: '1.0'
   kinds:

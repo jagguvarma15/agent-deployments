@@ -2,7 +2,7 @@
 id: obs
 concern: observability
 required: false
-cardinality: one
+cardinality: many
 default: null
 interface_version: "1.0"
 kinds: [obs]

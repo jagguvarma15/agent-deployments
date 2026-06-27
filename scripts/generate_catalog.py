@@ -629,6 +629,39 @@ def build_compatibility(capabilities: list[dict[str, Any]]) -> list[dict[str, An
     return edges
 
 
+def derive_recipe_bindings(
+    recipes: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
+    ports: list[dict[str, Any]],
+) -> None:
+    """Derive each recipe's port -> adapter bindings from its capabilities[] and
+    sanity-check the selection against the feature model (port cardinality).
+
+    Additive: sets recipe['bindings']; authored fields are untouched. Cardinality
+    violations warn (they do not fail the build) during the migration window.
+    """
+    cap_port = {c["id"]: (c.get("implements") or {}).get("port") for c in capabilities}
+    port_card = {p["id"]: p.get("cardinality", "one") for p in ports}
+    for r in recipes:
+        grouped: dict[str, list[str]] = {}
+        for cid in r.get("capabilities") or []:
+            port = cap_port.get(cid)
+            if port:
+                grouped.setdefault(port, []).append(cid)
+        if not grouped:
+            continue
+        for port, ids in grouped.items():
+            if port_card.get(port) == "one" and len(ids) > 1:
+                print(
+                    f"warning: recipe '{r['slug']}': port '{port}' is exactly-one but binds {ids}",
+                    file=sys.stderr,
+                )
+        r["bindings"] = OrderedDict(
+            (port, ids[0] if (port_card.get(port) == "one" and len(ids) == 1) else sorted(ids))
+            for port, ids in sorted(grouped.items())
+        )
+
+
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
     """Build a list of entries for stack[] / cross_cutting_docs[].
 
@@ -1503,6 +1536,7 @@ def build_catalog(
     catalog["ports"] = collect_ports(non_recipe_stems)
     validate_ports(catalog["ports"])
     catalog["compatibility"] = build_compatibility(catalog["capabilities"])
+    derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)
