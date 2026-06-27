@@ -2,7 +2,7 @@
 id: frontend
 required: false
 cardinality: one
-default: null
+default: frontend.minimal-chat
 interface_version: "1.0"
 kinds: [frontend]
 adapter_home: capabilities

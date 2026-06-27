@@ -3,7 +3,7 @@ id: eval
 concern: eval
 required: false
 cardinality: one
-default: null
+default: eval.promptfoo
 interface_version: "1.0"
 kinds: [eval]
 adapter_home: capabilities

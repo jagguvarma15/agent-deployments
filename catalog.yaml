@@ -4197,7 +4197,7 @@ ports:
   path: docs/ports/auth.md
   required: false
   cardinality: one
-  default: null
+  default: auth.key-bootstrap
   interface_version: '1.0'
   kinds:
   - auth
@@ -4207,7 +4207,7 @@ ports:
   path: docs/ports/cache.md
   required: false
   cardinality: one
-  default: null
+  default: cache.redis
   interface_version: '1.0'
   kinds:
   - cache
@@ -4216,7 +4216,7 @@ ports:
   path: docs/ports/core.md
   required: true
   cardinality: one
-  default: null
+  default: core.tool_registry
   interface_version: '1.0'
   kinds:
   - core
@@ -4226,7 +4226,7 @@ ports:
   path: docs/ports/durable.md
   required: false
   cardinality: one
-  default: null
+  default: durable.temporal
   interface_version: '1.0'
   kinds:
   - durable
@@ -4236,7 +4236,7 @@ ports:
   path: docs/ports/embedding.md
   required: false
   cardinality: one
-  default: null
+  default: embedding.openai
   interface_version: '1.0'
   kinds:
   - embedding
@@ -4246,7 +4246,7 @@ ports:
   path: docs/ports/eval.md
   required: false
   cardinality: one
-  default: null
+  default: eval.promptfoo
   interface_version: '1.0'
   kinds:
   - eval
@@ -4263,7 +4263,7 @@ ports:
   path: docs/ports/frontend.md
   required: false
   cardinality: one
-  default: null
+  default: frontend.minimal-chat
   interface_version: '1.0'
   kinds:
   - frontend
@@ -4273,7 +4273,7 @@ ports:
   path: docs/ports/guardrail.md
   required: false
   cardinality: many
-  default: null
+  default: guardrail.llama-guard
   interface_version: '1.0'
   kinds:
   - guardrail
@@ -4292,7 +4292,7 @@ ports:
   path: docs/ports/live_data.md
   required: false
   cardinality: many
-  default: null
+  default: live_data.tavily
   interface_version: '1.0'
   kinds:
   - live_data
@@ -4302,7 +4302,7 @@ ports:
   path: docs/ports/mcp.md
   required: false
   cardinality: many
-  default: null
+  default: mcp.tavily
   interface_version: '1.0'
   kinds:
   - mcp
@@ -4312,7 +4312,7 @@ ports:
   path: docs/ports/memory_store.md
   required: false
   cardinality: one
-  default: null
+  default: memory_store.zep
   interface_version: '1.0'
   kinds:
   - memory_store
@@ -4331,7 +4331,7 @@ ports:
   path: docs/ports/obs.md
   required: false
   cardinality: many
-  default: null
+  default: obs.langfuse
   interface_version: '1.0'
   kinds:
   - obs
@@ -4351,7 +4351,7 @@ ports:
   path: docs/ports/relational.md
   required: false
   cardinality: one
-  default: null
+  default: relational.postgres
   interface_version: '1.0'
   kinds:
   - relational
@@ -4361,7 +4361,7 @@ ports:
   path: docs/ports/rerank.md
   required: false
   cardinality: one
-  default: null
+  default: rerank.cohere
   interface_version: '1.0'
   kinds:
   - rerank
@@ -4371,7 +4371,7 @@ ports:
   path: docs/ports/sandbox.md
   required: false
   cardinality: one
-  default: null
+  default: sandbox.e2b
   interface_version: '1.0'
   kinds:
   - sandbox
@@ -4381,7 +4381,7 @@ ports:
   path: docs/ports/vector_db.md
   required: false
   cardinality: one
-  default: null
+  default: vector_db.qdrant
   interface_version: '1.0'
   kinds:
   - vector_db

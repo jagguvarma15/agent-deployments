@@ -662,6 +662,23 @@ def derive_recipe_bindings(
         )
 
 
+def fill_port_defaults(ports: list[dict[str, Any]], capabilities: list[dict[str, Any]]) -> None:
+    """Auto-derive a port's default adapter when exactly one adapter implements it
+    and no default is authored. Multi-adapter ports keep their authored default
+    (or null — the suggestions layer recommends a default per combo)."""
+    impls: dict[str, list[str]] = {}
+    for c in capabilities:
+        port = (c.get("implements") or {}).get("port")
+        if port:
+            impls.setdefault(port, []).append(c["id"])
+    for p in ports:
+        if p.get("default"):
+            continue
+        candidates = sorted(impls.get(p["id"], []))
+        if len(candidates) == 1:
+            p["default"] = candidates[0]
+
+
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
     """Build a list of entries for stack[] / cross_cutting_docs[].
 
@@ -1535,6 +1552,7 @@ def build_catalog(
     catalog["capabilities"] = collect_capabilities(non_recipe_stems)
     catalog["ports"] = collect_ports(non_recipe_stems)
     validate_ports(catalog["ports"])
+    fill_port_defaults(catalog["ports"], catalog["capabilities"])
     catalog["compatibility"] = build_compatibility(catalog["capabilities"])
     derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)

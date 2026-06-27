@@ -3,7 +3,7 @@ id: obs
 concern: observability
 required: false
 cardinality: many
-default: null
+default: obs.langfuse
 interface_version: "1.0"
 kinds: [obs]
 adapter_home: capabilities

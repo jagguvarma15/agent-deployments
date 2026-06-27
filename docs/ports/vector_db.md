@@ -3,7 +3,7 @@ id: vector_db
 protocol: memory
 required: false
 cardinality: one
-default: null
+default: vector_db.qdrant
 interface_version: "1.0"
 kinds: [vector_db]
 adapter_home: capabilities
