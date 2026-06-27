@@ -3156,6 +3156,27 @@ capabilities:
   - rate-limiting
   - session-store
   when_to_load: recipe declares cache.redis
+- id: core.tool_registry
+  kind: core
+  path: docs/capabilities/core/tool_registry.md
+  layer: agent
+  env_vars: []
+  provisioning_time: instant
+  cost_tier: free
+  card:
+    name: Tool registry
+    description: Typed tool registry with Always/Ask/Never permission tiers and compact-error retry — the T1 tool-agent substrate.
+    capabilities_provided:
+    - tool_registry
+    - tool_permissions
+    - compact_error_retry
+    required_credentials: []
+  tags:
+  - core
+  - tool-use
+  - permissions
+  - retry
+  when_to_load: recipe tier is T1 or higher (the tier preset seeds core.tool_registry)
 - id: durable.temporal
   kind: durable
   path: docs/capabilities/durable/temporal.md
