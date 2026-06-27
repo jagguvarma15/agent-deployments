@@ -593,6 +593,42 @@ def validate_ports(ports: list[dict[str, Any]]) -> None:
         raise SystemExit("Port validation failed:\n  " + "\n  ".join(errors))
 
 
+def build_compatibility(capabilities: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Denormalize per-adapter edges into a flat, deterministic compatibility matrix.
+
+    Edges: requires / excludes / conflicts from adapter fields, plus 'substitutes'
+    for adapters that implement the same port (the same alternative-group). This is
+    the feature-model data the scaffold resolver consumes; it is deliberately NOT
+    compositions[] (the blueprints pattern x pattern matrix, a different namespace
+    with a strict consumer Literal).
+    """
+    edges: list[dict[str, Any]] = []
+    by_port: dict[str, list[str]] = {}
+    for cap in capabilities:
+        cid = cap["id"]
+        impl = cap.get("implements") or {}
+        port = impl.get("port")
+        if port:
+            by_port.setdefault(port, []).append(cid)
+        for dep in cap.get("requires") or []:
+            edges.append(OrderedDict([("a", cid), ("b", dep), ("relation", "requires")]))
+        for ex in cap.get("excludes") or []:
+            edges.append(OrderedDict([("a", cid), ("b", ex), ("relation", "excludes")]))
+        for cf in cap.get("conflicts") or []:
+            edges.append(OrderedDict([("a", cid), ("b", cf), ("relation", "conflicts")]))
+    for port, ids in by_port.items():
+        ordered = sorted(ids)
+        for i in range(len(ordered)):
+            for j in range(i + 1, len(ordered)):
+                edges.append(
+                    OrderedDict(
+                        [("a", ordered[i]), ("b", ordered[j]), ("relation", "substitutes"), ("via", f"port:{port}")]
+                    )
+                )
+    edges.sort(key=lambda e: (e["a"], e["b"], e["relation"]))
+    return edges
+
+
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
     """Build a list of entries for stack[] / cross_cutting_docs[].
 
@@ -1466,6 +1502,7 @@ def build_catalog(
     catalog["capabilities"] = collect_capabilities(non_recipe_stems)
     catalog["ports"] = collect_ports(non_recipe_stems)
     validate_ports(catalog["ports"])
+    catalog["compatibility"] = build_compatibility(catalog["capabilities"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)

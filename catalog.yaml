@@ -4171,6 +4171,22 @@ ports:
   kinds:
   - vector_db
   adapter_home: capabilities
+compatibility:
+- a: durable.temporal
+  b: relational.postgres
+  relation: requires
+- a: memory_store.zep
+  b: relational.postgres
+  relation: requires
+- a: obs.langfuse
+  b: relational.postgres
+  relation: requires
+- a: queue.redis-streams
+  b: cache.redis
+  relation: requires
+- a: vector_db.pgvector
+  b: relational.postgres
+  relation: requires
 frameworks:
 - id: claude_agent_sdk_python
   language: python
