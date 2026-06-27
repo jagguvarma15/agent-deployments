@@ -1,6 +1,9 @@
 ---
 id: host.fly
 kind: host
+implements:
+  port: host
+  interface_version: "1.0"
 layer: frontend
 provides: [container_hosting, global_edge]
 env_vars: [FLY_API_TOKEN, FLY_APP_NAME]
@@ -32,6 +35,8 @@ docs: |
   First-time deploys need an interactive `fly launch --no-deploy`.
 tags: [host, paas, docker]
 when_to_load: "recipe declares host.fly"
+verification:
+  tier: T1
 ---
 
 # Capability: host.fly

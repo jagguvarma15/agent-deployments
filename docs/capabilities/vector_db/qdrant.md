@@ -1,6 +1,9 @@
 ---
 id: vector_db.qdrant
 kind: vector_db
+implements:
+  port: vector_db
+  interface_version: "1.0"
 layer: data
 provides: [embeddings_store, collection_init, payload_filtering]
 env_vars: [QDRANT_URL, QDRANT_API_KEY]
@@ -31,6 +34,8 @@ docs: |
   embeddings on first run.
 tags: [vector-search, retrieval, self-hosted]
 when_to_load: "recipe declares vector_db.qdrant"
+verification:
+  tier: T1
 ---
 
 # Capability: vector_db.qdrant

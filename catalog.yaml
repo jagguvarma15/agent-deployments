@@ -3130,6 +3130,11 @@ capabilities:
   when_to_load: a chat frontend is present and the agent needs a key to reply
   provides:
   - runtime_key_capture
+  implements:
+    port: auth
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: cache.redis
   kind: cache
   path: docs/capabilities/cache/redis.md
@@ -3162,6 +3167,11 @@ capabilities:
   - cache
   - session_store
   - rate_limit_backend
+  implements:
+    port: cache
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: core.tool_registry
   kind: core
   path: docs/capabilities/core/tool_registry.md
@@ -3187,6 +3197,11 @@ capabilities:
   - tool_registry
   - tool_permissions
   - compact_error_retry
+  implements:
+    port: core
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: durable.temporal
   kind: durable
   path: docs/capabilities/durable/temporal.md
@@ -3226,6 +3241,11 @@ capabilities:
   - durable_workflow
   - checkpoint_resume
   - signal_handling
+  implements:
+    port: durable
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: embedding.openai
   kind: embedding
   path: docs/capabilities/embedding/openai.md
@@ -3250,6 +3270,11 @@ capabilities:
   when_to_load: recipe declares embedding.openai
   provides:
   - text_embeddings
+  implements:
+    port: embedding
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: eval.deepeval
   kind: eval
   path: docs/capabilities/eval/deepeval.md
@@ -3279,6 +3304,11 @@ capabilities:
   provides:
   - eval_runner
   - rag_metrics
+  implements:
+    port: eval
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: eval.promptfoo
   kind: eval
   path: docs/capabilities/eval/promptfoo.md
@@ -3306,6 +3336,11 @@ capabilities:
   provides:
   - llm_eval
   - regression_check
+  implements:
+    port: eval
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: eval.ragas
   kind: eval
   path: docs/capabilities/eval/ragas.md
@@ -3336,6 +3371,11 @@ capabilities:
   - eval_runner
   - rag_metrics
   - benchmark
+  implements:
+    port: eval
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: frontend.minimal-chat
   kind: frontend
   path: docs/capabilities/frontend/minimal-chat.md
@@ -3353,6 +3393,11 @@ capabilities:
     required_credentials: []
   provides:
   - chat_ui
+  implements:
+    port: frontend
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: frontend.nextjs-chat
   kind: frontend
   path: docs/capabilities/frontend/nextjs-chat.md
@@ -3378,6 +3423,11 @@ capabilities:
   provides:
   - chat_ui
   - streaming_ui
+  implements:
+    port: frontend
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: frontend.streamlit
   kind: frontend
   path: docs/capabilities/frontend/streamlit.md
@@ -3401,6 +3451,11 @@ capabilities:
   when_to_load: recipe declares frontend.streamlit
   provides:
   - chat_ui
+  implements:
+    port: frontend
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: guardrail.llama-guard
   kind: guardrail
   path: docs/capabilities/guardrail/llama-guard.md
@@ -3429,6 +3484,11 @@ capabilities:
   - input_classification
   - output_classification
   - jailbreak_detection
+  implements:
+    port: guardrail
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: host.fly
   kind: host
   path: docs/capabilities/host/fly.md
@@ -3458,6 +3518,11 @@ capabilities:
   provides:
   - container_hosting
   - global_edge
+  implements:
+    port: host
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: host.railway
   kind: host
   path: docs/capabilities/host/railway.md
@@ -3488,6 +3553,11 @@ capabilities:
   - container_hosting
   - managed_postgres
   - managed_redis
+  implements:
+    port: host
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: host.vercel
   kind: host
   path: docs/capabilities/host/vercel.md
@@ -3517,6 +3587,11 @@ capabilities:
   provides:
   - edge_hosting
   - ci_deploy
+  implements:
+    port: host
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: live_data.tavily
   kind: live_data
   path: docs/capabilities/live_data/tavily.md
@@ -3543,6 +3618,11 @@ capabilities:
   provides:
   - web_search
   - web_extract
+  implements:
+    port: live_data
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: mcp.tavily
   kind: mcp
   path: docs/capabilities/mcp/tavily.md
@@ -3569,6 +3649,11 @@ capabilities:
   provides:
   - web_search
   - web_extract
+  implements:
+    port: mcp
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: memory_store.zep
   kind: memory_store
   path: docs/capabilities/memory_store/zep.md
@@ -3608,6 +3693,11 @@ capabilities:
   - long_term_memory
   - semantic_recall
   - conversation_summarization
+  implements:
+    port: memory_store
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: obs.grafana-stack
   kind: obs
   path: docs/capabilities/obs/grafana-stack.md
@@ -3644,6 +3734,11 @@ capabilities:
   - tracing
   - dashboards
   - alerting
+  implements:
+    port: obs
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: obs.langfuse
   kind: obs
   path: docs/capabilities/obs/langfuse.md
@@ -3686,6 +3781,11 @@ capabilities:
   - tracing
   - llm_observability
   - scoring
+  implements:
+    port: obs
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: obs.langsmith
   kind: obs
   path: docs/capabilities/obs/langsmith.md
@@ -3717,6 +3817,11 @@ capabilities:
   provides:
   - tracing
   - llm_observability
+  implements:
+    port: obs
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: queue.kafka
   kind: queue
   path: docs/capabilities/queue/kafka.md
@@ -3750,6 +3855,11 @@ capabilities:
   - event_source
   - durable_log
   - replay
+  implements:
+    port: queue
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: queue.redis-streams
   kind: queue
   path: docs/capabilities/queue/redis-streams.md
@@ -3778,6 +3888,11 @@ capabilities:
   when_to_load: recipe declares queue.redis-streams
   provides:
   - event_source
+  implements:
+    port: queue
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: relational.postgres
   kind: relational
   path: docs/capabilities/relational/postgres.md
@@ -3812,6 +3927,11 @@ capabilities:
   - relational_store
   - transactions
   - json_store
+  implements:
+    port: relational
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: rerank.cohere
   kind: rerank
   path: docs/capabilities/rerank/cohere.md
@@ -3837,6 +3957,11 @@ capabilities:
   when_to_load: recipe declares rerank.cohere
   provides:
   - search_result_reranking
+  implements:
+    port: rerank
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: sandbox.e2b
   kind: sandbox
   path: docs/capabilities/sandbox/e2b.md
@@ -3864,6 +3989,11 @@ capabilities:
   provides:
   - code_execution
   - isolated_runtime
+  implements:
+    port: sandbox
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: vector_db.chroma
   kind: vector_db
   path: docs/capabilities/vector_db/chroma.md
@@ -3896,6 +4026,11 @@ capabilities:
   provides:
   - embeddings_store
   - collection_init
+  implements:
+    port: vector_db
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: vector_db.pgvector
   kind: vector_db
   path: docs/capabilities/vector_db/pgvector.md
@@ -3927,6 +4062,11 @@ capabilities:
   when_to_load: recipe declares vector_db.pgvector
   provides:
   - embeddings_store
+  implements:
+    port: vector_db
+    interface_version: '1.0'
+  verification:
+    tier: T1
 - id: vector_db.qdrant
   kind: vector_db
   path: docs/capabilities/vector_db/qdrant.md
@@ -3961,6 +4101,11 @@ capabilities:
   - embeddings_store
   - collection_init
   - payload_filtering
+  implements:
+    port: vector_db
+    interface_version: '1.0'
+  verification:
+    tier: T1
 ports:
 - id: agents
   protocol: agents
@@ -4175,18 +4320,82 @@ compatibility:
 - a: durable.temporal
   b: relational.postgres
   relation: requires
+- a: eval.deepeval
+  b: eval.promptfoo
+  relation: substitutes
+  via: port:eval
+- a: eval.deepeval
+  b: eval.ragas
+  relation: substitutes
+  via: port:eval
+- a: eval.promptfoo
+  b: eval.ragas
+  relation: substitutes
+  via: port:eval
+- a: frontend.minimal-chat
+  b: frontend.nextjs-chat
+  relation: substitutes
+  via: port:frontend
+- a: frontend.minimal-chat
+  b: frontend.streamlit
+  relation: substitutes
+  via: port:frontend
+- a: frontend.nextjs-chat
+  b: frontend.streamlit
+  relation: substitutes
+  via: port:frontend
+- a: host.fly
+  b: host.railway
+  relation: substitutes
+  via: port:host
+- a: host.fly
+  b: host.vercel
+  relation: substitutes
+  via: port:host
+- a: host.railway
+  b: host.vercel
+  relation: substitutes
+  via: port:host
 - a: memory_store.zep
   b: relational.postgres
   relation: requires
+- a: obs.grafana-stack
+  b: obs.langfuse
+  relation: substitutes
+  via: port:obs
+- a: obs.grafana-stack
+  b: obs.langsmith
+  relation: substitutes
+  via: port:obs
+- a: obs.langfuse
+  b: obs.langsmith
+  relation: substitutes
+  via: port:obs
 - a: obs.langfuse
   b: relational.postgres
   relation: requires
+- a: queue.kafka
+  b: queue.redis-streams
+  relation: substitutes
+  via: port:queue
 - a: queue.redis-streams
   b: cache.redis
   relation: requires
+- a: vector_db.chroma
+  b: vector_db.pgvector
+  relation: substitutes
+  via: port:vector_db
+- a: vector_db.chroma
+  b: vector_db.qdrant
+  relation: substitutes
+  via: port:vector_db
 - a: vector_db.pgvector
   b: relational.postgres
   relation: requires
+- a: vector_db.pgvector
+  b: vector_db.qdrant
+  relation: substitutes
+  via: port:vector_db
 frameworks:
 - id: claude_agent_sdk_python
   language: python

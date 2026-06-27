@@ -1,6 +1,9 @@
 ---
 id: eval.promptfoo
 kind: eval
+implements:
+  port: eval
+  interface_version: "1.0"
 layer: eval
 provides: [llm_eval, regression_check]
 env_vars: [ANTHROPIC_API_KEY]
@@ -25,6 +28,8 @@ docs: |
   eval` and renders pass/fail + LLM-judge scores.
 tags: [eval, prompt-testing, yaml-config]
 when_to_load: "recipe declares eval.promptfoo"
+verification:
+  tier: T1
 ---
 
 # Capability: eval.promptfoo

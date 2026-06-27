@@ -1,6 +1,9 @@
 ---
 id: queue.redis-streams
 kind: queue
+implements:
+  port: queue
+  interface_version: "1.0"
 layer: infrastructure
 requires: [cache.redis]
 provides: [event_source]
@@ -23,6 +26,8 @@ docs: |
   step name covers both Kafka topics and Redis Streams consumer groups).
 tags: [queue, lightweight, redis]
 when_to_load: "recipe declares queue.redis-streams"
+verification:
+  tier: T1
 ---
 
 # Capability: queue.redis-streams

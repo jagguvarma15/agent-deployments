@@ -1,6 +1,9 @@
 ---
 id: cache.redis
 kind: cache
+implements:
+  port: cache
+  interface_version: "1.0"
 layer: infrastructure
 provides: [cache, session_store, rate_limit_backend]
 env_vars: [REDIS_URL]
@@ -30,6 +33,8 @@ docs: |
   low-throughput event source. No post-up bootstrap needed.
 tags: [cache, in-memory, rate-limiting, session-store]
 when_to_load: "recipe declares cache.redis"
+verification:
+  tier: T1
 ---
 
 # Capability: cache.redis

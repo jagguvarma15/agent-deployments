@@ -1,6 +1,9 @@
 ---
 id: eval.ragas
 kind: eval
+implements:
+  port: eval
+  interface_version: "1.0"
 layer: eval
 provides: [eval_runner, rag_metrics, benchmark]
 env_vars: [ANTHROPIC_API_KEY, OPENAI_API_KEY]
@@ -22,6 +25,8 @@ docs: |
   against a labeled test set.
 tags: [eval, rag-eval, python]
 when_to_load: "recipe declares eval.ragas"
+verification:
+  tier: T1
 ---
 
 # Capability: eval.ragas

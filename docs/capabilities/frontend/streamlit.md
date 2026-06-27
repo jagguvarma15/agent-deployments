@@ -1,6 +1,9 @@
 ---
 id: frontend.streamlit
 kind: frontend
+implements:
+  port: frontend
+  interface_version: "1.0"
 layer: frontend
 provides: [chat_ui]
 env_vars: [AGENT_URL]
@@ -24,6 +27,8 @@ docs: |
   frontend/ during generation.
 tags: [frontend, python, prototype]
 when_to_load: "recipe declares frontend.streamlit"
+verification:
+  tier: T1
 ---
 
 # Capability: frontend.streamlit

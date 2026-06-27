@@ -1,6 +1,9 @@
 ---
 id: rerank.cohere
 kind: rerank
+implements:
+  port: rerank
+  interface_version: "1.0"
 layer: agent
 provides: [search_result_reranking]
 env_vars: [COHERE_API_KEY]
@@ -22,6 +25,8 @@ docs: |
   LLM prompt to lift recall@5 by 20-40 points on benchmark datasets.
 tags: [rerank, hosted, embeddings-companion]
 when_to_load: "recipe declares rerank.cohere"
+verification:
+  tier: T1
 ---
 
 # Capability: rerank.cohere

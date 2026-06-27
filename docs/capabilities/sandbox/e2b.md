@@ -1,6 +1,9 @@
 ---
 id: sandbox.e2b
 kind: sandbox
+implements:
+  port: sandbox
+  interface_version: "1.0"
 layer: agent
 provides: [code_execution, isolated_runtime]
 env_vars: [E2B_API_KEY]
@@ -22,6 +25,8 @@ docs: |
   scaffold prompts for the API key.
 tags: [sandbox, code-execution, hosted]
 when_to_load: "recipe declares sandbox.e2b"
+verification:
+  tier: T1
 ---
 
 # Capability: sandbox.e2b

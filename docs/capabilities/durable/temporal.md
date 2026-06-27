@@ -1,6 +1,9 @@
 ---
 id: durable.temporal
 kind: durable
+implements:
+  port: durable
+  interface_version: "1.0"
 layer: agent
 requires: [relational.postgres]
 bootstrap_inputs:
@@ -42,6 +45,8 @@ docs: |
   process. Requires `relational.postgres` for Temporal's persistence store.
 tags: [durable, workflow-engine, long-running]
 when_to_load: "recipe declares durable.temporal"
+verification:
+  tier: T1
 ---
 
 # Capability: durable.temporal

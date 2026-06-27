@@ -1,6 +1,9 @@
 ---
 id: host.vercel
 kind: host
+implements:
+  port: host
+  interface_version: "1.0"
 layer: frontend
 provides: [edge_hosting, ci_deploy]
 env_vars: [VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID]
@@ -32,6 +35,8 @@ docs: |
   default).
 tags: [host, serverless, frontend-first]
 when_to_load: "recipe declares host.vercel"
+verification:
+  tier: T1
 ---
 
 # Capability: host.vercel

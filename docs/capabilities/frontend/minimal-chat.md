@@ -1,6 +1,9 @@
 ---
 id: frontend.minimal-chat
 kind: frontend
+implements:
+  port: frontend
+  interface_version: "1.0"
 layer: frontend
 provides: [chat_ui]
 env_vars: [VITE_AGENT_URL]
@@ -19,6 +22,8 @@ card:
 emit_files:
   - source: templates/minimal-chat/**
     dest: frontend/
+verification:
+  tier: T1
 ---
 
 # Minimal Chat UI (Vite + React + TypeScript)

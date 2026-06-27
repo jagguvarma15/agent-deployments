@@ -1,6 +1,9 @@
 ---
 id: live_data.tavily
 kind: live_data
+implements:
+  port: live_data
+  interface_version: "1.0"
 layer: agent
 provides: [web_search, web_extract]
 env_vars: [TAVILY_API_KEY]
@@ -22,6 +25,8 @@ docs: |
   `mcp.tavily`.
 tags: [live_data, web-search, hosted]
 when_to_load: "recipe declares live_data.tavily"
+verification:
+  tier: T1
 ---
 
 # Capability: live_data.tavily

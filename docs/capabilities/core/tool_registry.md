@@ -1,6 +1,9 @@
 ---
 id: core.tool_registry
 kind: core
+implements:
+  port: core
+  interface_version: "1.0"
 layer: agent
 provides: [tool_registry, tool_permissions, compact_error_retry]
 env_vars: []
@@ -26,6 +29,8 @@ docs: |
   domain tool functions.
 tags: [core, tool-use, permissions, retry]
 when_to_load: "recipe tier is T1 or higher (the tier preset seeds core.tool_registry)"
+verification:
+  tier: T1
 ---
 
 # Core: Tool registry

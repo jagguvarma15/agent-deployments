@@ -1,6 +1,9 @@
 ---
 id: guardrail.llama-guard
 kind: guardrail
+implements:
+  port: guardrail
+  interface_version: "1.0"
 layer: agent
 provides: [input_classification, output_classification, jailbreak_detection]
 env_vars: [TOGETHER_API_KEY]
@@ -23,6 +26,8 @@ docs: |
   `guardrails: [guardrail.llama-guard]`.
 tags: [guardrail, safety, llama]
 when_to_load: "recipe declares guardrail.llama-guard"
+verification:
+  tier: T1
 ---
 
 # Capability: guardrail.llama-guard

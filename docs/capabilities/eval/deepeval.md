@@ -1,6 +1,9 @@
 ---
 id: eval.deepeval
 kind: eval
+implements:
+  port: eval
+  interface_version: "1.0"
 layer: eval
 provides: [eval_runner, rag_metrics]
 env_vars: [ANTHROPIC_API_KEY, OPENAI_API_KEY]
@@ -21,6 +24,8 @@ docs: |
   precision/recall). Python-native test suite that runs as `pytest` cases.
 tags: [eval, llm-eval, python]
 when_to_load: "recipe declares eval.deepeval"
+verification:
+  tier: T1
 ---
 
 # Capability: eval.deepeval
