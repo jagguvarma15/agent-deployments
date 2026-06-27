@@ -9,8 +9,6 @@ agent-deployments/
 ├── llms.txt                  # AI-tool discovery (llmstxt.org spec).
 ├── agents.md                 # Programmatic-consumption guide.
 ├── STRUCTURE.md              # This file.
-├── vendir.yml                # Pinned upstream blueprints declaration.
-├── vendir.lock.yml           # Resolved upstream SHA.
 │
 ├── docs/
 │   ├── recipes/              # 11 agent blueprints. Each declares pattern + primitives
@@ -33,6 +31,8 @@ agent-deployments/
 │   │   ├── embedding/        #   {openai, ...}                       (2026-SOTA)
 │   │   ├── live_data/        #   {tavily, ...}                       (2026-SOTA)
 │   │   └── rerank/           #   {cohere, ...}                       (2026-SOTA)
+│   ├── ports/                # Abstract port contracts adapters bind to (model,
+│   │                         #   tools, memory, vector_db, eval, framework, …).
 │   ├── frameworks/           # LangGraph, Pydantic AI, CrewAI, Vercel AI SDK, …
 │   ├── stack/                # FastAPI, Hono, Postgres, Redis, Qdrant, Langfuse, …
 │   ├── cross-cutting/        # Auth, logging, observability, rate limiting, …
@@ -40,22 +40,15 @@ agent-deployments/
 │   ├── reference/            # Dockerfile/compose/CI templates.
 │   └── playbook/             # Design guides + production checklist.
 │
-├── vendored/
-│   └── blueprints/           # SHA-pinned snapshot of agent-blueprints. Never edit.
-│       ├── patterns/         # 14 flow shapes (agent + workflow, via category field).
-│       ├── workflows/        # Legacy view; will move into patterns/ in upstream v3.
-│       ├── primitives/       # 4 building blocks: memory, tool_use, skills, sub_agents.
-│       ├── modifiers/        # 2 transforms: guardrails, human_in_the_loop.
-│       ├── foundations/      # Terminology, anatomy, choosing a pattern, …
-│       ├── composition/      # How patterns + primitives + modifiers combine.
-│       ├── meta/             # Contributing guide for upstream entries.
-│       ├── taxonomy.yaml     # Canonical 3-cohort declaration.
-│       ├── patterns-catalog.yaml  # Upstream machine-readable index (embedded into catalog.yaml).
-│       ├── llms.txt          # Upstream's AI-tool discovery.
-│       └── agents.md         # Upstream's programmatic-consumption guide.
+├── reference/
+│   └── blueprints/
+│       └── patterns-catalog.yaml  # SHA-pinned copy of upstream agent-blueprints'
+│                                  #   machine-readable index (embedded into catalog.yaml).
+│                                  #   The only blueprints artifact committed here; doc
+│                                  #   bodies are referenced by GitHub URL, not vendored.
 │
 └── scripts/
-    ├── generate_catalog.py   # Builds catalog.yaml from this repo + vendored tree.
+    ├── generate_catalog.py   # Builds catalog.yaml from this repo + the reference catalog.
     └── _seed_aliases.yaml    # Prose-token → doc path map; baked into catalog.aliases.
 ```
 
@@ -73,8 +66,8 @@ Each recipe declares its three picks in frontmatter (`agent_pattern:`, `primitiv
 
 ```
 agent-blueprints (release)
-        ↓ release-driven vendir sync
-vendored/blueprints/  +  docs/{recipes,capabilities,frameworks,stack,cross-cutting}/
+        ↓ release-driven sync (fetch patterns-catalog.yaml)
+reference/blueprints/patterns-catalog.yaml  +  docs/{recipes,capabilities,ports,frameworks,stack,cross-cutting}/
         ↓ scripts/generate_catalog.py
 catalog.yaml
         ↓ HTTP fetch (one URL)

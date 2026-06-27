@@ -18,7 +18,7 @@
 # the catalog's blueprints.directory_entry convention). The previous
 # docs/patterns/ lighter mirror has been retired; legacy kebab-case names
 # (multi-agent-flat, event-driven, ...) are kept here as alias entries that
-# point at the canonical underscored vendored id so old prose still resolves.
+# point at the canonical underscored upstream id so old prose still resolves.
 aliases:
   # --- Patterns (agent-controlled flow) ---
   react: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md

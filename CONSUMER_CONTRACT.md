@@ -2,7 +2,7 @@
 
 Authoritative recipe for any tool — `agent-scaffold`, a hand-rolled CLI, an AI assistant — that consumes [`catalog.yaml`](catalog.yaml) and turns one of this repo's recipes into a working local project. Read once; pin to `contract_version`; ship.
 
-The catalog is the single source of truth. Every field this document references lives in `catalog.yaml`; the markdown bodies are human-readable companions. A conforming consumer never reaches into `vendored/blueprints/` or `docs/**/*.md` directly except to load files declared in a recipe's `load_list[]`.
+The catalog is the single source of truth. Every field this document references lives in `catalog.yaml`; the markdown bodies are human-readable companions. A conforming consumer never reaches into this repo's `docs/**/*.md` directly except to load files declared in a recipe's `load_list[]` (which may include blueprint doc URLs the consumer resolves against its own agent-blueprints checkout).
 
 > **Pin and check.** Read `catalog.contract_version` first. If it exceeds the maximum your consumer was tested against, refuse to proceed with a clear error. Older catalogs are forward-compatible (Pydantic `extra: ignore` style); newer catalogs are not.
 
@@ -204,7 +204,8 @@ A sustained hit-rate drop on a recipe with a stable `load_list` is the leading i
 
 - Every `recipes[].load_list[]` entry carries a `cache_tier` (path-defaulted if not authored).
 - `acceptance_contracts.*` validation rules listed above are enforced by the generator.
-- The catalog top-level keys (`schema_version`, `generator_version`, `contract_version`, `blueprints`, `LAYER_ORDER`, `patterns`, `workflows`, `primitives`, `modifiers`, `compositions`, `recipes`, `capabilities`, `frameworks`, `stack`, `cross_cutting_docs`, `pattern_docs`, `primitive_docs`, `modifier_docs`, `suggestions`, `aliases`, `cross_cutting`, `non_recipe_stems`, `min_alias_length`) are stable.
+- The catalog top-level keys (`schema_version`, `generator_version`, `contract_version`, `blueprints`, `LAYER_ORDER`, `patterns`, `workflows`, `primitives`, `modifiers`, `compositions`, `recipes`, `capabilities`, `ports`, `compatibility`, `frameworks`, `stack`, `cross_cutting_docs`, `pattern_docs`, `primitive_docs`, `modifier_docs`, `suggestions`, `aliases`, `cross_cutting`, `non_recipe_stems`, `min_alias_length`) are stable.
+- `ports[]` and `compatibility[]` are the **port-typed registry** layer (the abstract port contracts + the derived feature-model edges). They are additive — a `contract_version: 1` consumer that doesn't yet resolve them simply ignores them; the forthcoming scaffold resolver consumes them to choose a verified configuration. See [`MANIFEST_SCHEMA.md`](MANIFEST_SCHEMA.md) `### ports[]` / `### compatibility[]`.
 
 A future `contract_version: 2` would (for example) make `cache_tier` mandatory rather than path-defaulted, or graduate `acceptance_contracts` from optional to required. Consumers pinned to `CONSUMER_MAX_CONTRACT_VERSION = 1` will halt cleanly when they fetch a `contract_version: 2` catalog — read the changelog, update the consumer, raise the pin.
 

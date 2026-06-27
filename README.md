@@ -127,8 +127,6 @@ Want to swap a stack component? See [`docs/playbook/stack-swaps.md`](docs/playbo
 ```
 agent-deployments/
 ├── catalog.yaml           # Single source of truth (auto-generated)
-├── vendir.yml             # Declarative sync config for the vendored tree
-├── vendir.lock.yml        # Pinned upstream blueprints commit SHA
 ├── docs/
 │   ├── recipes/           # 11 agent blueprints (the main content)
 │   ├── frameworks/        # Framework-specific guides (LangGraph, Pydantic AI, etc.)
@@ -138,22 +136,18 @@ agent-deployments/
 │   ├── getting-started/   # First-run remediation docs (one screen per service)
 │   ├── reference/         # Dockerfile, docker-compose, CI, Makefile templates
 │   └── playbook/          # Design guides and production checklist
-├── vendored/
-│   └── blueprints/        # Vendored snapshot of agent-blueprints (managed by vendir)
-│       ├── patterns/      # 11 cognitive patterns × 6 tier files each
-│       ├── workflows/     # 4 workflow patterns × 6 tier files each
-│       ├── foundations/   # anatomy, terminology, choosing-a-pattern, …
-│       ├── composition/   # blueprints-to-deployments, combination-matrix, …
-│       └── patterns-catalog.yaml
+├── reference/
+│   └── blueprints/
+│       └── patterns-catalog.yaml  # SHA-pinned reference copy of the upstream blueprints catalog
 ├── scripts/
-│   └── generate_catalog.py  # Reads vendored/blueprints/ + this repo's docs/
+│   └── generate_catalog.py  # Reads reference/blueprints/patterns-catalog.yaml + this repo's docs/
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md
 ├── SECURITY.md
 └── LICENSE
 ```
 
-> The previous `docs/patterns/` lighter mirror has been retired. Pattern content now lives in `vendored/blueprints/patterns/<id>/` (note: blueprints uses underscored ids like `event_driven`, `multi_agent`, `plan_and_execute`). The vendored tree is upstream-owned and managed by [vendir](https://carvel.dev/vendir/) — pinned to a tagged release of `agent-blueprints`. Sync refreshes are **release-driven**: a release on `agent-blueprints` triggers an auto-PR here. Never edit `vendored/` by hand — edit upstream and cut a release.
+> The previous `docs/patterns/` lighter mirror has been retired. Pattern content now lives upstream in `agent-blueprints` (note: blueprints uses underscored ids like `event_driven`, `multi_agent`, `plan_and_execute`) — the catalog emits blueprint doc paths as GitHub URLs like `https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md`, which consumers resolve against their own blueprints checkout. The only blueprints artifact kept in-repo is a SHA-pinned reference copy of the pattern catalog at [`reference/blueprints/patterns-catalog.yaml`](reference/blueprints/patterns-catalog.yaml), so the build stays offline and deterministic. Refreshes are **release-driven**: a release on `agent-blueprints` triggers the `sync-blueprints.yml` workflow, which fetches the released `patterns-catalog.yaml` into `reference/blueprints/` and regenerates `catalog.yaml`; the daily `blueprints-bump.yml` tracks live upstream `main`. Never edit `reference/blueprints/` by hand — edit upstream and cut a release.
 
 ---
 
