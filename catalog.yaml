@@ -3128,6 +3128,8 @@ capabilities:
   - bootstrap
   - dev
   when_to_load: a chat frontend is present and the agent needs a key to reply
+  provides:
+  - runtime_key_capture
 - id: cache.redis
   kind: cache
   path: docs/capabilities/cache/redis.md
@@ -3156,6 +3158,10 @@ capabilities:
   - rate-limiting
   - session-store
   when_to_load: recipe declares cache.redis
+  provides:
+  - cache
+  - session_store
+  - rate_limit_backend
 - id: core.tool_registry
   kind: core
   path: docs/capabilities/core/tool_registry.md
@@ -3177,6 +3183,10 @@ capabilities:
   - permissions
   - retry
   when_to_load: recipe tier is T1 or higher (the tier preset seeds core.tool_registry)
+  provides:
+  - tool_registry
+  - tool_permissions
+  - compact_error_retry
 - id: durable.temporal
   kind: durable
   path: docs/capabilities/durable/temporal.md
@@ -3212,6 +3222,10 @@ capabilities:
   - workflow-engine
   - long-running
   when_to_load: recipe declares durable.temporal
+  provides:
+  - durable_workflow
+  - checkpoint_resume
+  - signal_handling
 - id: embedding.openai
   kind: embedding
   path: docs/capabilities/embedding/openai.md
@@ -3234,6 +3248,8 @@ capabilities:
   - openai
   - hosted
   when_to_load: recipe declares embedding.openai
+  provides:
+  - text_embeddings
 - id: eval.deepeval
   kind: eval
   path: docs/capabilities/eval/deepeval.md
@@ -3260,6 +3276,9 @@ capabilities:
   - llm-eval
   - python
   when_to_load: recipe declares eval.deepeval
+  provides:
+  - eval_runner
+  - rag_metrics
 - id: eval.promptfoo
   kind: eval
   path: docs/capabilities/eval/promptfoo.md
@@ -3284,6 +3303,9 @@ capabilities:
   - prompt-testing
   - yaml-config
   when_to_load: recipe declares eval.promptfoo
+  provides:
+  - llm_eval
+  - regression_check
 - id: eval.ragas
   kind: eval
   path: docs/capabilities/eval/ragas.md
@@ -3310,6 +3332,10 @@ capabilities:
   - rag-eval
   - python
   when_to_load: recipe declares eval.ragas
+  provides:
+  - eval_runner
+  - rag_metrics
+  - benchmark
 - id: frontend.minimal-chat
   kind: frontend
   path: docs/capabilities/frontend/minimal-chat.md
@@ -3325,6 +3351,8 @@ capabilities:
     capabilities_provided:
     - chat_ui
     required_credentials: []
+  provides:
+  - chat_ui
 - id: frontend.nextjs-chat
   kind: frontend
   path: docs/capabilities/frontend/nextjs-chat.md
@@ -3347,6 +3375,9 @@ capabilities:
   - react
   - streaming
   when_to_load: recipe declares frontend.nextjs-chat
+  provides:
+  - chat_ui
+  - streaming_ui
 - id: frontend.streamlit
   kind: frontend
   path: docs/capabilities/frontend/streamlit.md
@@ -3368,6 +3399,8 @@ capabilities:
   - python
   - prototype
   when_to_load: recipe declares frontend.streamlit
+  provides:
+  - chat_ui
 - id: guardrail.llama-guard
   kind: guardrail
   path: docs/capabilities/guardrail/llama-guard.md
@@ -3392,6 +3425,10 @@ capabilities:
   - safety
   - llama
   when_to_load: recipe declares guardrail.llama-guard
+  provides:
+  - input_classification
+  - output_classification
+  - jailbreak_detection
 - id: host.fly
   kind: host
   path: docs/capabilities/host/fly.md
@@ -3418,6 +3455,9 @@ capabilities:
   - paas
   - docker
   when_to_load: recipe declares host.fly
+  provides:
+  - container_hosting
+  - global_edge
 - id: host.railway
   kind: host
   path: docs/capabilities/host/railway.md
@@ -3444,6 +3484,10 @@ capabilities:
   - paas
   - github-integrated
   when_to_load: recipe declares host.railway
+  provides:
+  - container_hosting
+  - managed_postgres
+  - managed_redis
 - id: host.vercel
   kind: host
   path: docs/capabilities/host/vercel.md
@@ -3470,6 +3514,9 @@ capabilities:
   - serverless
   - frontend-first
   when_to_load: recipe declares host.vercel
+  provides:
+  - edge_hosting
+  - ci_deploy
 - id: live_data.tavily
   kind: live_data
   path: docs/capabilities/live_data/tavily.md
@@ -3493,6 +3540,9 @@ capabilities:
   - web-search
   - hosted
   when_to_load: recipe declares live_data.tavily
+  provides:
+  - web_search
+  - web_extract
 - id: mcp.tavily
   kind: mcp
   path: docs/capabilities/mcp/tavily.md
@@ -3516,6 +3566,9 @@ capabilities:
   - web-search
   - hosted
   when_to_load: 'recipe declares mcp_servers with capability: mcp.tavily'
+  provides:
+  - web_search
+  - web_extract
 - id: memory_store.zep
   kind: memory_store
   path: docs/capabilities/memory_store/zep.md
@@ -3551,6 +3604,10 @@ capabilities:
   - long-term-memory
   - hosted
   when_to_load: recipe declares memory_store.zep
+  provides:
+  - long_term_memory
+  - semantic_recall
+  - conversation_summarization
 - id: obs.grafana-stack
   kind: obs
   path: docs/capabilities/obs/grafana-stack.md
@@ -3582,6 +3639,11 @@ capabilities:
   - metrics
   - self-hosted
   when_to_load: recipe declares obs.grafana-stack
+  provides:
+  - metrics
+  - tracing
+  - dashboards
+  - alerting
 - id: obs.langfuse
   kind: obs
   path: docs/capabilities/obs/langfuse.md
@@ -3620,6 +3682,10 @@ capabilities:
   - llm-tracing
   - self-hosted
   when_to_load: recipe declares obs.langfuse
+  provides:
+  - tracing
+  - llm_observability
+  - scoring
 - id: obs.langsmith
   kind: obs
   path: docs/capabilities/obs/langsmith.md
@@ -3648,6 +3714,9 @@ capabilities:
   - llm-tracing
   - hosted
   when_to_load: recipe declares obs.langsmith
+  provides:
+  - tracing
+  - llm_observability
 - id: queue.kafka
   kind: queue
   path: docs/capabilities/queue/kafka.md
@@ -3677,6 +3746,10 @@ capabilities:
   - high-throughput
   - durable
   when_to_load: recipe declares queue.kafka
+  provides:
+  - event_source
+  - durable_log
+  - replay
 - id: queue.redis-streams
   kind: queue
   path: docs/capabilities/queue/redis-streams.md
@@ -3703,6 +3776,8 @@ capabilities:
   - lightweight
   - redis
   when_to_load: recipe declares queue.redis-streams
+  provides:
+  - event_source
 - id: relational.postgres
   kind: relational
   path: docs/capabilities/relational/postgres.md
@@ -3733,6 +3808,10 @@ capabilities:
   - sql
   - self-hosted
   when_to_load: recipe declares relational.postgres
+  provides:
+  - relational_store
+  - transactions
+  - json_store
 - id: rerank.cohere
   kind: rerank
   path: docs/capabilities/rerank/cohere.md
@@ -3756,6 +3835,8 @@ capabilities:
   - hosted
   - embeddings-companion
   when_to_load: recipe declares rerank.cohere
+  provides:
+  - search_result_reranking
 - id: sandbox.e2b
   kind: sandbox
   path: docs/capabilities/sandbox/e2b.md
@@ -3780,6 +3861,9 @@ capabilities:
   - code-execution
   - hosted
   when_to_load: recipe declares sandbox.e2b
+  provides:
+  - code_execution
+  - isolated_runtime
 - id: vector_db.chroma
   kind: vector_db
   path: docs/capabilities/vector_db/chroma.md
@@ -3809,6 +3893,9 @@ capabilities:
   - self-hosted
   - embedded
   when_to_load: recipe declares vector_db.chroma
+  provides:
+  - embeddings_store
+  - collection_init
 - id: vector_db.pgvector
   kind: vector_db
   path: docs/capabilities/vector_db/pgvector.md
@@ -3838,6 +3925,8 @@ capabilities:
   - retrieval
   - postgres-native
   when_to_load: recipe declares vector_db.pgvector
+  provides:
+  - embeddings_store
 - id: vector_db.qdrant
   kind: vector_db
   path: docs/capabilities/vector_db/qdrant.md
@@ -3868,6 +3957,220 @@ capabilities:
   - retrieval
   - self-hosted
   when_to_load: recipe declares vector_db.qdrant
+  provides:
+  - embeddings_store
+  - collection_init
+  - payload_filtering
+ports:
+- id: agents
+  protocol: agents
+  path: docs/ports/agents.md
+  required: false
+  cardinality: many
+  default: null
+  interface_version: '1.0'
+  kinds: []
+- id: api_layer
+  path: docs/ports/api_layer.md
+  required: true
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds: []
+  adapter_home: stack
+- id: auth
+  path: docs/ports/auth.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - auth
+  adapter_home: capabilities
+- id: cache
+  protocol: memory
+  path: docs/ports/cache.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - cache
+  adapter_home: capabilities
+- id: core
+  path: docs/ports/core.md
+  required: true
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - core
+  adapter_home: capabilities
+- id: durable
+  protocol: runtime
+  path: docs/ports/durable.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - durable
+  adapter_home: capabilities
+- id: embedding
+  protocol: model
+  path: docs/ports/embedding.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - embedding
+  adapter_home: capabilities
+- id: eval
+  concern: eval
+  path: docs/ports/eval.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - eval
+  adapter_home: capabilities
+- id: framework
+  path: docs/ports/framework.md
+  required: true
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds: []
+  adapter_home: frameworks
+- id: frontend
+  path: docs/ports/frontend.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - frontend
+  adapter_home: capabilities
+- id: guardrail
+  concern: guardrails
+  path: docs/ports/guardrail.md
+  required: false
+  cardinality: many
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - guardrail
+  adapter_home: capabilities
+- id: host
+  path: docs/ports/host.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - host
+  adapter_home: capabilities
+- id: live_data
+  protocol: tools
+  path: docs/ports/live_data.md
+  required: false
+  cardinality: many
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - live_data
+  adapter_home: capabilities
+- id: mcp
+  protocol: tools
+  path: docs/ports/mcp.md
+  required: false
+  cardinality: many
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - mcp
+  adapter_home: capabilities
+- id: memory_store
+  protocol: memory
+  path: docs/ports/memory_store.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - memory_store
+  adapter_home: capabilities
+- id: model
+  protocol: model
+  path: docs/ports/model.md
+  required: true
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds: []
+  adapter_home: stack
+- id: obs
+  concern: observability
+  path: docs/ports/obs.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - obs
+  adapter_home: capabilities
+- id: queue
+  protocol: runtime
+  path: docs/ports/queue.md
+  required: false
+  cardinality: many
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - queue
+  adapter_home: capabilities
+- id: relational
+  protocol: memory
+  path: docs/ports/relational.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - relational
+  adapter_home: capabilities
+- id: rerank
+  protocol: model
+  path: docs/ports/rerank.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - rerank
+  adapter_home: capabilities
+- id: sandbox
+  protocol: runtime
+  path: docs/ports/sandbox.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - sandbox
+  adapter_home: capabilities
+- id: vector_db
+  protocol: memory
+  path: docs/ports/vector_db.md
+  required: false
+  cardinality: one
+  default: null
+  interface_version: '1.0'
+  kinds:
+  - vector_db
+  adapter_home: capabilities
 frameworks:
 - id: claude_agent_sdk_python
   language: python

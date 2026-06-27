@@ -275,6 +275,12 @@ CAPABILITY_GLOB = ("capabilities", "*", "*.md")
 FRAMEWORK_GLOB = ("frameworks", "*.md")
 STACK_GLOB = ("stack", "*.md")
 CROSS_CUTTING_GLOB = ("cross-cutting", "*.md")
+PORT_GLOB = ("ports", "*.md")
+
+# Port protocol/concern vocabularies — mirror the blueprints kernel IR
+# (core/spec/ir.schema.json $defs.port.protocol / $defs.cross_cutting.concern).
+PORT_PROTOCOLS = frozenset({"model", "tools", "memory", "runtime", "agents"})
+PORT_CONCERNS = frozenset({"observability", "guardrails", "budgets", "context_assembly", "eval"})
 
 # Frontmatter regex matches identical to scaffold's discovery.py:_parse_frontmatter
 # so the generator and the consumer agree on what counts as frontmatter.
@@ -496,6 +502,21 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
             entry["tags"] = fm["tags"]
         if "when_to_load" in fm:
             entry["when_to_load"] = fm["when_to_load"]
+        # Port-typed registry fields (additive). `provides` is the canonical
+        # capability-flag set the feature model references — revived here (it was
+        # previously parsed but dropped). The rest land as adapters are migrated.
+        if "provides" in fm:
+            entry["provides"] = fm["provides"]
+        if "implements" in fm:
+            entry["implements"] = fm["implements"]
+        if "excludes" in fm:
+            entry["excludes"] = fm["excludes"]
+        if "conflicts" in fm:
+            entry["conflicts"] = fm["conflicts"]
+        if "parameters" in fm:
+            entry["parameters"] = fm["parameters"]
+        if "verification" in fm:
+            entry["verification"] = fm["verification"]
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
@@ -527,6 +548,49 @@ def collect_frameworks(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
+
+
+def collect_ports(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
+    """Build the ports[] block from docs/ports/*.md frontmatter.
+
+    Ports are the abstract contracts adapters bind to (via ``implements:``);
+    their protocol/concern values mirror the blueprints kernel IR
+    (core/spec/ir.schema.json).
+    """
+    out: list[dict[str, Any]] = []
+    for path in iter_files(PORT_GLOB, non_recipe_stems):
+        text = path.read_text(encoding="utf-8")
+        fm, _ = parse_frontmatter(text)
+        if not fm or "id" not in fm:
+            continue
+        entry: dict[str, Any] = OrderedDict()
+        entry["id"] = fm["id"]
+        if "protocol" in fm:
+            entry["protocol"] = fm["protocol"]
+        if "concern" in fm:
+            entry["concern"] = fm["concern"]
+        entry["path"] = str(path.relative_to(REPO_ROOT).as_posix())
+        for key in ("required", "cardinality", "default", "interface_version", "kinds", "adapter_home"):
+            if key in fm:
+                entry[key] = fm[key]
+        out.append(entry)
+    out.sort(key=lambda e: e["id"])
+    return out
+
+
+def validate_ports(ports: list[dict[str, Any]]) -> None:
+    """Fail closed if a port's protocol/concern leaves the kernel IR vocabulary."""
+    errors: list[str] = []
+    for p in ports:
+        proto, concern = p.get("protocol"), p.get("concern")
+        if proto and proto not in PORT_PROTOCOLS:
+            errors.append(f"port {p['id']}: protocol '{proto}' not in {sorted(PORT_PROTOCOLS)}")
+        if concern and concern not in PORT_CONCERNS:
+            errors.append(f"port {p['id']}: concern '{concern}' not in {sorted(PORT_CONCERNS)}")
+        if proto and concern:
+            errors.append(f"port {p['id']}: declares both protocol and concern; pick one")
+    if errors:
+        raise SystemExit("Port validation failed:\n  " + "\n  ".join(errors))
 
 
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
@@ -1400,6 +1464,8 @@ def build_catalog(
     # This repo's own content.
     catalog["recipes"] = collect_recipes(non_recipe_stems)
     catalog["capabilities"] = collect_capabilities(non_recipe_stems)
+    catalog["ports"] = collect_ports(non_recipe_stems)
+    validate_ports(catalog["ports"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)
