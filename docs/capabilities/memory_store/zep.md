@@ -139,6 +139,6 @@ const results = await zep.memory.searchSessions({
 
 ## See also
 
-- [`vendored/blueprints/primitives/memory/overview.md`](../../../vendored/blueprints/primitives/memory/overview.md) — primitive overview
+- [`primitives/memory/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md) — primitive overview
 - [`capabilities/relational/postgres.md`](../relational/postgres.md) — required dependency
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

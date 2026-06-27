@@ -109,5 +109,5 @@ for (const hit of response.results) {
 ## See also
 
 - [`capabilities/mcp/tavily.md`](../mcp/tavily.md) — MCP-transport alternative
-- [`vendored/blueprints/patterns/react/overview.md`](../../../vendored/blueprints/patterns/react/overview.md) — typical consumer pattern
+- [`patterns/react/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md) — typical consumer pattern
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

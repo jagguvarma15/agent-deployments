@@ -50,4 +50,4 @@ For data-residency requirements, swap to `guardrail.llama-guard-local` (planned)
 ## See also
 
 - [`docs/capabilities/guardrail/llama-guard.md`](../capabilities/guardrail/llama-guard.md) — capability definition.
-- [`vendored/blueprints/modifiers/guardrails/overview.md`](../../vendored/blueprints/modifiers/guardrails/overview.md) — pattern-level guidance.
+- [`modifiers/guardrails/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md) — pattern-level guidance.

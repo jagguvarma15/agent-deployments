@@ -43,4 +43,4 @@ Should print `4`.
 ## See also
 
 - [`docs/capabilities/sandbox/e2b.md`](../capabilities/sandbox/e2b.md) — capability definition.
-- [`vendored/blueprints/foundations/sandboxed-execution.md`](../../vendored/blueprints/foundations/sandboxed-execution.md) — execution-isolation guidance.
+- [`foundations/sandboxed-execution.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/foundations/sandboxed-execution.md) — execution-isolation guidance.

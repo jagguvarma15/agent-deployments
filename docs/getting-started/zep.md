@@ -61,4 +61,4 @@ python -c "from zep_python import ZepClient; c=ZepClient('http://localhost:8000'
 ## See also
 
 - [`docs/capabilities/memory_store/zep.md`](../capabilities/memory_store/zep.md) — capability definition.
-- [`vendored/blueprints/primitives/memory/overview.md`](../../vendored/blueprints/primitives/memory/overview.md) — primitive overview.
+- [`primitives/memory/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md) — primitive overview.

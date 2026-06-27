@@ -52,5 +52,5 @@ Personal-assistant shape — a single agent that remembers across sessions, reca
 ## See also
 
 - [`docs/recipes/memory-assistant.md`](../../recipes/memory-assistant.md) — the recipe shipping this combo
-- [`vendored/blueprints/primitives/memory/overview.md`](../../../vendored/blueprints/primitives/memory/overview.md) — memory primitive
+- [`primitives/memory/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md) — memory primitive
 - [`docs/capabilities/memory_store/zep.md`](../../capabilities/memory_store/zep.md) — Zep wiring

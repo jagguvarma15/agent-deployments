@@ -53,5 +53,5 @@ Q&A-over-your-docs shape — retrieve relevant passages from a vector store, opt
 ## See also
 
 - [`docs/recipes/docs-rag-qa.md`](../../recipes/docs-rag-qa.md) — the validated recipe shipping this combo
-- [`vendored/blueprints/patterns/rag/overview.md`](../../../vendored/blueprints/patterns/rag/overview.md) — pattern overview
+- [`patterns/rag/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md) — pattern overview
 - [`docs/capabilities/vector_db/qdrant.md`](../../capabilities/vector_db/qdrant.md), [`docs/capabilities/rerank/cohere.md`](../../capabilities/rerank/cohere.md)

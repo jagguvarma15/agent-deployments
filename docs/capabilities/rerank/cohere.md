@@ -104,6 +104,6 @@ const top5 = response.results.map((r) => vectorHits[r.index]);
 
 ## See also
 
-- [`vendored/blueprints/patterns/agentic_rag/overview.md`](../../../vendored/blueprints/patterns/agentic_rag/overview.md) — primary consumer pattern
+- [`patterns/agentic_rag/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md) — primary consumer pattern
 - [`capabilities/vector_db/qdrant.md`](../vector_db/qdrant.md) — typical upstream of the rerank step
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

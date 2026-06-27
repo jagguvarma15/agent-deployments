@@ -49,4 +49,4 @@ Concurrent LLM calls on independent inputs, results aggregated at the end. Fits 
 ## See also
 
 - [`docs/recipes/parallel-enricher.md`](../../recipes/parallel-enricher.md) — recipe shipping this combo
-- [`vendored/blueprints/patterns/parallel-calls/overview.md`](../../../vendored/blueprints/patterns/parallel-calls/overview.md)
+- [`patterns/parallel-calls/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md)

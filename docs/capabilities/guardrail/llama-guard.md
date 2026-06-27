@@ -112,6 +112,6 @@ async function classify(messages: Array<{role: string, content: string}>) {
 
 ## See also
 
-- [`vendored/blueprints/modifiers/guardrails/overview.md`](../../../vendored/blueprints/modifiers/guardrails/overview.md) — pattern guidance on dual-LLM safety
+- [`modifiers/guardrails/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md) — pattern guidance on dual-LLM safety
 - [`cross-cutting/security-hardening.md`](../../cross-cutting/security-hardening.md) — broader security posture
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

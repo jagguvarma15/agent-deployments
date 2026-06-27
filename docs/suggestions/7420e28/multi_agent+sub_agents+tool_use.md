@@ -50,5 +50,5 @@ Multiple autonomous agents collaborating on a task — flat (peer-to-peer) or hi
 
 - [`docs/recipes/ops-crew.md`](../../recipes/ops-crew.md) (flat) — recipe shipping this combo
 - [`docs/recipes/hierarchical-agent.md`](../../recipes/hierarchical-agent.md) (hierarchical) — recipe shipping this combo
-- [`vendored/blueprints/patterns/multi_agent/overview.md`](../../../vendored/blueprints/patterns/multi_agent/overview.md)
-- [`vendored/blueprints/primitives/sub_agents/overview.md`](../../../vendored/blueprints/primitives/sub_agents/overview.md)
+- [`patterns/multi_agent/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md)
+- [`primitives/sub_agents/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md)

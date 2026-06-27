@@ -15,16 +15,16 @@ What it does (in order):
 1. Walks ``docs/recipes/*.md``, ``docs/capabilities/**/*.md``,
    ``docs/frameworks/*.md``, ``docs/stack/*.md``, ``docs/cross-cutting/*.md``.
    Parses each file's YAML frontmatter via PyYAML.
-2. Reads ``patterns-catalog.yaml`` from the **vendored snapshot** of
-   agent-blueprints at ``vendored/blueprints/patterns-catalog.yaml``. The
-   vendored tree is managed by ``vendir`` (see ``vendir.yml``). Extracts
+2. Reads ``patterns-catalog.yaml`` from the committed, SHA-pinned reference
+   copy of agent-blueprints at ``reference/blueprints/patterns-catalog.yaml``
+   (refreshed on a blueprints release by ``sync-blueprints.yml``). Extracts
    its ``patterns[]``, ``workflows[]``, and ``compositions[]`` blocks and
    embeds them. Override the source via ``--blueprints-catalog-url`` for
    local iteration against an unmerged blueprints branch.
-3. Enumerates ``pattern_docs[]`` from the vendored tree:
-   ``vendored/blueprints/patterns/<id>/overview.md`` (one per pattern) and
-   ``vendored/blueprints/workflows/<id>/overview.md`` (one per workflow).
-   The previous lighter mirror at ``docs/patterns/*.md`` has been retired.
+3. Enumerates ``pattern_docs[]`` as GitHub URLs derived from the reference
+   catalog's cohort entries (``patterns``/``workflows``/``primitives``/
+   ``modifiers``). The consumer (agent-scaffold) resolves these against its
+   own directly-fetched blueprints checkout; no vendored tree is committed.
 4. Reads ``scripts/_seed_aliases.yaml`` for the v1 alias / cross-cutting /
    non-recipe-stems / min-alias-length blocks. (v1.1 will move alias data
    into per-doc frontmatter.)
@@ -50,8 +50,7 @@ Determinism notes:
 
 Local development:
 
-    # Default: read from vendored/blueprints/patterns-catalog.yaml. To pull
-    # newer upstream content, run `vendir sync` first.
+    # Default: read the committed reference/blueprints/patterns-catalog.yaml.
     python scripts/generate_catalog.py
 
     # Run against an unmerged blueprints branch URL:
@@ -122,7 +121,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
 SUGGESTIONS_ROOT = DOCS_ROOT / "suggestions"
 
-VENDORED_BLUEPRINTS_DIR = REPO_ROOT / "vendored" / "blueprints"
 # Blueprints is referenced directly (no vendir vendoring): the catalog is read
 # from a committed, SHA-pinned reference copy (keeps the build offline +
 # deterministic), and doc paths are emitted as GitHub URLs that the consumer
@@ -264,11 +262,11 @@ ADVERTISED_PROVIDERS: dict[str, tuple[str, str]] = {
     "cohere": ("rerank.cohere", "cohere"),
     "zep": ("memory_store.zep", "zep"),
 }
-"""Default source for the blueprints catalog. Reads the vendored snapshot at
-``vendored/blueprints/patterns-catalog.yaml``. The vendored tree is managed
-by ``vendir`` (see ``vendir.yml``). Override via ``--blueprints-catalog-url``
-to point at a URL or a different local path when iterating against an
-unmerged upstream branch."""
+"""Default source for the blueprints catalog. Reads the committed, SHA-pinned
+reference copy at ``reference/blueprints/patterns-catalog.yaml`` (refreshed on
+a blueprints release by ``sync-blueprints.yml``). Override via
+``--blueprints-catalog-url`` to point at a URL or a different local path when
+iterating against an unmerged upstream branch."""
 
 DEFAULT_BLUEPRINTS_REPO = "jagguvarma15/agent-blueprints"
 DEFAULT_BLUEPRINTS_BRANCH = "main"
@@ -333,12 +331,13 @@ def first_h1(text: str) -> str | None:
 def default_cache_tier(load_path: str) -> str:
     """Path-based default for ``recipes[].load_list[].cache_tier``.
 
-    Load_list paths are recipe-relative (``../../vendored/...``,
-    ``../frameworks/...``, ``../stack/...``). Strip leading ``./`` and
-    ``../`` segments to a canonical form, then bucket by directory.
+    Load_list paths are recipe-relative (``../frameworks/...``,
+    ``../stack/...``) or absolute GitHub URLs for blueprint docs. Strip
+    leading ``./`` and ``../`` segments to a canonical form, then bucket by
+    directory.
 
     Defaults:
-      - ``vendored/blueprints/**`` → hot
+      - blueprint doc URLs (``.../agent-blueprints/...``) → hot
       - ``frameworks/**``, ``stack/**``, ``cross-cutting/project-layout.md`` → hot
       - ``cross-cutting/**`` (other), ``capabilities/**`` → warm
       - ``recipes/**`` (recipe body) → warm
@@ -351,8 +350,6 @@ def default_cache_tier(load_path: str) -> str:
         p = p[2:]
     while p.startswith("../"):
         p = p[3:]
-    if p.startswith("vendored/blueprints/"):
-        return "hot"
     if p.startswith("frameworks/") or p.startswith("stack/"):
         return "hot"
     if p == "cross-cutting/project-layout.md":
@@ -725,17 +722,15 @@ def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -
 
 
 def collect_pattern_docs(blueprints_catalog: dict[str, Any]) -> list[str]:
-    """Enumerate vendored blueprint cohort overviews for the catalog's
+    """Enumerate blueprint cohort overviews for the catalog's
     ``pattern_docs[]``, ``primitive_docs[]``, and ``modifier_docs[]`` lists.
 
-    Returns one flat sorted list keyed off the four cohort dirs
-    (``patterns/``, ``workflows/``, ``primitives/``, ``modifiers/``); callers
-    bucket the result into per-cohort fields. Used by scaffold's alias
-    resolver to convert prose mentions ("ReAct", "memory", …) to a vendored
-    path.
-
-    Replaces the previous enumeration of ``docs/patterns/*.md`` (the lighter
-    mirror that has been retired in favor of the vendored canonical content).
+    Derives one flat sorted list of GitHub URLs from the reference catalog's
+    four cohort blocks (``patterns``, ``workflows``, ``primitives``,
+    ``modifiers``); callers bucket the result into per-cohort fields. Used by
+    scaffold's alias resolver to convert prose mentions ("ReAct", "memory", …)
+    to a blueprint doc URL, which scaffold resolves against its own fetched
+    blueprints checkout.
     """
     out: list[str] = []
     for cohort in ("patterns", "workflows", "primitives", "modifiers"):
@@ -1399,8 +1394,8 @@ def collect_suggestions() -> dict[str, Any]:
     out["blueprints_version"] = None
     out["description"] = (
         "Per-combo stack recommendations scoped to the upstream blueprints "
-        "version pinned in vendir.lock.yml. One file per pattern × primitives "
-        "× modifiers combination."
+        "version pinned in reference/blueprints/patterns-catalog.yaml. One file "
+        "per pattern × primitives × modifiers combination."
     )
     readme_candidate = SUGGESTIONS_ROOT / "README.md"
     if readme_candidate.is_file():

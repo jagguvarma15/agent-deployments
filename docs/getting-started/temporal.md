@@ -63,4 +63,4 @@ Should print `OK`. Web UI at http://localhost:8233 should list `default` under N
 ## See also
 
 - [`docs/capabilities/durable/temporal.md`](../capabilities/durable/temporal.md) — capability definition.
-- [`vendored/blueprints/patterns/long_horizon/overview.md`](../../vendored/blueprints/patterns/long_horizon/overview.md) — pattern that motivates this.
+- [`patterns/long_horizon/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md) — pattern that motivates this.

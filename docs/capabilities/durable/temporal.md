@@ -139,6 +139,6 @@ const result = await handle.result();
 
 ## See also
 
-- [`vendored/blueprints/patterns/long_horizon/overview.md`](../../../vendored/blueprints/patterns/long_horizon/overview.md) — pattern motivating this capability
-- [`vendored/blueprints/patterns/saga/overview.md`](../../../vendored/blueprints/patterns/saga/overview.md) — sibling pattern with compensation
+- [`patterns/long_horizon/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md) — pattern motivating this capability
+- [`patterns/saga/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md) — sibling pattern with compensation
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics
