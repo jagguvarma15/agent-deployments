@@ -1,6 +1,9 @@
 ---
 id: vector_db.chroma
 kind: vector_db
+implements:
+  port: vector_db
+  interface_version: "1.0"
 layer: data
 provides: [embeddings_store, collection_init]
 env_vars: [CHROMA_URL, CHROMA_TENANT, CHROMA_DATABASE]
@@ -30,6 +33,8 @@ docs: |
   Bootstrap step creates collections after docker_up.
 tags: [vector-search, retrieval, self-hosted, embedded]
 when_to_load: "recipe declares vector_db.chroma"
+verification:
+  tier: T1
 ---
 
 # Capability: vector_db.chroma

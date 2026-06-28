@@ -1,6 +1,9 @@
 ---
 id: guardrail.llama-guard
 kind: guardrail
+implements:
+  port: guardrail
+  interface_version: "1.0"
 layer: agent
 provides: [input_classification, output_classification, jailbreak_detection]
 env_vars: [TOGETHER_API_KEY]
@@ -23,6 +26,8 @@ docs: |
   `guardrails: [guardrail.llama-guard]`.
 tags: [guardrail, safety, llama]
 when_to_load: "recipe declares guardrail.llama-guard"
+verification:
+  tier: T1
 ---
 
 # Capability: guardrail.llama-guard
@@ -107,6 +112,6 @@ async function classify(messages: Array<{role: string, content: string}>) {
 
 ## See also
 
-- [`vendored/blueprints/modifiers/guardrails/overview.md`](../../../vendored/blueprints/modifiers/guardrails/overview.md) — pattern guidance on dual-LLM safety
+- [`modifiers/guardrails/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md) — pattern guidance on dual-LLM safety
 - [`cross-cutting/security-hardening.md`](../../cross-cutting/security-hardening.md) — broader security posture
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

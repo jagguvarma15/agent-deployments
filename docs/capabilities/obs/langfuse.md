@@ -1,6 +1,9 @@
 ---
 id: obs.langfuse
 kind: obs
+implements:
+  port: obs
+  interface_version: "1.0"
 layer: observability
 requires: [relational.postgres]
 bootstrap_inputs:
@@ -40,6 +43,8 @@ docs: |
   web UI handles workspace + project + API-key creation on first visit.
 tags: [observability, llm-tracing, self-hosted]
 when_to_load: "recipe declares obs.langfuse"
+verification:
+  tier: T1
 ---
 
 # Capability: obs.langfuse

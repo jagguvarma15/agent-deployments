@@ -1,6 +1,9 @@
 ---
 id: live_data.tavily
 kind: live_data
+implements:
+  port: live_data
+  interface_version: "1.0"
 layer: agent
 provides: [web_search, web_extract]
 env_vars: [TAVILY_API_KEY]
@@ -22,6 +25,8 @@ docs: |
   `mcp.tavily`.
 tags: [live_data, web-search, hosted]
 when_to_load: "recipe declares live_data.tavily"
+verification:
+  tier: T1
 ---
 
 # Capability: live_data.tavily
@@ -104,5 +109,5 @@ for (const hit of response.results) {
 ## See also
 
 - [`capabilities/mcp/tavily.md`](../mcp/tavily.md) — MCP-transport alternative
-- [`vendored/blueprints/patterns/react/overview.md`](../../../vendored/blueprints/patterns/react/overview.md) — typical consumer pattern
+- [`patterns/react/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md) — typical consumer pattern
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

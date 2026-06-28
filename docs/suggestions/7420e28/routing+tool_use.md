@@ -49,5 +49,5 @@ Triage / dispatch shape — a classifier categorizes the input, then routes to a
 ## See also
 
 - [`docs/recipes/customer-support-triage.md`](../../recipes/customer-support-triage.md) — the validated recipe shipping this combo
-- [`vendored/blueprints/patterns/routing/overview.md`](../../../vendored/blueprints/patterns/routing/overview.md) — pattern overview
+- [`patterns/routing/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md) — pattern overview
 - [`docs/frameworks/langgraph.md`](../../frameworks/langgraph.md) — framework

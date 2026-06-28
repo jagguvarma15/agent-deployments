@@ -42,7 +42,7 @@ Feed these to your AI coding assistant:
 
 ```
 docs/recipes/<your-recipe>.md                              # The full blueprint
-vendored/blueprints/patterns/<pattern>/overview.md         # The underlying architecture
+https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/<pattern>/overview.md  # The underlying architecture
 docs/frameworks/<framework>.md                             # Idiomatic implementation guide
 docs/stack/llm-claude.md                                   # LLM integration
 ```

@@ -1,6 +1,9 @@
 ---
 id: frontend.nextjs-chat
 kind: frontend
+implements:
+  port: frontend
+  interface_version: "1.0"
 layer: frontend
 provides: [chat_ui, streaming_ui]
 env_vars: [NEXT_PUBLIC_AGENT_URL]
@@ -24,6 +27,8 @@ docs: |
   frontend/ during generation.
 tags: [frontend, react, streaming]
 when_to_load: "recipe declares frontend.nextjs-chat"
+verification:
+  tier: T1
 ---
 
 # Capability: frontend.nextjs-chat

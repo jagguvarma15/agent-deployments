@@ -1,6 +1,9 @@
 ---
 id: relational.postgres
 kind: relational
+implements:
+  port: relational
+  interface_version: "1.0"
 layer: infrastructure
 provides: [relational_store, transactions, json_store]
 env_vars: [DATABASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB]
@@ -35,6 +38,8 @@ docs: |
   step (Alembic in Python, Drizzle Kit in TypeScript).
 tags: [relational, sql, self-hosted]
 when_to_load: "recipe declares relational.postgres"
+verification:
+  tier: T1
 ---
 
 # Capability: relational.postgres

@@ -32,7 +32,7 @@ New blueprints must:
 
 1. Use the `new-blueprint` issue template for discussion first
 2. Declare the **three orthogonal picks** in frontmatter:
-   - `agent_pattern:` — required, one id from `catalog.patterns[]` (see [`vendored/blueprints/patterns/`](vendored/blueprints/patterns/) for available ids)
+   - `agent_pattern:` — required, one id from `catalog.patterns[]` (see [`patterns/`](https://github.com/jagguvarma15/agent-blueprints/tree/main/patterns) for available ids)
    - `primitives:` — optional list, ids from `catalog.primitives[]` (memory, tool_use, skills, sub_agents)
    - `modifiers:` — optional list, ids from `catalog.modifiers[]` (guardrails, human_in_the_loop)
    The generator validates every id at build time and refuses to emit a catalog with an unresolved reference. See [`docs/recipes/SCHEMA.md`](docs/recipes/SCHEMA.md).

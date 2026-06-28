@@ -1,6 +1,9 @@
 ---
 id: memory_store.zep
 kind: memory_store
+implements:
+  port: memory_store
+  interface_version: "1.0"
 layer: data
 requires: [relational.postgres]
 bootstrap_inputs:
@@ -40,6 +43,8 @@ docs: |
   alongside Postgres in compose.
 tags: [memory_store, long-term-memory, hosted]
 when_to_load: "recipe declares memory_store.zep"
+verification:
+  tier: T1
 ---
 
 # Capability: memory_store.zep
@@ -134,6 +139,6 @@ const results = await zep.memory.searchSessions({
 
 ## See also
 
-- [`vendored/blueprints/primitives/memory/overview.md`](../../../vendored/blueprints/primitives/memory/overview.md) — primitive overview
+- [`primitives/memory/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md) — primitive overview
 - [`capabilities/relational/postgres.md`](../relational/postgres.md) — required dependency
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

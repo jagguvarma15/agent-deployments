@@ -52,5 +52,5 @@ For Tavily, no fully-local alternative is wired yet — recipes that hard-requir
 ## See also
 
 - [`docs/recipes/research-assistant.md`](../../recipes/research-assistant.md) — the validated recipe shipping this combo
-- [`vendored/blueprints/patterns/react/overview.md`](../../../vendored/blueprints/patterns/react/overview.md) — pattern overview
+- [`patterns/react/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md) — pattern overview
 - [`docs/frameworks/pydantic-ai.md`](../../frameworks/pydantic-ai.md) `## MCP integration` — wiring code

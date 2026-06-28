@@ -1,6 +1,9 @@
 ---
 id: obs.langsmith
 kind: obs
+implements:
+  port: obs
+  interface_version: "1.0"
 layer: observability
 provides: [tracing, llm_observability]
 env_vars: [LANGCHAIN_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_PROJECT, LANGCHAIN_ENDPOINT]
@@ -22,6 +25,8 @@ docs: |
   `.env.local`. API-key based — no local container.
 tags: [observability, llm-tracing, hosted]
 when_to_load: "recipe declares obs.langsmith"
+verification:
+  tier: T1
 ---
 
 # Capability: obs.langsmith

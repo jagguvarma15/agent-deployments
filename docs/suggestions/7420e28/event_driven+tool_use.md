@@ -52,5 +52,5 @@ Agent triggered by queue or stream events rather than HTTP requests. Fits reserv
 ## See also
 
 - [`docs/recipes/restaurant-rebooking.md`](../../recipes/restaurant-rebooking.md) — recipe shipping this combo
-- [`vendored/blueprints/patterns/event_driven/overview.md`](../../../vendored/blueprints/patterns/event_driven/overview.md)
+- [`patterns/event_driven/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md)
 - [`docs/capabilities/queue/redis-streams.md`](../../capabilities/queue/redis-streams.md), [`docs/capabilities/queue/kafka.md`](../../capabilities/queue/kafka.md)

@@ -1,6 +1,9 @@
 ---
 id: mcp.tavily
 kind: mcp
+implements:
+  port: mcp
+  interface_version: "1.0"
 layer: agent
 provides: [web_search, web_extract]
 env_vars: [TAVILY_API_KEY]
@@ -24,6 +27,8 @@ docs: |
   alternative (no MCP framing) use `live_data.tavily`.
 tags: [mcp, web-search, hosted]
 when_to_load: "recipe declares mcp_servers with capability: mcp.tavily"
+verification:
+  tier: T1
 ---
 
 # Capability: mcp.tavily

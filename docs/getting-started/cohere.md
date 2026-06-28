@@ -44,4 +44,4 @@ Should return a `results` array with relevance scores.
 ## See also
 
 - [`docs/capabilities/rerank/cohere.md`](../capabilities/rerank/cohere.md) — capability definition.
-- [`vendored/blueprints/patterns/agentic_rag/overview.md`](../../vendored/blueprints/patterns/agentic_rag/overview.md) — typical consumer pattern.
+- [`patterns/agentic_rag/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md) — typical consumer pattern.

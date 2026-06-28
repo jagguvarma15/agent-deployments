@@ -8,6 +8,20 @@ This catalog is consumed by `agent-scaffold` ≥ v0.3 (Phase 1b of Track C). On 
 
 > **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
 
+## Ports & port-typed adapters
+
+Capabilities are **adapters** typed to an abstract **port**. Ports are the selection axes a generator binds: the kernel IR protocols (`model`, `tools`, `memory`, `runtime`, `agents`), the cross-cutting concerns (`obs`, `eval`, `guardrail`), and the deploy axes (`framework`, `host`, `frontend`, …). They live in [`docs/ports/`](../ports/) and are aggregated into `catalog.ports[]`; each declares its `cardinality`, smart `default`, and the `kinds` that satisfy it.
+
+Each capability declares, in frontmatter:
+
+- `implements: {port: <id>, interface_version: <range>}` — the port it binds (the port id equals the `kind`).
+- `provides: [<flag>, …]` — the **canonical capability flags** the compatibility model references (the substitution currency; `card.capabilities_provided` is human discovery copy).
+- `requires` / `excludes` / `conflicts` — cross-tree feature-model edges, denormalized into `catalog.compatibility[]` (`{a, b, relation, via}`) alongside same-port `substitutes`.
+- `parameters` — a JSON-Schema (+ defaults) for the adapter's tunables.
+- `verification: {tier, …}` — the trust tier (`T1` = pinned + reviewed; `T2` adds CI conformance; `T3+` add signing / SBOM / SLSA).
+
+A generator chooses a valid, verified configuration by binding each port to an adapter (respecting `cardinality`) and checking the `compatibility[]` edges.
+
 ## When to add a capability vs. extend stack/
 
 - **stack/`<x>`.md** — deep reference doc for a stack pick: tradeoffs, every config knob, multi-paragraph integration patterns. Long-form. Human-first.

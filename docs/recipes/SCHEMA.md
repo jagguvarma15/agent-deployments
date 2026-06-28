@@ -206,7 +206,7 @@ Per-entry hint telling consumers which Anthropic `cache_control` tier each doc b
 
 - **Type:** enum `hot` | `warm` | `dynamic`.
 - **Consumer:** the consumer assembling the prompt with cache breakpoints (typically the scaffold CLI or any other AI tool that reads the catalog).
-- **Path-based defaults:** `vendored/blueprints/**`, `frameworks/**`, `stack/**`, and `cross-cutting/project-layout.md` → `hot`; other `cross-cutting/**` + `capabilities/**` + the recipe body → `warm`; everything else → `dynamic`. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md#recipesload_listcache_tier) for the full mapping including the Anthropic TTL table.
+- **Path-based defaults:** `https://github.com/jagguvarma15/agent-blueprints/blob/main/**`, `frameworks/**`, `stack/**`, and `cross-cutting/project-layout.md` → `hot`; other `cross-cutting/**` + `capabilities/**` + the recipe body → `warm`; everything else → `dynamic`. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md#recipesload_listcache_tier) for the full mapping including the Anthropic TTL table.
 - **Authoring guidance:** authors rarely need to override the default. Set it explicitly when:
   - A `cross-cutting/` doc is *foundational* for the recipe and you want it in the 1h hot cache.
   - A `stack/` doc is *experimental* and you want it in the 5m warm tier instead.

@@ -21,7 +21,7 @@ docs/suggestions/
     └── …
 ```
 
-The `<blueprints-version>/` directory name matches the upstream tag pinned in [`../../vendir.lock.yml`](../../vendir.lock.yml) (e.g. `v0.1.0`). **Only one version directory exists on disk at any time.** The sync workflow ([`.github/workflows/sync-blueprints.yml`](../../.github/workflows/sync-blueprints.yml)) deletes the prior version directory when bumping the upstream pin; the new version starts empty until authors land its combo files. The catalog generator raises if more than one `<version>/` directory exists.
+The `<blueprints-version>/` directory name matches the upstream version pinned in [`../../reference/blueprints/patterns-catalog.yaml`](../../reference/blueprints/patterns-catalog.yaml) (e.g. `7420e28`). **Only one version directory exists on disk at any time.** The sync workflow ([`.github/workflows/sync-blueprints.yml`](../../.github/workflows/sync-blueprints.yml)) deletes the prior version directory when bumping the upstream pin; the new version starts empty until authors land its combo files. The catalog generator raises if more than one `<version>/` directory exists.
 
 This keeps the suggestions surface honest: a consumer reading `catalog.suggestions.blueprints_version` knows which upstream taxonomy the recommendations were validated against, and there is no ambiguity about which directory's contents are current.
 
@@ -86,7 +86,7 @@ est_tokens: 600
 
 | Field | Type | Notes |
 |---|---|---|
-| `blueprints_version` | string | Must match the directory name and `vendir.lock.yml`'s pinned tag. |
+| `blueprints_version` | string | Must match the directory name and the version derived from `reference/blueprints/patterns-catalog.yaml`. |
 | `applies_to.pattern` | string | One canonical `catalog.patterns[].id`. |
 | `applies_to.primitives` | list of strings | Zero or more `catalog.primitives[].id`. |
 | `applies_to.modifiers` | list of strings | Zero or more `catalog.modifiers[].id`. |
@@ -125,7 +125,7 @@ Bullet list of the swaps the `local_only` runtime_mode applies, with one sentenc
 ## See also
 
 - [`<recipe>`](../../recipes/<recipe>.md) and other recipes that ship this combo
-- [`vendored/blueprints/patterns/<pattern>/overview.md`](../../../vendored/blueprints/patterns/<pattern>/overview.md)
+- [`patterns/<pattern>/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/<pattern>/overview.md)
 ```
 
 The "Why" column is descriptive (this fits because the framework's tool-calling surface lines up with the pattern), not comparative (this is better than X). Capability docs stay neutral; combo files explain pick rationale in this scoped way.
@@ -155,4 +155,4 @@ There is no requirement to re-author every combo for every blueprints release �
 - [`../recipes/SCHEMA.md`](../recipes/SCHEMA.md) — recipe frontmatter contract (recipes declare `agent_pattern` + `primitives` + `modifiers` that combo files key on).
 - [`../capabilities/README.md`](../capabilities/README.md) — capability frontmatter contract (`recommends:` values resolve here).
 - [`../../MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md) — top-level `catalog.suggestions:` block schema.
-- [`../../vendored/blueprints/foundations/choosing-a-pattern.md`](../../vendored/blueprints/foundations/choosing-a-pattern.md) — upstream picker that produces the pattern + primitives + modifiers combination this cohort recommends a stack for.
+- [`foundations/choosing-a-pattern.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/foundations/choosing-a-pattern.md) — upstream picker that produces the pattern + primitives + modifiers combination this cohort recommends a stack for.

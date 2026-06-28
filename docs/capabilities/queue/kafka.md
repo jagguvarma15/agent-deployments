@@ -1,6 +1,9 @@
 ---
 id: queue.kafka
 kind: queue
+implements:
+  port: queue
+  interface_version: "1.0"
 layer: infrastructure
 provides: [event_source, durable_log, replay]
 env_vars: [KAFKA_BOOTSTRAP_SERVERS, KAFKA_CLIENT_ID]
@@ -41,6 +44,8 @@ docs: |
   instead for ≤10k events/sec workloads.
 tags: [queue, high-throughput, durable]
 when_to_load: "recipe declares queue.kafka"
+verification:
+  tier: T1
 ---
 
 # Capability: queue.kafka

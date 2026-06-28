@@ -1,6 +1,9 @@
 ---
 id: queue.redis-streams
 kind: queue
+implements:
+  port: queue
+  interface_version: "1.0"
 layer: infrastructure
 requires: [cache.redis]
 provides: [event_source]
@@ -23,6 +26,8 @@ docs: |
   step name covers both Kafka topics and Redis Streams consumer groups).
 tags: [queue, lightweight, redis]
 when_to_load: "recipe declares queue.redis-streams"
+verification:
+  tier: T1
 ---
 
 # Capability: queue.redis-streams
@@ -119,5 +124,5 @@ Same hosting story as `cache.redis`. Enable `appendonly yes` for stream persiste
 
 - [`stack/cache-redis.md`](../../stack/cache-redis.md) — Streams operations table, consumer code, DLQ pattern
 - [`capabilities/cache/redis.md`](../cache/redis.md) — sibling cache capability
-- [`vendored/blueprints/patterns/event_driven/overview.md`](../../../vendored/blueprints/patterns/event_driven/overview.md) — pattern this implements
+- [`patterns/event_driven/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md) — pattern this implements
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

@@ -51,5 +51,5 @@ LLM creates a multi-step plan upfront, then executes each step sequentially (re-
 ## See also
 
 - [`docs/recipes/code-review-agent.md`](../../recipes/code-review-agent.md) — recipe shipping this combo
-- [`vendored/blueprints/patterns/plan_and_execute/overview.md`](../../../vendored/blueprints/patterns/plan_and_execute/overview.md)
+- [`patterns/plan_and_execute/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md)
 - [`docs/capabilities/sandbox/e2b.md`](../../capabilities/sandbox/e2b.md)

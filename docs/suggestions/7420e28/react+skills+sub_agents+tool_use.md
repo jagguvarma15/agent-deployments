@@ -49,5 +49,5 @@ No fully-local mode wired yet. The Claude Agent SDK is Anthropic-bound; a `local
 ## See also
 
 - [`docs/recipes/claude-code-subagent.md`](../../recipes/claude-code-subagent.md) — the recipe shipping this combo
-- [`vendored/blueprints/primitives/sub_agents/overview.md`](../../../vendored/blueprints/primitives/sub_agents/overview.md), [`vendored/blueprints/primitives/skills/overview.md`](../../../vendored/blueprints/primitives/skills/overview.md)
+- [`primitives/sub_agents/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md), [`primitives/skills/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md)
 - [`docs/frameworks/claude-agent-sdk.md`](../../frameworks/claude-agent-sdk.md) `## MCP integration` — subagent + MCP wiring

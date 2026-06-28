@@ -24,6 +24,6 @@ Every recipe is a full-spec markdown blueprint with frontmatter that consumers (
 
 Anthropic Claude · Qdrant · Postgres 16 · Redis 7 · Langfuse · DeepEval/RAGAS/Promptfoo · MCP · docker-compose. See [docs/stack/](docs/stack/).
 
-## Vendored upstream
+## Upstream blueprints
 
-`vendored/blueprints/` is a SHA-pinned snapshot of agent-blueprints, refreshed by [vendir](https://carvel.dev/vendir/) on every upstream release. Never edit directly.
+The blueprints pattern catalog is kept as a SHA-pinned reference copy at `reference/blueprints/patterns-catalog.yaml`, refreshed on every upstream release; the generated `catalog.yaml` emits blueprint doc paths as `github.com/jagguvarma15/agent-blueprints` URLs that consumers resolve against their own checkout. Never edit the reference copy directly.

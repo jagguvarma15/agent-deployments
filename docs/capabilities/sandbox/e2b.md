@@ -1,6 +1,9 @@
 ---
 id: sandbox.e2b
 kind: sandbox
+implements:
+  port: sandbox
+  interface_version: "1.0"
 layer: agent
 provides: [code_execution, isolated_runtime]
 env_vars: [E2B_API_KEY]
@@ -22,6 +25,8 @@ docs: |
   scaffold prompts for the API key.
 tags: [sandbox, code-execution, hosted]
 when_to_load: "recipe declares sandbox.e2b"
+verification:
+  tier: T1
 ---
 
 # Capability: sandbox.e2b
@@ -105,5 +110,5 @@ pd.DataFrame({"a": [1,2,3]}).to_csv("/tmp/out.csv", index=False)
 ## See also
 
 - [`cross-cutting/security-hardening.md`](../../cross-cutting/security-hardening.md) — execution-isolation policy
-- [`vendored/blueprints/foundations/sandboxed-execution.md`](../../../vendored/blueprints/foundations/sandboxed-execution.md) — pattern-level guidance
+- [`foundations/sandboxed-execution.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/foundations/sandboxed-execution.md) — pattern-level guidance
 - [`playbook/troubleshoot-local-bringup.md`](../../playbook/troubleshoot-local-bringup.md) — cross-capability diagnostics

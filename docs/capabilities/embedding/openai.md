@@ -1,6 +1,9 @@
 ---
 id: embedding.openai
 kind: embedding
+implements:
+  port: embedding
+  interface_version: "1.0"
 layer: agent
 provides: [text_embeddings]
 env_vars: [OPENAI_API_KEY]
@@ -25,6 +28,8 @@ docs: |
   this stack remains Anthropic Claude.
 tags: [embeddings, openai, hosted]
 when_to_load: "recipe declares embedding.openai"
+verification:
+  tier: T1
 ---
 
 # Capability: embedding.openai

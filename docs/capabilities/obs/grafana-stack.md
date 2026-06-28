@@ -1,6 +1,9 @@
 ---
 id: obs.grafana-stack
 kind: obs
+implements:
+  port: obs
+  interface_version: "1.0"
 layer: observability
 provides: [metrics, tracing, dashboards, alerting]
 env_vars: [GRAFANA_URL, GRAFANA_ADMIN_PASSWORD, PROMETHEUS_URL, TEMPO_URL]
@@ -43,6 +46,8 @@ docs: |
   run as additional compose services via emit_files.
 tags: [observability, metrics, self-hosted]
 when_to_load: "recipe declares obs.grafana-stack"
+verification:
+  tier: T1
 ---
 
 # Capability: obs.grafana-stack

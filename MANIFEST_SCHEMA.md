@@ -12,54 +12,32 @@ uv run scripts/generate_catalog.py
 python scripts/generate_catalog.py
 ```
 
-The generator reads `patterns-catalog.yaml` and pattern docs from the **vendored snapshot** of agent-blueprints under [`vendored/blueprints/`](vendored/blueprints/). The vendored tree is managed by [`vendir.yml`](vendir.yml) and refreshed via the **release-driven** [`sync-blueprints.yml`](.github/workflows/sync-blueprints.yml) workflow: when upstream agent-blueprints publishes a release, its `notify-deployments.yml` workflow fires a `repository_dispatch` (`blueprints-release`) at this repo, the sync workflow pins `vendir.yml`'s `ref:` to the new tag, runs `vendir sync`, regenerates `catalog.yaml`, and opens a PR with the diff.
+The generator reads the blueprints `patterns-catalog.yaml` from a committed, SHA-pinned **reference copy** at [`reference/blueprints/patterns-catalog.yaml`](reference/blueprints/patterns-catalog.yaml) — kept in-repo so generation stays offline + deterministic. Blueprint *doc* paths (pattern/workflow/primitive/modifier overviews) are **not** vendored; the catalog emits them as GitHub URLs (`https://github.com/jagguvarma15/agent-blueprints/blob/main/<path>`) that the consumer resolves against its own directly-fetched blueprints checkout.
 
-Downstream consumers (agent-scaffold, third-party tools) therefore track tagged releases of agent-blueprints, not raw `main`. This matches standard open-source vendoring practice — pin to stable artifacts, never to a moving branch.
+The reference copy is refreshed via the **release-driven** [`sync-blueprints.yml`](.github/workflows/sync-blueprints.yml) workflow: when upstream agent-blueprints publishes a release, its `notify-deployments.yml` workflow fires a `repository_dispatch` (`blueprints-release`) at this repo, the sync workflow fetches the released `patterns-catalog.yaml` into the reference copy, regenerates `catalog.yaml`, and opens a PR with the diff. Downstream consumers therefore track tagged releases of agent-blueprints, not raw `main`.
 
-For local development against an unmerged blueprints branch:
-
-```bash
-# Edit vendir.yml temporarily to point at the branch, then:
-vendir sync
-uv run scripts/generate_catalog.py
-```
-
-Or pass an explicit local path override:
+For local development against an unmerged blueprints branch, pass an explicit override (URL or local path):
 
 ```bash
 uv run scripts/generate_catalog.py \
   --blueprints-catalog-url file:///path/to/agent-blueprints/patterns-catalog.yaml
 ```
 
-The generator is deterministic: same source files + same vendored content → byte-identical output. Drift CI ([`catalog-drift.yml`](.github/workflows/catalog-drift.yml)) gates any PR by checking BOTH that `vendored/blueprints/` matches `vendir sync` output AND that `catalog.yaml` matches the generator output.
+The generator is deterministic: same source files + same reference catalog → byte-identical output. Drift CI ([`catalog-drift.yml`](.github/workflows/catalog-drift.yml)) gates any PR by checking that `catalog.yaml` matches the generator output.
 
-## Vendored tree layout
+## Blueprints reference
 
-The vendored snapshot is upstream-owned. Never edit files under `vendored/blueprints/` directly — edit upstream `agent-blueprints`, cut a release there, and let the sync workflow pull the new release in via `vendir`.
+Only the blueprints **catalog** is committed in-repo, under `reference/blueprints/`; the blueprint doc bodies live upstream and are referenced by URL. Never hand-edit the reference catalog — edit upstream `agent-blueprints`, cut a release there, and let the sync workflow pull the new release's catalog in.
 
 ```
-vendored/blueprints/
-├── patterns/                # 11 cognitive patterns (underscore ids: react, rag,
-│   ├── react/                 event_driven, multi_agent, plan_and_execute, …)
-│   │   ├── overview.md      #   Tier 1
-│   │   ├── design.md        #   Tier 2
-│   │   ├── implementation.md#   Tier 3
-│   │   ├── evolution.md     #   How this pattern grew from simpler ones
-│   │   ├── observability.md #   What to trace
-│   │   ├── cost-and-latency.md
-│   │   ├── metadata.json    #   Machine-readable descriptor
-│   │   ├── prompts/         #   Example prompt templates
-│   │   └── schemas/         #   Example input/output schemas
-│   └── …
-├── workflows/               # 4 workflow patterns (hyphen ids: prompt-chaining,
-│   └── …                      parallel-calls, orchestrator-worker, evaluator-optimizer)
-├── foundations/             # Anatomy, terminology, choosing-a-pattern, …
-├── composition/             # blueprints-to-deployments, combination-matrix, …
-├── patterns-catalog.yaml    # Embedded by generate_catalog.py
-├── PATTERNS_CATALOG_SCHEMA.md
-├── README.md
-└── LICENSE
+reference/blueprints/
+└── patterns-catalog.yaml    # SHA-pinned copy of upstream agent-blueprints'
+                             # patterns-catalog.yaml; embedded by
+                             # generate_catalog.py. The only blueprints
+                             # artifact committed in this repo.
 ```
+
+Blueprint doc bodies (`patterns/<id>/overview.md`, `workflows/<id>/overview.md`, `primitives/…`, `modifiers/…`, `foundations/…`) are **not** committed. The catalog enumerates them as GitHub URLs under `pattern_docs[]` / `primitive_docs[]` / `modifier_docs[]`; the consumer fetches them from its own blueprints checkout on demand.
 
 ### Naming canon
 
@@ -67,7 +45,7 @@ Pattern ids use **underscore** form (matches upstream blueprints, matches the em
 
 Workflow ids use **hyphen** form: `prompt-chaining`, `parallel-calls`, `orchestrator-worker`, `evaluator-optimizer`.
 
-Recipes' `agent_pattern:` frontmatter field uses these canonical ids. The `aliases` block in `catalog.yaml` provides backward-compat for old kebab-case names (`event-driven`, `multi-agent-flat`) that map to the same vendored overview.md file.
+Recipes' `agent_pattern:` frontmatter field uses these canonical ids. The `aliases` block in `catalog.yaml` provides backward-compat for old kebab-case names (`event-driven`, `multi-agent-flat`) that map to the same blueprint overview.md URL.
 
 ## Top-level shape
 
@@ -108,13 +86,15 @@ compositions:   [...]    # cross-pattern composition edges from blueprints' matr
 
 # This repo's own content.
 recipes:        [...]    # docs/recipes/*.md frontmatter aggregated (+ auto-derived env_contract)
-capabilities:   [...]    # docs/capabilities/<kind>/*.md frontmatter aggregated
+capabilities:   [...]    # docs/capabilities/<kind>/*.md frontmatter aggregated (the port-typed adapters)
+ports:          [...]    # docs/ports/*.md — abstract port contracts capabilities bind to
+compatibility:  [...]    # derived feature-model edges (requires / substitutes) across adapters
 frameworks:     [...]    # docs/frameworks/*.md frontmatter aggregated
 stack:          [...]    # paths only — docs/stack/*.md
 cross_cutting_docs: [...]  # paths only — docs/cross-cutting/*.md
-pattern_docs:   [...]    # vendored/blueprints/{patterns,workflows}/<id>/overview.md
-primitive_docs: [...]    # vendored/blueprints/primitives/<id>/overview.md
-modifier_docs:  [...]    # vendored/blueprints/modifiers/<id>/overview.md
+pattern_docs:   [...]    # GitHub URLs — blueprints {patterns,workflows}/<id>/overview.md
+primitive_docs: [...]    # GitHub URLs — blueprints primitives/<id>/overview.md
+modifier_docs:  [...]    # GitHub URLs — blueprints modifiers/<id>/overview.md
 
 # Stack-pick recommendations scoped to the current upstream blueprints release.
 # Exactly one blueprints_version's worth of combo files exists on disk at any
@@ -259,7 +239,7 @@ Optional per-load_list-entry enum (`hot` | `warm` | `dynamic`) telling consumers
 
 | Path pattern | Default tier | Rationale |
 |---|---|---|
-| `vendored/blueprints/**` | `hot` | Pattern overviews are stable across many requests. |
+| blueprint doc URLs (`.../agent-blueprints/...`) | `hot` | Pattern overviews are stable across many requests. |
 | `frameworks/**` | `hot` | Framework guides change at release cadence. |
 | `stack/**` | `hot` | Stack docs (llm-claude, api-fastapi, etc.) are foundational. |
 | `cross-cutting/project-layout.md` | `hot` | The canonical project layout is consumed by every recipe. |
@@ -411,8 +391,17 @@ These five fields are additive at the v1 schema and ignored cleanly by older sca
 | `docker_service` | string | no | Lifted from `docker.service` in frontmatter — the most commonly-needed nested field. |
 | `bootstrap_step` | string | no | Name of the orchestrator step that provisions this capability. |
 | `probe` | string | no | Name of the health-probe routine. |
+| `implements` | object | no | Port-typing: `{port: <kind>, interface_version}`. Declares which port contract this adapter satisfies (`port == kind`). See `### ports[]`. |
+| `provides` | string[] | no | Canonical capability flags this adapter advertises (e.g. `embeddings_store`, `runtime_key_capture`). Feature-model constraints reference these. |
+| `requires` | string[] | no | Other capability ids (or flags) this adapter needs. Also denormalized into `compatibility[]` as `requires` edges. |
+| `excludes` | string[] | no | Ids / flags / ports that cannot co-occur with this adapter (hard incompatibility). |
+| `conflicts` | string[] | no | Soft incompatibilities — a consumer warns rather than hard-fails. |
+| `parameters` | object | no | JSON-Schema-style parameter block (type / properties / defaults) folding the adapter's ad-hoc config knobs. |
+| `verification` | object | no | Verification floor: `{tier: T1\|T2\|T3+, …}`. See `### Verification tiers`. |
 
 The full capability spec (Docker fragment, ports, volumes, healthcheck, etc.) stays in the source markdown's frontmatter; consumers can fetch the source file when they need the deeper detail. The catalog surfaces just enough to make discovery and `docker_service` lookup cheap.
+
+These port-typing fields are **additive** — they layer on top of the existing `kind` / `id` scheme without changing it. Deployed scaffold ignores them (`extra: ignore`); the future scaffold resolver consumes them to choose a valid, verified configuration.
 
 #### Capability kinds
 
@@ -429,6 +418,54 @@ The 2026-SOTA cohort lands without bumping `schema_version` because:
 - Each kind is a free string in the catalog; older consumers ignore unknown values via `unresolved`.
 - New optional recipe fields (`mcp_servers`, `skills`, `guardrails`, `sandbox`, `durable_workflow`) parse via `extra: ignore` on Pydantic `RecipeEntry`.
 - The provisioning order is encoded in scaffold-side `LAYER_ORDER`, not the catalog.
+
+### `ports[]` (the abstract contracts adapters bind to)
+
+A **port** is the abstract contract a set of interchangeable adapters satisfy — the selection axis the consumer chooses *one* (or a bounded set) of. Ports mirror the blueprints kernel IR: the IR protocols (`model`, `tools`, `memory`, `runtime`, `agents`), the cross-cutting concerns (`obs`, `eval`, `guardrail`), and the deploy axes (`framework`, `api_layer`, `frontend`, `host`, `auth`, `core`). Source: `docs/ports/<id>.md`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string | Port identifier (e.g. `vector_db`, `model`, `eval`). |
+| `protocol` | enum | Present for IR-backed ports — one of `model` / `tools` / `memory` / `runtime` / `agents`. Mirrors `ir.schema.json`. |
+| `concern` | enum | Present for cross-cutting ports — one of `observability` / `guardrails` / `budgets` / `context_assembly` / `eval`. |
+| `path` | string | Repo-root-relative path to the port doc. |
+| `required` | bool | Whether a valid configuration must bind this port. |
+| `cardinality` | enum | `one` (XOR — exactly one adapter), `optional` (zero or one), or `many` (any number). |
+| `default` | string \| null | Adapter id auto-selected when the port is unbound (`null` when there is no single sensible default). |
+| `interface_version` | string | Port contract version adapters declare compatibility with. |
+| `kinds` | string[] | Capability `kind`s that bind to this port (the bridge to the adapter taxonomy). |
+| `adapter_home` | string | Where adapters for this port live (`capabilities` / `stack` / `frameworks`). Absent for pattern-level ports. |
+
+Validated fail-closed by the generator: every `protocol` / `concern` must be one of the IR enums above, so a typo can't reach consumers.
+
+### `compatibility[]` (the materialized feature model)
+
+A flat, denormalized list of the cross-adapter relations a resolver reasons over — derived by the generator from per-adapter `requires` / `excludes` / `conflicts` plus same-port alternative groups. **Distinct from `compositions[]`** (the blueprints pattern×pattern matrix); this key is deployment-side and never feeds an existing consumer `Literal`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `a` | string | First adapter id. |
+| `b` | string | Second adapter id. |
+| `relation` | enum | `requires` (a needs b), `excludes` (hard), `conflicts` (soft), or `substitutes` (a and b are alternatives for the same port). |
+| `via` | string | Optional provenance — e.g. `port:eval` for same-port substitutes, or the flag/port that induced the edge. Absent on plain `requires` edges. |
+
+```yaml
+compatibility:
+  - {a: durable.temporal, b: relational.postgres, relation: requires}
+  - {a: eval.deepeval, b: eval.promptfoo, relation: substitutes, via: "port:eval"}
+```
+
+Resolution (documented here; executed by the future scaffold resolver): propagate the `requires` closure → default-fill unbound required / exactly-one ports from `ports[].default` → validate cardinality + `excludes` / `conflicts`. It is a feature-model walk, not a SAT solver (a SAT/soundness pass lives offline in `scripts/`).
+
+### Verification tiers
+
+Each adapter declares a `verification.tier` on a pragmatic floor:
+
+| Tier | Meaning |
+|---|---|
+| `T1` | Pinned versions declared + human-reviewed. |
+| `T2` | T1 + lockfile + the adapter's templates build & smoke green in CI (default-eligible). |
+| `T3+` | Aspirational: cosign signature + SBOM + SLSA provenance. Documented, not required for v1. |
 
 ### `frameworks[]`
 
@@ -452,7 +489,7 @@ def normalize(entry):
     return entry if isinstance(entry, dict) else {"path": entry}
 ```
 
-The three blueprint-side lists (`pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`) remain plain string arrays — they enumerate `vendored/blueprints/<cohort>/<id>/overview.md` paths and don't carry deployment-side frontmatter. `pattern_docs[]` covers both `patterns/` and `workflows/` for back-compat with older consumers that walked one combined list.
+The three blueprint-side lists (`pattern_docs[]`, `primitive_docs[]`, `modifier_docs[]`) remain plain string arrays — they enumerate blueprints `<cohort>/<id>/overview.md` GitHub URLs and don't carry deployment-side frontmatter. `pattern_docs[]` covers both `patterns/` and `workflows/` for back-compat with older consumers that walked one combined list.
 
 ### `suggestions` (per-combo stack recommendations)
 
@@ -483,14 +520,14 @@ suggestions:
 
 #### Directory-naming convention
 
-The `<blueprints-version>/` directory name matches the upstream pin recorded in [`vendir.lock.yml`](vendir.lock.yml). Today that resolves to the **7-character commit SHA** of the synced `agent-blueprints` ref (e.g. `dfd824d`); future syncs against a tagged release will use the tag name (`v0.4.0`). The `.github/workflows/sync-blueprints.yml` workflow purges the prior `<version>/` directory when bumping the upstream pin, keeping the single-version invariant on disk.
+The `<blueprints-version>/` directory name matches the upstream pin recorded in [`reference/blueprints/patterns-catalog.yaml`](reference/blueprints/patterns-catalog.yaml). Today that resolves to the **7-character content hash** of the pinned `agent-blueprints` catalog (e.g. `7420e28`); a future sync against a tagged release could use the tag name (`v0.4.0`). The `.github/workflows/sync-blueprints.yml` workflow purges the prior `<version>/` directory when bumping the upstream pin, keeping the single-version invariant on disk.
 
 #### Emitted fields
 
 | Field | Type | Notes |
 |---|---|---|
 | `blueprints_version` | string | Mirrors the single `docs/suggestions/<version>/` directory name; `null` only when no version dir exists yet (post-purge waiting state). |
-| `description` | string | One-line cohort framing. Interpolates `blueprints_version` when set, falls back to a generic "pinned in vendir.lock.yml" wording when no version dir exists yet. |
+| `description` | string | One-line cohort framing. Interpolates `blueprints_version` when set, falls back to a generic "pinned in reference/blueprints/patterns-catalog.yaml" wording when no version dir exists yet. |
 | `readme_path` | string | Repo-root-relative path to the cohort README (`docs/suggestions/README.md`). Omitted if the README is absent. |
 | `combos[]` | list | One entry per combo markdown under `docs/suggestions/<version>/*.md` (excluding `README.md` and `SCHEMA.md`). |
 

@@ -49,4 +49,4 @@ Linear N-step pipeline shape — each step's output is the next step's input, wi
 ## See also
 
 - [`docs/recipes/content-pipeline.md`](../../recipes/content-pipeline.md) — recipe shipping this combo
-- [`vendored/blueprints/patterns/prompt-chaining/overview.md`](../../../vendored/blueprints/patterns/prompt-chaining/overview.md) — pattern overview
+- [`patterns/prompt-chaining/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md) — pattern overview

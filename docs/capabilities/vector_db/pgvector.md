@@ -1,6 +1,9 @@
 ---
 id: vector_db.pgvector
 kind: vector_db
+implements:
+  port: vector_db
+  interface_version: "1.0"
 layer: data
 requires: [relational.postgres]
 bootstrap_inputs:
@@ -27,6 +30,8 @@ docs: |
   optional table + ivfflat index.
 tags: [vector-search, retrieval, postgres-native]
 when_to_load: "recipe declares vector_db.pgvector"
+verification:
+  tier: T1
 ---
 
 # Capability: vector_db.pgvector

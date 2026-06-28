@@ -15,16 +15,16 @@ What it does (in order):
 1. Walks ``docs/recipes/*.md``, ``docs/capabilities/**/*.md``,
    ``docs/frameworks/*.md``, ``docs/stack/*.md``, ``docs/cross-cutting/*.md``.
    Parses each file's YAML frontmatter via PyYAML.
-2. Reads ``patterns-catalog.yaml`` from the **vendored snapshot** of
-   agent-blueprints at ``vendored/blueprints/patterns-catalog.yaml``. The
-   vendored tree is managed by ``vendir`` (see ``vendir.yml``). Extracts
+2. Reads ``patterns-catalog.yaml`` from the committed, SHA-pinned reference
+   copy of agent-blueprints at ``reference/blueprints/patterns-catalog.yaml``
+   (refreshed on a blueprints release by ``sync-blueprints.yml``). Extracts
    its ``patterns[]``, ``workflows[]``, and ``compositions[]`` blocks and
    embeds them. Override the source via ``--blueprints-catalog-url`` for
    local iteration against an unmerged blueprints branch.
-3. Enumerates ``pattern_docs[]`` from the vendored tree:
-   ``vendored/blueprints/patterns/<id>/overview.md`` (one per pattern) and
-   ``vendored/blueprints/workflows/<id>/overview.md`` (one per workflow).
-   The previous lighter mirror at ``docs/patterns/*.md`` has been retired.
+3. Enumerates ``pattern_docs[]`` as GitHub URLs derived from the reference
+   catalog's cohort entries (``patterns``/``workflows``/``primitives``/
+   ``modifiers``). The consumer (agent-scaffold) resolves these against its
+   own directly-fetched blueprints checkout; no vendored tree is committed.
 4. Reads ``scripts/_seed_aliases.yaml`` for the v1 alias / cross-cutting /
    non-recipe-stems / min-alias-length blocks. (v1.1 will move alias data
    into per-doc frontmatter.)
@@ -50,8 +50,7 @@ Determinism notes:
 
 Local development:
 
-    # Default: read from vendored/blueprints/patterns-catalog.yaml. To pull
-    # newer upstream content, run `vendir sync` first.
+    # Default: read the committed reference/blueprints/patterns-catalog.yaml.
     python scripts/generate_catalog.py
 
     # Run against an unmerged blueprints branch URL:
@@ -122,8 +121,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_ROOT = REPO_ROOT / "docs"
 SUGGESTIONS_ROOT = DOCS_ROOT / "suggestions"
 
-VENDORED_BLUEPRINTS_DIR = REPO_ROOT / "vendored" / "blueprints"
-DEFAULT_BLUEPRINTS_CATALOG_URL = str(VENDORED_BLUEPRINTS_DIR / "patterns-catalog.yaml")
+# Blueprints is referenced directly (no vendir vendoring): the catalog is read
+# from a committed, SHA-pinned reference copy (keeps the build offline +
+# deterministic), and doc paths are emitted as GitHub URLs that the consumer
+# (agent-scaffold) resolves against its own directly-fetched blueprints checkout.
+REFERENCE_BLUEPRINTS_DIR = REPO_ROOT / "reference" / "blueprints"
+BLUEPRINTS_DOC_URL_BASE = "https://github.com/jagguvarma15/agent-blueprints/blob/main/"
+DEFAULT_BLUEPRINTS_CATALOG_URL = str(REFERENCE_BLUEPRINTS_DIR / "patterns-catalog.yaml")
 
 # ---------------------------------------------------------------------------
 # Bootstrap-sequencing contract. Every capability declares which layer it
@@ -258,11 +262,11 @@ ADVERTISED_PROVIDERS: dict[str, tuple[str, str]] = {
     "cohere": ("rerank.cohere", "cohere"),
     "zep": ("memory_store.zep", "zep"),
 }
-"""Default source for the blueprints catalog. Reads the vendored snapshot at
-``vendored/blueprints/patterns-catalog.yaml``. The vendored tree is managed
-by ``vendir`` (see ``vendir.yml``). Override via ``--blueprints-catalog-url``
-to point at a URL or a different local path when iterating against an
-unmerged upstream branch."""
+"""Default source for the blueprints catalog. Reads the committed, SHA-pinned
+reference copy at ``reference/blueprints/patterns-catalog.yaml`` (refreshed on
+a blueprints release by ``sync-blueprints.yml``). Override via
+``--blueprints-catalog-url`` to point at a URL or a different local path when
+iterating against an unmerged upstream branch."""
 
 DEFAULT_BLUEPRINTS_REPO = "jagguvarma15/agent-blueprints"
 DEFAULT_BLUEPRINTS_BRANCH = "main"
@@ -275,6 +279,12 @@ CAPABILITY_GLOB = ("capabilities", "*", "*.md")
 FRAMEWORK_GLOB = ("frameworks", "*.md")
 STACK_GLOB = ("stack", "*.md")
 CROSS_CUTTING_GLOB = ("cross-cutting", "*.md")
+PORT_GLOB = ("ports", "*.md")
+
+# Port protocol/concern vocabularies — mirror the blueprints kernel IR
+# (core/spec/ir.schema.json $defs.port.protocol / $defs.cross_cutting.concern).
+PORT_PROTOCOLS = frozenset({"model", "tools", "memory", "runtime", "agents"})
+PORT_CONCERNS = frozenset({"observability", "guardrails", "budgets", "context_assembly", "eval"})
 
 # Frontmatter regex matches identical to scaffold's discovery.py:_parse_frontmatter
 # so the generator and the consumer agree on what counts as frontmatter.
@@ -321,24 +331,25 @@ def first_h1(text: str) -> str | None:
 def default_cache_tier(load_path: str) -> str:
     """Path-based default for ``recipes[].load_list[].cache_tier``.
 
-    Load_list paths are recipe-relative (``../../vendored/...``,
-    ``../frameworks/...``, ``../stack/...``). Strip leading ``./`` and
-    ``../`` segments to a canonical form, then bucket by directory.
+    Load_list paths are recipe-relative (``../frameworks/...``,
+    ``../stack/...``) or absolute GitHub URLs for blueprint docs. Strip
+    leading ``./`` and ``../`` segments to a canonical form, then bucket by
+    directory.
 
     Defaults:
-      - ``vendored/blueprints/**`` → hot
+      - blueprint doc URLs (``.../agent-blueprints/...``) → hot
       - ``frameworks/**``, ``stack/**``, ``cross-cutting/project-layout.md`` → hot
       - ``cross-cutting/**`` (other), ``capabilities/**`` → warm
       - ``recipes/**`` (recipe body) → warm
       - Anything not matched → dynamic
     """
+    if "/agent-blueprints/" in load_path:
+        return "hot"
     p = load_path
     while p.startswith("./"):
         p = p[2:]
     while p.startswith("../"):
         p = p[3:]
-    if p.startswith("vendored/blueprints/"):
-        return "hot"
     if p.startswith("frameworks/") or p.startswith("stack/"):
         return "hot"
     if p == "cross-cutting/project-layout.md":
@@ -496,6 +507,21 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
             entry["tags"] = fm["tags"]
         if "when_to_load" in fm:
             entry["when_to_load"] = fm["when_to_load"]
+        # Port-typed registry fields (additive). `provides` is the canonical
+        # capability-flag set the feature model references — revived here (it was
+        # previously parsed but dropped). The rest land as adapters are migrated.
+        if "provides" in fm:
+            entry["provides"] = fm["provides"]
+        if "implements" in fm:
+            entry["implements"] = fm["implements"]
+        if "excludes" in fm:
+            entry["excludes"] = fm["excludes"]
+        if "conflicts" in fm:
+            entry["conflicts"] = fm["conflicts"]
+        if "parameters" in fm:
+            entry["parameters"] = fm["parameters"]
+        if "verification" in fm:
+            entry["verification"] = fm["verification"]
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
@@ -527,6 +553,135 @@ def collect_frameworks(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
+
+
+def collect_ports(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
+    """Build the ports[] block from docs/ports/*.md frontmatter.
+
+    Ports are the abstract contracts adapters bind to (via ``implements:``);
+    their protocol/concern values mirror the blueprints kernel IR
+    (core/spec/ir.schema.json).
+    """
+    out: list[dict[str, Any]] = []
+    for path in iter_files(PORT_GLOB, non_recipe_stems):
+        text = path.read_text(encoding="utf-8")
+        fm, _ = parse_frontmatter(text)
+        if not fm or "id" not in fm:
+            continue
+        entry: dict[str, Any] = OrderedDict()
+        entry["id"] = fm["id"]
+        if "protocol" in fm:
+            entry["protocol"] = fm["protocol"]
+        if "concern" in fm:
+            entry["concern"] = fm["concern"]
+        entry["path"] = str(path.relative_to(REPO_ROOT).as_posix())
+        for key in ("required", "cardinality", "default", "interface_version", "kinds", "adapter_home"):
+            if key in fm:
+                entry[key] = fm[key]
+        out.append(entry)
+    out.sort(key=lambda e: e["id"])
+    return out
+
+
+def validate_ports(ports: list[dict[str, Any]]) -> None:
+    """Fail closed if a port's protocol/concern leaves the kernel IR vocabulary."""
+    errors: list[str] = []
+    for p in ports:
+        proto, concern = p.get("protocol"), p.get("concern")
+        if proto and proto not in PORT_PROTOCOLS:
+            errors.append(f"port {p['id']}: protocol '{proto}' not in {sorted(PORT_PROTOCOLS)}")
+        if concern and concern not in PORT_CONCERNS:
+            errors.append(f"port {p['id']}: concern '{concern}' not in {sorted(PORT_CONCERNS)}")
+        if proto and concern:
+            errors.append(f"port {p['id']}: declares both protocol and concern; pick one")
+    if errors:
+        raise SystemExit("Port validation failed:\n  " + "\n  ".join(errors))
+
+
+def build_compatibility(capabilities: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Denormalize per-adapter edges into a flat, deterministic compatibility matrix.
+
+    Edges: requires / excludes / conflicts from adapter fields, plus 'substitutes'
+    for adapters that implement the same port (the same alternative-group). This is
+    the feature-model data the scaffold resolver consumes; it is deliberately NOT
+    compositions[] (the blueprints pattern x pattern matrix, a different namespace
+    with a strict consumer Literal).
+    """
+    edges: list[dict[str, Any]] = []
+    by_port: dict[str, list[str]] = {}
+    for cap in capabilities:
+        cid = cap["id"]
+        impl = cap.get("implements") or {}
+        port = impl.get("port")
+        if port:
+            by_port.setdefault(port, []).append(cid)
+        for dep in cap.get("requires") or []:
+            edges.append(OrderedDict([("a", cid), ("b", dep), ("relation", "requires")]))
+        for ex in cap.get("excludes") or []:
+            edges.append(OrderedDict([("a", cid), ("b", ex), ("relation", "excludes")]))
+        for cf in cap.get("conflicts") or []:
+            edges.append(OrderedDict([("a", cid), ("b", cf), ("relation", "conflicts")]))
+    for port, ids in by_port.items():
+        ordered = sorted(ids)
+        for i in range(len(ordered)):
+            for j in range(i + 1, len(ordered)):
+                edges.append(
+                    OrderedDict(
+                        [("a", ordered[i]), ("b", ordered[j]), ("relation", "substitutes"), ("via", f"port:{port}")]
+                    )
+                )
+    edges.sort(key=lambda e: (e["a"], e["b"], e["relation"]))
+    return edges
+
+
+def derive_recipe_bindings(
+    recipes: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
+    ports: list[dict[str, Any]],
+) -> None:
+    """Derive each recipe's port -> adapter bindings from its capabilities[] and
+    sanity-check the selection against the feature model (port cardinality).
+
+    Additive: sets recipe['bindings']; authored fields are untouched. Cardinality
+    violations warn (they do not fail the build) during the migration window.
+    """
+    cap_port = {c["id"]: (c.get("implements") or {}).get("port") for c in capabilities}
+    port_card = {p["id"]: p.get("cardinality", "one") for p in ports}
+    for r in recipes:
+        grouped: dict[str, list[str]] = {}
+        for cid in r.get("capabilities") or []:
+            port = cap_port.get(cid)
+            if port:
+                grouped.setdefault(port, []).append(cid)
+        if not grouped:
+            continue
+        for port, ids in grouped.items():
+            if port_card.get(port) == "one" and len(ids) > 1:
+                print(
+                    f"warning: recipe '{r['slug']}': port '{port}' is exactly-one but binds {ids}",
+                    file=sys.stderr,
+                )
+        r["bindings"] = OrderedDict(
+            (port, ids[0] if (port_card.get(port) == "one" and len(ids) == 1) else sorted(ids))
+            for port, ids in sorted(grouped.items())
+        )
+
+
+def fill_port_defaults(ports: list[dict[str, Any]], capabilities: list[dict[str, Any]]) -> None:
+    """Auto-derive a port's default adapter when exactly one adapter implements it
+    and no default is authored. Multi-adapter ports keep their authored default
+    (or null — the suggestions layer recommends a default per combo)."""
+    impls: dict[str, list[str]] = {}
+    for c in capabilities:
+        port = (c.get("implements") or {}).get("port")
+        if port:
+            impls.setdefault(port, []).append(c["id"])
+    for p in ports:
+        if p.get("default"):
+            continue
+        candidates = sorted(impls.get(p["id"], []))
+        if len(candidates) == 1:
+            p["default"] = candidates[0]
 
 
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
@@ -566,37 +721,28 @@ def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -
     return out
 
 
-def collect_pattern_docs() -> list[str]:
-    """Enumerate vendored blueprint cohort overviews for the catalog's
+def collect_pattern_docs(blueprints_catalog: dict[str, Any]) -> list[str]:
+    """Enumerate blueprint cohort overviews for the catalog's
     ``pattern_docs[]``, ``primitive_docs[]``, and ``modifier_docs[]`` lists.
 
-    Returns one flat sorted list keyed off the four cohort dirs
-    (``patterns/``, ``workflows/``, ``primitives/``, ``modifiers/``); callers
-    bucket the result into per-cohort fields. Used by scaffold's alias
-    resolver to convert prose mentions ("ReAct", "memory", …) to a vendored
-    path.
-
-    Replaces the previous enumeration of ``docs/patterns/*.md`` (the lighter
-    mirror that has been retired in favor of the vendored canonical content).
+    Derives one flat sorted list of GitHub URLs from the reference catalog's
+    four cohort blocks (``patterns``, ``workflows``, ``primitives``,
+    ``modifiers``); callers bucket the result into per-cohort fields. Used by
+    scaffold's alias resolver to convert prose mentions ("ReAct", "memory", …)
+    to a blueprint doc URL, which scaffold resolves against its own fetched
+    blueprints checkout.
     """
-    if not VENDORED_BLUEPRINTS_DIR.is_dir():
-        print(
-            "warning: vendored/blueprints/ not present — run `vendir sync`",
-            file=sys.stderr,
-        )
-        return []
     out: list[str] = []
-    for cohort_dir in ("patterns", "workflows", "primitives", "modifiers"):
-        cohort_root = VENDORED_BLUEPRINTS_DIR / cohort_dir
-        if not cohort_root.is_dir():
-            continue
-        for entry in sorted(cohort_root.iterdir()):
-            if not entry.is_dir():
-                continue
-            overview = entry / "overview.md"
-            if overview.is_file():
-                out.append(str(overview.relative_to(REPO_ROOT).as_posix()))
-    return out
+    for cohort in ("patterns", "workflows", "primitives", "modifiers"):
+        for entry in blueprints_catalog.get(cohort) or []:
+            tier_files = entry.get("tier_files") or {}
+            overview = tier_files.get("overview")
+            if not overview:
+                d = entry.get("dir")
+                overview = f"{d}/overview.md" if d else None
+            if overview:
+                out.append(BLUEPRINTS_DOC_URL_BASE + overview)
+    return sorted(set(out))
 
 
 def _host_port(binding: Any) -> str | None:
@@ -802,7 +948,11 @@ def validate_recipe_references(
                 # gets caught — fail CLOSED here. Paths are recipe-relative.
                 rel = item.get("path")
                 if recipe_dir is not None and isinstance(rel, str) and rel:
-                    if not (recipe_dir / rel).resolve().exists():
+                    # Blueprint docs are referenced as GitHub URLs (no vendoring);
+                    # the consumer resolves them against its own blueprints checkout,
+                    # so skip the on-disk check for them. Local paths still fail closed.
+                    is_blueprint_url = rel.startswith("https://") and "/agent-blueprints/" in rel
+                    if not is_blueprint_url and not (recipe_dir / rel).resolve().exists():
                         errors.append(
                             f"{path}: load_list[{i}].path {rel!r} does not resolve "
                             f"to a file on disk"
@@ -1244,8 +1394,8 @@ def collect_suggestions() -> dict[str, Any]:
     out["blueprints_version"] = None
     out["description"] = (
         "Per-combo stack recommendations scoped to the upstream blueprints "
-        "version pinned in vendir.lock.yml. One file per pattern × primitives "
-        "× modifiers combination."
+        "version pinned in reference/blueprints/patterns-catalog.yaml. One file "
+        "per pattern × primitives × modifiers combination."
     )
     readme_candidate = SUGGESTIONS_ROOT / "README.md"
     if readme_candidate.is_file():
@@ -1400,6 +1550,11 @@ def build_catalog(
     # This repo's own content.
     catalog["recipes"] = collect_recipes(non_recipe_stems)
     catalog["capabilities"] = collect_capabilities(non_recipe_stems)
+    catalog["ports"] = collect_ports(non_recipe_stems)
+    validate_ports(catalog["ports"])
+    fill_port_defaults(catalog["ports"], catalog["capabilities"])
+    catalog["compatibility"] = build_compatibility(catalog["capabilities"])
+    derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)
@@ -1408,7 +1563,7 @@ def build_catalog(
     # scaffold versions look for the flat pattern_docs[] (kept populated with
     # patterns + workflows for back-compat); newer consumers can use the more
     # granular siblings.
-    all_overviews = collect_pattern_docs()
+    all_overviews = collect_pattern_docs(blueprints_catalog)
     catalog["pattern_docs"] = sorted(
         p for p in all_overviews if "/patterns/" in p or "/workflows/" in p
     )

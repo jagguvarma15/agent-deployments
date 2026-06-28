@@ -13,19 +13,19 @@ This is the **stack-decision** layer. After you've picked a cognitive pattern fr
 
 ## The contract you parse
 
-[`catalog.yaml`](catalog.yaml) at this repo's root. One URL, one file. Everything else (recipes, capabilities, frameworks, the vendored blueprints tree) is reachable through it.
+[`catalog.yaml`](catalog.yaml) at this repo's root. One URL, one file. Everything else (recipes, capabilities, frameworks, the embedded blueprints catalog) is reachable through it.
 
 | Top-level key | Shape | Use it to |
 |---|---|---|
 | `schema_version` | int | Refuse to parse if higher than your declared max. |
-| `blueprints` | object | Resolve recipe-body URLs back to vendored paths. |
+| `blueprints` | object | Resolve recipe-body references to upstream blueprint doc URLs. |
 | `patterns[]` / `primitives[]` / `modifiers[]` | embedded from upstream | Validate recipe id references. |
 | `workflows[]` | derived view | Compat for older consumers; same ids as patterns where `category=workflow`. |
 | `compositions[]` | embedded from upstream | Discover allowed pattern combinations. |
 | `recipes[]` | this repo | The agents you can scaffold. |
 | `capabilities[]` | this repo | Infrastructure pieces a recipe needs. |
 | `frameworks[]` / `stack[]` / `cross_cutting_docs[]` | this repo | Doc paths to include in context. |
-| `pattern_docs[]` / `primitive_docs[]` / `modifier_docs[]` | vendored overview paths | Alias resolver target. |
+| `pattern_docs[]` / `primitive_docs[]` / `modifier_docs[]` | upstream overview URLs | Alias resolver target. |
 | `aliases` / `cross_cutting` | maps | Prose-token → path lookup. |
 | `non_recipe_stems` / `min_alias_length` | hints | Filtering knobs. |
 
@@ -66,7 +66,7 @@ primitives: [tool_use, memory]    # zero or more from catalog.primitives[]
 modifiers: [human_in_the_loop]    # zero or more from catalog.modifiers[]
 ```
 
-This mirrors the upstream taxonomy in agent-blueprints. The picker is described in [`vendored/blueprints/foundations/choosing-a-pattern.md`](vendored/blueprints/foundations/choosing-a-pattern.md).
+This mirrors the upstream taxonomy in agent-blueprints. The picker is described in [`foundations/choosing-a-pattern.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/foundations/choosing-a-pattern.md).
 
 ## Capability kinds
 
@@ -81,7 +81,7 @@ Unknown kinds should degrade gracefully (surface as `unresolved` rather than rai
 
 Track tagged releases of this repo. The catalog is republished on every release. Between releases, you can fetch the live `catalog.yaml` from `main` if your tool needs the newest content, but production consumers should pin.
 
-The vendored agent-blueprints tree is itself pinned to a release tag of that repo — see `vendir.yml`. This repo's release cadence drives the freshness of the blueprints content downstream consumers see.
+The blueprints catalog embedded here is generated from a SHA-pinned reference copy at `reference/blueprints/patterns-catalog.yaml`, refreshed on each upstream release. This repo's release cadence drives the freshness of the blueprints content downstream consumers see.
 
 ## Reading further
 
@@ -89,4 +89,4 @@ The vendored agent-blueprints tree is itself pinned to a release tag of that rep
 - [`MANIFEST_SCHEMA.md`](MANIFEST_SCHEMA.md) — full catalog field reference.
 - [`docs/recipes/SCHEMA.md`](docs/recipes/SCHEMA.md) — recipe authoring contract.
 - [`docs/capabilities/README.md`](docs/capabilities/README.md) — capability authoring contract.
-- [`vendored/blueprints/agents.md`](vendored/blueprints/agents.md) — upstream's equivalent guide.
+- [`agents.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/agents.md) — upstream's equivalent guide.

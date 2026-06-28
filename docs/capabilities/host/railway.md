@@ -1,6 +1,9 @@
 ---
 id: host.railway
 kind: host
+implements:
+  port: host
+  interface_version: "1.0"
 layer: frontend
 provides: [container_hosting, managed_postgres, managed_redis]
 env_vars: [RAILWAY_TOKEN, RAILWAY_PROJECT_ID]
@@ -32,6 +35,8 @@ docs: |
   default).
 tags: [host, paas, github-integrated]
 when_to_load: "recipe declares host.railway"
+verification:
+  tier: T1
 ---
 
 # Capability: host.railway
