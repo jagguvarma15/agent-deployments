@@ -99,7 +99,7 @@ docker:                              # optional — omit for managed-only servic
     interval: 5s
     timeout: 5s
     retries: 5
-probe: qdrant_collections            # name of a probe in agent_scaffold.probes.PROBES (Phase 2 may add it)
+probe: qdrant_collections            # name of a probe in agent_scaffold.probes.PROBES
 bootstrap_step: bootstrap_vector_db  # orchestrator step that initializes the service post docker_up
 provisioning_time: ~10s              # coarse estimate ("instant", "~10s", "~60s", "~5min")
 cost_tier: free                      # one of: free | fixed-monthly | per-call
@@ -146,7 +146,7 @@ docs: |                              # short markdown block injected into the LL
 | `parameters` | JSON-Schema (+ defaults) for the adapter's tunables (folds ad-hoc config knobs like MCP transport, embedding dims). |
 | `bootstrap_inputs` | Free-form map of inputs this capability's `bootstrap_step` reads from its `requires:` dependencies — e.g. `{database_name: langfuse}` indicates Langfuse expects a database named `langfuse` to exist on the Postgres instance before it boots. |
 | `docker` | Whenever the service can run locally in compose. Omit for purely managed services (e.g. some `host.*` and `obs.langsmith`). |
-| `probe` | Name of a probe function. If the probe doesn't yet exist in agent-scaffold, leave a comment in the brief — Phase 2 fills in any gaps. |
+| `probe` | Name of a probe function. If the probe doesn't yet exist in agent-scaffold, note it in the brief. |
 | `bootstrap_step` | Required when post-`docker_up` initialization is needed (creating collections, topics, datasources). Omit for "compose up is sufficient" services like Redis. |
 | `provisioning_time` | Coarse string (`instant`, `~10s`, `~60s`, `~5min`). Lets scaffold render progress estimates during `docker compose up + bootstrap`. |
 | `est_tokens` | Coarse integer estimate of the doc's whole-file token cost. Lets a consumer budget its context window when whole-file-loading capability docs into LLM context. |
@@ -179,7 +179,7 @@ emit_files:
     dest: frontend/
 ```
 
-The scaffold's copier (Phase 3b) walks the glob and recreates the structure under `dest`. It never overwrites files the model emitted in the same path — the LLM's specialization wins.
+The scaffold's copier walks the glob and recreates the structure under `dest`. It never overwrites files the model emitted in the same path — the LLM's specialization wins.
 
 ## Host capability shape
 

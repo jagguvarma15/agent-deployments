@@ -14,7 +14,7 @@ agent-deployments/
 │   ├── recipes/              # 11 agent blueprints. Each declares pattern + primitives
 │   │                         #   + modifiers + capabilities in frontmatter.
 │   │   └── SCHEMA.md         #   Recipe frontmatter contract.
-│   ├── capabilities/         # Infrastructure capability docs, one dir per kind:
+│   ├── capabilities/         # Port-typed adapters (verified options), one dir per kind:
 │   │   ├── vector_db/        #   {qdrant, chroma, pgvector, ...}
 │   │   ├── cache/            #   {redis, ...}
 │   │   ├── relational/       #   {postgres, ...}
@@ -30,9 +30,12 @@ agent-deployments/
 │   │   ├── guardrail/        #   {llama-guard, ...}                  (2026-SOTA)
 │   │   ├── embedding/        #   {openai, ...}                       (2026-SOTA)
 │   │   ├── live_data/        #   {tavily, ...}                       (2026-SOTA)
-│   │   └── rerank/           #   {cohere, ...}                       (2026-SOTA)
+│   │   ├── rerank/           #   {cohere, ...}                       (2026-SOTA)
+│   │   ├── auth/             #   {key-bootstrap}                     (runtime auth)
+│   │   └── core/             #   {spec, prompts, io, ...}            (generation primitives)
 │   ├── ports/                # Abstract port contracts adapters bind to (model,
 │   │                         #   tools, memory, vector_db, eval, framework, …).
+│   ├── suggestions/          # Per-combo recommended stacks (pinned blueprints version).
 │   ├── frameworks/           # LangGraph, Pydantic AI, CrewAI, Vercel AI SDK, …
 │   ├── stack/                # FastAPI, Hono, Postgres, Redis, Qdrant, Langfuse, …
 │   ├── cross-cutting/        # Auth, logging, observability, rate limiting, …
@@ -61,6 +64,8 @@ Designing an agent is three picks, in order. catalog.yaml has the canonical id s
 3. **Modifiers** — transforms. `catalog.modifiers[]`. Pick any.
 
 Each recipe declares its three picks in frontmatter (`agent_pattern:`, `primitives:`, `modifiers:`). See [`docs/recipes/SCHEMA.md`](docs/recipes/SCHEMA.md).
+
+Orthogonally, a recipe binds **ports → adapters** (the stack): each `capabilities:` id is a port-typed adapter (`implements: {port}` + a `verification` tier). `catalog.ports[]` declares each port's `cardinality` + `default`, and `catalog.compatibility[]` carries the `requires` / `substitutes` edges a generator resolves over. See [`docs/capabilities/README.md`](docs/capabilities/README.md).
 
 ## How content flows
 
