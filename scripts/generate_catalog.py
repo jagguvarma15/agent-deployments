@@ -522,6 +522,9 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
             entry["parameters"] = fm["parameters"]
         if "verification" in fm:
             entry["verification"] = fm["verification"]
+        # Derived, generation-oriented summary (no hand-authoring) — lets a
+        # consumer inject a compact block instead of the full markdown body.
+        entry["context_summary"] = _derive_context_summary(entry, fm)
         out.append(entry)
     out.sort(key=lambda e: e["id"])
     return out
@@ -682,6 +685,108 @@ def fill_port_defaults(ports: list[dict[str, Any]], capabilities: list[dict[str,
         candidates = sorted(impls.get(p["id"], []))
         if len(candidates) == 1:
             p["default"] = candidates[0]
+
+
+def _derive_context_summary(entry: dict[str, Any], fm: dict[str, Any]) -> str:
+    """Derive a compact, generation-oriented capability summary from structured
+    fields — no hand-authoring. Lets a consumer inject a few lines instead of the
+    full markdown body when assembling LLM context. Pure function of the entry +
+    frontmatter, so the catalog stays deterministic.
+    """
+    card = fm.get("card") if isinstance(fm.get("card"), dict) else {}
+    name = (card.get("name") if card else None) or entry["id"]
+    desc = str((card.get("description") if card else "") or "").strip()
+    head = f"{name} ({entry['kind']})"
+    if desc:
+        head = f"{head} — {desc}"
+    facts: list[str] = []
+    if entry.get("env_vars"):
+        facts.append("Env vars: " + ", ".join(entry["env_vars"]))
+    docker = fm.get("docker")
+    if entry.get("docker_service"):
+        image = docker.get("image") if isinstance(docker, dict) else None
+        facts.append(f"Docker service: {entry['docker_service']}" + (f" ({image})" if image else ""))
+    if entry.get("bootstrap_step"):
+        facts.append(f"Bootstrap: {entry['bootstrap_step']}")
+    flags = entry.get("provides") or (card.get("capabilities_provided") if card else None)
+    if flags:
+        facts.append("Provides: " + ", ".join(flags))
+    return head + ("\n" + ". ".join(facts) + "." if facts else "")
+
+
+def _est_tokens(text: str) -> int:
+    """Coarse whole-text token estimate (chars / 4), matching the consumer's
+    own heuristic. Used only for the context_manifest budget hints."""
+    return max(1, len(text) // 4)
+
+
+def build_context_manifest(
+    recipes: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
+) -> None:
+    """Emit each recipe's ``context_manifest``: the closed, pre-costed context
+    set a consumer should load — the recipe's ``load_list`` projected to
+    ``{path, required, cache_tier, when, est_tokens}`` (predicates kept symbolic,
+    not pre-expanded) plus the resolved capability closure (the recipe's
+    ``capabilities`` and their ``requires`` transitively).
+
+    Additive + deterministic. A consumer that honours the manifest loads exactly
+    these docs/capabilities and skips speculative discovery (prose-alias scans,
+    transitive link walks). Per-doc ``est_tokens`` are filled only for docs that
+    resolve to a local file; remote (blueprint-URL) docs carry no estimate.
+    """
+    cap_by_id = {c["id"]: c for c in capabilities}
+
+    def _closure(ids: list[str]) -> list[str]:
+        seen: OrderedDict[str, None] = OrderedDict()
+        queue = list(ids)
+        while queue:
+            cid = queue.pop(0)
+            if cid in seen or cid not in cap_by_id:
+                continue
+            seen[cid] = None
+            for dep in cap_by_id[cid].get("requires") or []:
+                if dep in cap_by_id and dep not in seen:
+                    queue.append(dep)
+        return list(seen)
+
+    for r in recipes:
+        recipe_dir = (REPO_ROOT / r["path"]).parent
+        docs: list[dict[str, Any]] = []
+        doc_tokens = 0
+        for item in r.get("load_list") or []:
+            if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+                continue
+            path = item["path"]
+            doc: dict[str, Any] = OrderedDict()
+            doc["path"] = path
+            doc["required"] = bool(item.get("required", True))
+            if item.get("cache_tier"):
+                doc["cache_tier"] = item["cache_tier"]
+            if item.get("when"):
+                doc["when"] = item["when"]
+            if not path.startswith(("http://", "https://")):
+                resolved = (recipe_dir / path).resolve()
+                if resolved.is_file():
+                    est = _est_tokens(resolved.read_text(encoding="utf-8"))
+                    doc["est_tokens"] = est
+                    doc_tokens += est
+            docs.append(doc)
+        cap_closure = _closure(list(r.get("capabilities") or []))
+        if not docs and not cap_closure:
+            continue
+        est_total = doc_tokens
+        if isinstance(r.get("est_tokens"), int):
+            est_total += r["est_tokens"]
+        for cid in cap_closure:
+            cap = cap_by_id.get(cid)
+            if cap and isinstance(cap.get("est_tokens"), int):
+                est_total += cap["est_tokens"]
+        manifest: dict[str, Any] = OrderedDict()
+        manifest["docs"] = docs
+        manifest["capabilities"] = cap_closure
+        manifest["est_total_tokens"] = est_total
+        r["context_manifest"] = manifest
 
 
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
@@ -1555,6 +1660,7 @@ def build_catalog(
     fill_port_defaults(catalog["ports"], catalog["capabilities"])
     catalog["compatibility"] = build_compatibility(catalog["capabilities"])
     derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
+    build_context_manifest(catalog["recipes"], catalog["capabilities"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)
