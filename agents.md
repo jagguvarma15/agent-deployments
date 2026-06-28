@@ -13,7 +13,7 @@ This is the **stack-decision** layer. After you've picked a cognitive pattern fr
 
 ## The contract you parse
 
-[`catalog.yaml`](catalog.yaml) at this repo's root. One URL, one file. Everything else (recipes, capabilities, frameworks, the embedded blueprints catalog) is reachable through it.
+[`catalog.yaml`](catalog.yaml) at this repo's root. One URL, one file. Everything else (recipes, ports, port-typed adapters (capabilities), compatibility edges, frameworks, the embedded blueprints catalog) is reachable through it.
 
 | Top-level key | Shape | Use it to |
 |---|---|---|
@@ -23,7 +23,9 @@ This is the **stack-decision** layer. After you've picked a cognitive pattern fr
 | `workflows[]` | derived view | Compat for older consumers; same ids as patterns where `category=workflow`. |
 | `compositions[]` | embedded from upstream | Discover allowed pattern combinations. |
 | `recipes[]` | this repo | The agents you can scaffold. |
-| `capabilities[]` | this repo | Infrastructure pieces a recipe needs. |
+| `capabilities[]` | this repo | Port-typed adapters (the verified options) a recipe binds. |
+| `ports[]` | this repo | Abstract port contracts — the selection axes adapters bind to (`cardinality` + `default` + `kinds`). |
+| `compatibility[]` | this repo | Feature-model edges (`requires` / `substitutes`) for resolving a valid adapter set. |
 | `frameworks[]` / `stack[]` / `cross_cutting_docs[]` | this repo | Doc paths to include in context. |
 | `pattern_docs[]` / `primitive_docs[]` / `modifier_docs[]` | upstream overview URLs | Alias resolver target. |
 | `aliases` / `cross_cutting` | maps | Prose-token → path lookup. |
@@ -42,6 +44,8 @@ Older scaffold versions parse with `extra: ignore` — any unknown top-level key
 7. For prose mentions inside the recipe body that don't appear in `load_list`, fall through to `catalog.aliases` (length ≥ `min_alias_length`) then `catalog.cross_cutting`.
 
 The catalog generator validates steps 2–5 at build time — if your fetched catalog parses cleanly, every id in every recipe resolves. You can trust the references without re-checking.
+
+**Adapter selection (ports & compatibility).** Each `capabilities:` id is a *port-typed adapter*: `catalog.capabilities[].implements.port` names the port it binds, `catalog.ports[]` gives each port's `cardinality` + `default`, and `catalog.compatibility[]` lists the `requires` / `substitutes` edges. A resolver picks a valid set by binding each required / exactly-one port to one adapter and checking the compatibility edges + each adapter's `verification.tier`. Today recipes pre-declare a valid set; the port/compatibility layer is what lets a generator *choose* a default or *swap* an adapter (a `runtime_modes` swap is a same-port substitution).
 
 ## Bringing a recipe up locally
 
@@ -70,12 +74,14 @@ This mirrors the upstream taxonomy in agent-blueprints. The picker is described 
 
 ## Capability kinds
 
-Catalog `capabilities[].kind` is a free string. The known kinds today, by cohort:
+Catalog `capabilities[].kind` is a free string. The 18 known kinds today, by cohort:
 
 - **v0.2 set:** `vector_db`, `cache`, `relational`, `queue`, `obs`, `eval`, `frontend`, `host`.
 - **2026-SOTA set:** `mcp`, `sandbox`, `durable`, `memory_store`, `guardrail`, `embedding`, `live_data`, `rerank`.
+- **Runtime auth:** `auth` — runtime API-key bootstrap.
+- **Core generation primitives:** `core` — emitted project structure, seeded by the scaffold's tier presets.
 
-Unknown kinds should degrade gracefully (surface as `unresolved` rather than raise). See [`MANIFEST_SCHEMA.md`](MANIFEST_SCHEMA.md#capability-kinds).
+Each kind is also a **port** (`implements.port == kind`). Unknown kinds should degrade gracefully (surface as `unresolved` rather than raise). See [`MANIFEST_SCHEMA.md`](MANIFEST_SCHEMA.md#capability-kinds).
 
 ## Pinning convention
 
