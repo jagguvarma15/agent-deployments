@@ -47,6 +47,8 @@ The catalog generator validates steps 2–5 at build time — if your fetched ca
 
 **Adapter selection (ports & compatibility).** Each `capabilities:` id is a *port-typed adapter*: `catalog.capabilities[].implements.port` names the port it binds, `catalog.ports[]` gives each port's `cardinality` + `default`, and `catalog.compatibility[]` lists the `requires` / `substitutes` edges. A resolver picks a valid set by binding each required / exactly-one port to one adapter and checking the compatibility edges + each adapter's `verification.tier`. Today recipes pre-declare a valid set; the port/compatibility layer is what lets a generator *choose* a default or *swap* an adapter (a `runtime_modes` swap is a same-port substitution).
 
+**Derived consumer aids (generator-emitted, additive).** To save you that work, the generator publishes three derived fields: `catalog.recipes[].bindings` (the resolved port → adapter map), `catalog.recipes[].context_manifest` (the closed, pre-costed context set — `load_list` projection + capability closure — so you load exactly that and skip speculative discovery), and `catalog.capabilities[].context_summary` (a compact generation-oriented summary to inject instead of the full adapter body). See [`MANIFEST_SCHEMA.md`](MANIFEST_SCHEMA.md).
+
 ## Bringing a recipe up locally
 
 After generation, a consumer that wants `docker compose up && make smoke` to pass uses these catalog reads:

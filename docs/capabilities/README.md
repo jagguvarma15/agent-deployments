@@ -22,6 +22,8 @@ Each capability declares, in frontmatter:
 
 A generator chooses a valid, verified configuration by binding each port to an adapter (respecting `cardinality`) and checking the `compatibility[]` edges.
 
+The generator also emits a **derived** `catalog.capabilities[].context_summary` per adapter (name + kind + description + env vars + docker service + bootstrap + `provides` flags) — a compact block a consumer can inject instead of the full markdown body to cut context tokens. It is generated, not authored, so it never appears in this frontmatter.
+
 ## When to add a capability vs. extend stack/
 
 - **stack/`<x>`.md** — deep reference doc for a stack pick: tradeoffs, every config knob, multi-paragraph integration patterns. Long-form. Human-first.
