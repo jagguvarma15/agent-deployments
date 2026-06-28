@@ -40,6 +40,17 @@ New blueprints must:
 4. Follow the 13-section blueprint template (see any existing recipe for reference)
 5. Regenerate the catalog — after editing the new recipe's frontmatter (or any capability / framework / cross-cutting doc), run `uv run scripts/generate_catalog.py` and commit the resulting `catalog.yaml`. The drift CI gate enforces this.
 
+### New capabilities (adapters)
+
+A capability is a **port-typed adapter** — a verified option bound to a port. To add one:
+
+1. Create `docs/capabilities/<kind>/<name>.md` (the id `<kind>.<name>` must match the path).
+2. In frontmatter declare `implements: {port: <kind>}`, `provides: [<flags>]`, a `verification: {tier}` floor (`T1` minimum — pinned + reviewed), plus the usual `kind` / `layer` / `card` / `env_vars`. Ports live in [`docs/ports/`](docs/ports/) → `catalog.ports[]`; add a port doc only when introducing a genuinely new selection axis.
+3. Declare cross-tree `requires` / `excludes` / `conflicts` only for real incompatibilities — same-port alternatives are handled by the port's `cardinality`, not `excludes`.
+4. Regenerate the catalog (`uv run scripts/generate_catalog.py`) and commit `catalog.yaml`.
+
+See [`docs/capabilities/README.md`](docs/capabilities/README.md) for the full adapter frontmatter contract.
+
 ### Blueprint template sections
 
 Every blueprint should include:

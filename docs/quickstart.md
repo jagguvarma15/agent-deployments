@@ -173,9 +173,9 @@ Many agents combine multiple patterns. For example, a research assistant might u
 3. Check the blueprint map at [`docs/blueprint-map.md`](blueprint-map.md) for which blueprints share patterns
 
 Common compositions:
-- **ReAct + RAG**: Load `research-assistant` recipe + `patterns/rag.md` for a research agent with document retrieval
-- **Routing + Memory**: Load `customer-support-triage` recipe + `patterns/memory.md` for a support agent that remembers past conversations
-- **Plan-Execute + Parallel**: Load `code-review-agent` recipe + `patterns/parallel-calls.md` for file-level parallel analysis
+- **ReAct + RAG**: Load `research-assistant` recipe + [`patterns/rag/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md) for a research agent with document retrieval
+- **Routing + Memory**: Load `customer-support-triage` recipe + [`primitives/memory/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md) for a support agent that remembers past conversations
+- **Plan-Execute + Parallel**: Load `code-review-agent` recipe + [`patterns/parallel-calls/overview.md`](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md) for file-level parallel analysis
 
 ---
 

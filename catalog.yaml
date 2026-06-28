@@ -1084,6 +1084,64 @@ recipes:
   bindings:
     obs:
     - obs.langfuse
+  context_manifest:
+    docs:
+    - path: ../frameworks/claude-agent-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 5880
+    - path: ../frameworks/claude-agent-sdk-typescript.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 683
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+      required: true
+      cache_tier: hot
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+      required: true
+      cache_tier: hot
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/tool-protocol-mcp.md
+      required: false
+      cache_tier: hot
+      est_tokens: 2102
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/testing-strategy.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1867
+    - path: ../cross-cutting/eval-data.md
+      required: false
+      cache_tier: warm
+      est_tokens: 3733
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - obs.langfuse
+    - relational.postgres
+    est_total_tokens: 30795
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1256,6 +1314,83 @@ recipes:
     obs:
     - obs.langfuse
     relational: relational.postgres
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+      required: true
+      cache_tier: hot
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/langgraph.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 3636
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 33940
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1437,6 +1572,80 @@ recipes:
     obs:
     - obs.langfuse
     relational: relational.postgres
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/pydantic-ai.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 2675
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 32279
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1649,6 +1858,83 @@ recipes:
     obs:
     - obs.langfuse
     relational: relational.postgres
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+      required: true
+      cache_tier: hot
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/pydantic-ai.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 2675
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 33279
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1844,6 +2130,86 @@ recipes:
     - obs.langfuse
     relational: relational.postgres
     vector_db: vector_db.qdrant
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/pydantic-ai.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 2675
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/vector-qdrant.md
+      required: true
+      cache_tier: hot
+      when: capabilities contains 'vector_db.qdrant'
+      est_tokens: 1083
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - vector_db.qdrant
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 34512
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2065,6 +2431,80 @@ recipes:
     obs:
     - obs.langfuse
     relational: relational.postgres
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/langgraph.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 3636
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 34440
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2261,6 +2701,86 @@ recipes:
     - obs.langfuse
     relational: relational.postgres
     vector_db: vector_db.qdrant
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/langgraph.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 3636
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/vector-qdrant.md
+      required: true
+      cache_tier: hot
+      when: capabilities contains 'vector_db.qdrant'
+      est_tokens: 1083
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - vector_db.qdrant
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 35473
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2472,6 +2992,80 @@ recipes:
     obs:
     - obs.langfuse
     relational: relational.postgres
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/crewai.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 2513
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 32917
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2643,6 +3237,80 @@ recipes:
     eval: eval.promptfoo
     obs:
     - obs.langfuse
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/pydantic-ai.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 2675
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - cache.redis
+    - obs.langfuse
+    - eval.promptfoo
+    - relational.postgres
+    est_total_tokens: 31979
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -2820,6 +3488,80 @@ recipes:
     obs:
     - obs.langfuse
     relational: relational.postgres
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/pydantic-ai.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 2675
+    - path: ../frameworks/vercel-ai-sdk.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2653
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../cross-cutting/auth-jwt.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1842
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1293
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - relational.postgres
+    - cache.redis
+    - obs.langfuse
+    - eval.promptfoo
+    est_total_tokens: 32979
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3131,6 +3873,136 @@ recipes:
     - queue.redis-streams
     relational: relational.postgres
     vector_db: vector_db.qdrant
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+      required: true
+      cache_tier: hot
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+      required: true
+      cache_tier: hot
+    - path: ../frameworks/langgraph.md
+      required: true
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 3636
+    - path: ../frameworks/mastra.md
+      required: true
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 2356
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2781
+    - path: ../stack/llm-claude.md
+      required: true
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/api-fastapi.md
+      required: false
+      cache_tier: hot
+      when: language == 'python'
+      est_tokens: 837
+    - path: ../stack/api-hono.md
+      required: false
+      cache_tier: hot
+      when: language == 'typescript'
+      est_tokens: 900
+    - path: ../stack/relational-postgres.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'relational.postgres'
+      est_tokens: 1095
+    - path: ../stack/cache-redis.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'cache.redis'
+      est_tokens: 1713
+    - path: ../stack/tracing-langfuse.md
+      required: false
+      cache_tier: hot
+      when: capabilities contains 'obs.langfuse'
+      est_tokens: 1127
+    - path: ../stack/secrets-management.md
+      required: true
+      cache_tier: hot
+      est_tokens: 2556
+    - path: ../cross-cutting/idempotency.md
+      required: true
+      cache_tier: warm
+      est_tokens: 2179
+    - path: ../cross-cutting/resilience.md
+      required: true
+      cache_tier: warm
+      est_tokens: 4059
+    - path: ../cross-cutting/backpressure.md
+      required: true
+      cache_tier: warm
+      est_tokens: 2529
+    - path: ../cross-cutting/dlq-operations.md
+      required: true
+      cache_tier: warm
+      est_tokens: 2423
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/observability.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1991
+    - path: ../cross-cutting/testing-strategy.md
+      required: false
+      cache_tier: warm
+      est_tokens: 1867
+    - path: ../cross-cutting/multi-tenancy.md
+      required: false
+      cache_tier: warm
+      est_tokens: 3166
+    - path: ../cross-cutting/cost-tracking.md
+      required: false
+      cache_tier: warm
+      est_tokens: 3293
+    - path: ../cross-cutting/model-routing.md
+      required: false
+      cache_tier: warm
+      est_tokens: 3123
+    - path: ../cross-cutting/health-graceful-shutdown.md
+      required: false
+      cache_tier: warm
+      est_tokens: 2692
+    - path: ../cross-cutting/security-hardening.md
+      required: false
+      cache_tier: warm
+      est_tokens: 2990
+    - path: ../cross-cutting/authorization-rbac.md
+      required: false
+      cache_tier: warm
+      est_tokens: 2879
+    - path: ../cross-cutting/audit-logging.md
+      required: false
+      cache_tier: warm
+      est_tokens: 2792
+    - path: ../cross-cutting/pii-gdpr.md
+      required: false
+      cache_tier: warm
+      est_tokens: 2823
+    - path: ../cross-cutting/prompt-management.md
+      required: false
+      cache_tier: warm
+      est_tokens: 4392
+    capabilities:
+    - cache.redis
+    - relational.postgres
+    - vector_db.qdrant
+    - queue.redis-streams
+    - obs.langfuse
+    - obs.grafana-stack
+    - frontend.nextjs-chat
+    - host.vercel
+    - eval.promptfoo
+    est_total_tokens: 74029
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -3205,6 +4077,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Runtime API-key bootstrap (auth) — Lets the chat UI capture the agent''s Anthropic API key at runtime via a CSRF-guarded /setup form on the backend, when it wasn''t pre-wired — so a freshly-cloned project can `docker compose up` and start chatting after pasting a key once. Dev sandbox only.
+
+    Provides: runtime_key_capture.'
 - id: cache.redis
   kind: cache
   path: docs/capabilities/cache/redis.md
@@ -3242,6 +4117,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Redis (cache) — Redis 7 in-memory key-value store with Streams, hashes, and pub/sub.
+
+    Env vars: REDIS_URL. Docker service: redis (redis:7-alpine). Provides: cache, session_store, rate_limit_backend.'
 - id: core.tool_registry
   kind: core
   path: docs/capabilities/core/tool_registry.md
@@ -3272,6 +4150,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Tool registry (core) — Typed tool registry with Always/Ask/Never permission tiers and compact-error retry — the T1 tool-agent substrate.
+
+    Provides: tool_registry, tool_permissions, compact_error_retry.'
 - id: durable.temporal
   kind: durable
   path: docs/capabilities/durable/temporal.md
@@ -3316,6 +4197,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Temporal OSS (durable) — Durable-execution workflow engine for long-horizon agent tasks with checkpoint-resume, signals, and visibility.
+
+    Env vars: TEMPORAL_HOST, TEMPORAL_NAMESPACE. Docker service: temporal (temporalio/auto-setup:1.24). Bootstrap: bootstrap_temporal. Provides: durable_workflow, checkpoint_resume, signal_handling.'
 - id: embedding.openai
   kind: embedding
   path: docs/capabilities/embedding/openai.md
@@ -3345,6 +4229,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'OpenAI Embeddings (embedding) — OpenAI text-embedding-3-small (1536 dim) for RAG ingestion and query encoding.
+
+    Env vars: OPENAI_API_KEY. Provides: text_embeddings.'
 - id: eval.deepeval
   kind: eval
   path: docs/capabilities/eval/deepeval.md
@@ -3379,6 +4266,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'DeepEval (eval) — Python-native LLM/RAG eval framework with pytest integration and built-in RAG metrics.
+
+    Env vars: ANTHROPIC_API_KEY, OPENAI_API_KEY. Bootstrap: bootstrap_evals. Provides: eval_runner, rag_metrics.'
 - id: eval.promptfoo
   kind: eval
   path: docs/capabilities/eval/promptfoo.md
@@ -3411,6 +4301,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Promptfoo (eval) — YAML-first LLM evaluation harness with provider matrix, LLM-judge grading, and CI gating.
+
+    Env vars: ANTHROPIC_API_KEY. Bootstrap: bootstrap_evals. Provides: llm_eval, regression_check.'
 - id: eval.ragas
   kind: eval
   path: docs/capabilities/eval/ragas.md
@@ -3446,6 +4339,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'RAGAS (eval) — Academic-style RAG benchmarking against a labeled dataset with answer/context metrics.
+
+    Env vars: ANTHROPIC_API_KEY, OPENAI_API_KEY. Bootstrap: bootstrap_evals. Provides: eval_runner, rag_metrics, benchmark.'
 - id: frontend.minimal-chat
   kind: frontend
   path: docs/capabilities/frontend/minimal-chat.md
@@ -3468,6 +4364,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Minimal Chat UI (Vite + React) (frontend) — A tiny Vite + React + TypeScript chat that POSTs to the backend and renders the reply. Built once and served from nginx as a container — the default frontend for every agent.
+
+    Env vars: VITE_AGENT_URL. Provides: chat_ui.'
 - id: frontend.nextjs-chat
   kind: frontend
   path: docs/capabilities/frontend/nextjs-chat.md
@@ -3498,6 +4397,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Next.js Chat UI (frontend) — Next.js 14 (App Router) chat template wired for Vercel AI SDK streaming responses.
+
+    Env vars: NEXT_PUBLIC_AGENT_URL. Provides: chat_ui, streaming_ui.'
 - id: frontend.streamlit
   kind: frontend
   path: docs/capabilities/frontend/streamlit.md
@@ -3526,6 +4428,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Streamlit Chat UI (frontend) — Single-file Streamlit chat template for Python-only stacks.
+
+    Env vars: AGENT_URL. Provides: chat_ui.'
 - id: guardrail.llama-guard
   kind: guardrail
   path: docs/capabilities/guardrail/llama-guard.md
@@ -3559,6 +4464,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Llama Guard 3 (via Together AI) (guardrail) — Meta''s Llama Guard 3 (8B) safety classifier for input/output policy enforcement and jailbreak detection.
+
+    Env vars: TOGETHER_API_KEY. Provides: input_classification, output_classification, jailbreak_detection.'
 - id: host.fly
   kind: host
   path: docs/capabilities/host/fly.md
@@ -3593,6 +4501,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Fly.io (host) — Container-hosted backend with per-region rollout and Fly Machines API for fine-grained scaling.
+
+    Env vars: FLY_API_TOKEN, FLY_APP_NAME. Bootstrap: emit_deploy_configs. Provides: container_hosting, global_edge.'
 - id: host.railway
   kind: host
   path: docs/capabilities/host/railway.md
@@ -3628,6 +4539,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Railway (host) — Container-hosted backend with managed Postgres + Redis from one platform.
+
+    Env vars: RAILWAY_TOKEN, RAILWAY_PROJECT_ID. Bootstrap: emit_deploy_configs. Provides: container_hosting, managed_postgres, managed_redis.'
 - id: host.vercel
   kind: host
   path: docs/capabilities/host/vercel.md
@@ -3662,6 +4576,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Vercel (host) — Edge-hosted serverless deploy target with native Next.js + streaming-response support.
+
+    Env vars: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID. Bootstrap: emit_deploy_configs. Provides: edge_hosting, ci_deploy.'
 - id: live_data.tavily
   kind: live_data
   path: docs/capabilities/live_data/tavily.md
@@ -3693,6 +4610,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Tavily (Direct API) (live_data) — Tavily web search via direct REST API — same vendor as mcp.tavily without MCP framing.
+
+    Env vars: TAVILY_API_KEY. Provides: web_search, web_extract.'
 - id: mcp.tavily
   kind: mcp
   path: docs/capabilities/mcp/tavily.md
@@ -3724,6 +4644,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Tavily (MCP) (mcp) — Tavily web search exposed as an MCP server over streamable_http transport.
+
+    Env vars: TAVILY_API_KEY. Provides: web_search, web_extract.'
 - id: memory_store.zep
   kind: memory_store
   path: docs/capabilities/memory_store/zep.md
@@ -3768,6 +4691,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Zep (memory_store) — Long-term agent memory store with conversation summarization, session/user scoping, and semantic recall.
+
+    Env vars: ZEP_API_URL, ZEP_API_KEY, ZEP_AUTH_SECRET. Docker service: zep (ghcr.io/getzep/zep:latest). Bootstrap: bootstrap_zep. Provides: long_term_memory, semantic_recall, conversation_summarization.'
 - id: obs.grafana-stack
   kind: obs
   path: docs/capabilities/obs/grafana-stack.md
@@ -3809,6 +4735,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Grafana stack (Grafana + Prometheus + Tempo) (obs) — Metrics + traces + dashboards for the full agent stack via OpenTelemetry.
+
+    Env vars: GRAFANA_URL, GRAFANA_ADMIN_PASSWORD, PROMETHEUS_URL, TEMPO_URL. Docker service: grafana (grafana/grafana:10.4.0). Bootstrap: bootstrap_observability. Provides: metrics, tracing, dashboards, alerting.'
 - id: obs.langfuse
   kind: obs
   path: docs/capabilities/obs/langfuse.md
@@ -3856,6 +4785,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Langfuse (obs) — Self-hosted LLM observability with traces, scores, and dataset-backed evaluations.
+
+    Env vars: LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_NEXTAUTH_SECRET, LANGFUSE_SALT. Docker service: langfuse (langfuse/langfuse:2). Bootstrap: bootstrap_langfuse. Provides: tracing, llm_observability, scoring.'
 - id: obs.langsmith
   kind: obs
   path: docs/capabilities/obs/langsmith.md
@@ -3892,6 +4824,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'LangSmith (obs) — Hosted LLM observability for LangChain / LangGraph apps. Auto-instruments via env vars.
+
+    Env vars: LANGCHAIN_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_PROJECT, LANGCHAIN_ENDPOINT. Bootstrap: bootstrap_langsmith. Provides: tracing, llm_observability.'
 - id: queue.kafka
   kind: queue
   path: docs/capabilities/queue/kafka.md
@@ -3930,6 +4865,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Apache Kafka (queue) — Kafka 3.x in KRaft mode (no ZooKeeper) for high-throughput durable event log.
+
+    Env vars: KAFKA_BOOTSTRAP_SERVERS, KAFKA_CLIENT_ID. Docker service: kafka (bitnami/kafka:3.7). Bootstrap: bootstrap_kafka. Provides: event_source, durable_log, replay.'
 - id: queue.redis-streams
   kind: queue
   path: docs/capabilities/queue/redis-streams.md
@@ -3963,6 +4901,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Redis Streams (queue) — Redis Streams as the event source — log-shaped data type with consumer groups and ACK.
+
+    Env vars: REDIS_URL. Bootstrap: bootstrap_kafka. Provides: event_source.'
 - id: relational.postgres
   kind: relational
   path: docs/capabilities/relational/postgres.md
@@ -4002,6 +4943,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'PostgreSQL (relational) — Postgres 16 with JSONB, transactions, and pgvector extension support.
+
+    Env vars: DATABASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB. Docker service: postgres (postgres:16-alpine). Provides: relational_store, transactions, json_store.'
 - id: rerank.cohere
   kind: rerank
   path: docs/capabilities/rerank/cohere.md
@@ -4032,6 +4976,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Cohere Rerank v3.5 (rerank) — Late-stage rerank step that re-orders retrieval results by relevance to the query.
+
+    Env vars: COHERE_API_KEY. Provides: search_result_reranking.'
 - id: sandbox.e2b
   kind: sandbox
   path: docs/capabilities/sandbox/e2b.md
@@ -4064,6 +5011,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'E2B Code Interpreter (sandbox) — Hosted sandbox running LLM-emitted code in an isolated container with file artifacts.
+
+    Env vars: E2B_API_KEY. Provides: code_execution, isolated_runtime.'
 - id: vector_db.chroma
   kind: vector_db
   path: docs/capabilities/vector_db/chroma.md
@@ -4101,6 +5051,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Chroma (vector_db) — Open-source vector DB with single-container deploy and HTTP-only API.
+
+    Env vars: CHROMA_URL, CHROMA_TENANT, CHROMA_DATABASE. Docker service: chroma (chromadb/chroma:0.5.20). Bootstrap: bootstrap_vector_db. Provides: embeddings_store, collection_init.'
 - id: vector_db.pgvector
   kind: vector_db
   path: docs/capabilities/vector_db/pgvector.md
@@ -4137,6 +5090,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'pgvector (vector_db) — Postgres extension adding a `vector` data type with cosine/euclidean/dot-product distance operators.
+
+    Env vars: DATABASE_URL. Bootstrap: bootstrap_vector_db. Provides: embeddings_store.'
 - id: vector_db.qdrant
   kind: vector_db
   path: docs/capabilities/vector_db/qdrant.md
@@ -4176,6 +5132,9 @@ capabilities:
     interface_version: '1.0'
   verification:
     tier: T1
+  context_summary: 'Qdrant (vector_db) — Self-hosted vector DB with REST + gRPC endpoints, named collections, and payload filtering.
+
+    Env vars: QDRANT_URL, QDRANT_API_KEY. Docker service: qdrant (qdrant/qdrant:v1.12.0). Bootstrap: bootstrap_vector_db. Provides: embeddings_store, collection_init, payload_filtering.'
 ports:
 - id: agents
   protocol: agents

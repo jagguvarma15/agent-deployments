@@ -1,10 +1,10 @@
 # Capability catalog
 
-Capabilities are the unit of consumption for `agent-scaffold`'s **Track C** project-platform features. A capability is a high-level infra need (e.g. `vector_db.qdrant`, `host.vercel`) that ships with everything required to provision and integrate it: env vars, a docker-compose fragment, an orchestrator bootstrap step id, optional file templates, and optional cloud-deploy hints.
+Capabilities are the **port-typed adapters** `agent-scaffold` composes — the verified options that bind an abstract port (see [Ports & port-typed adapters](#ports--port-typed-adapters) below). A capability (e.g. `vector_db.qdrant`, `host.vercel`) ships with everything required to provision and integrate it: the port it `implements`, the flags it `provides`, env vars, a docker-compose fragment, an orchestrator bootstrap step id, a `verification` tier, optional file templates, and optional cloud-deploy hints.
 
 Recipes opt in by declaring `capabilities:` in their frontmatter; `agent-scaffold` resolves each id against this catalog and threads the resolved set through context assembly, the orchestrator, and the generation prompt.
 
-This catalog is consumed by `agent-scaffold` ≥ v0.3 (Phase 1b of Track C). On older scaffold versions the `capabilities:` field is silently ignored — recipes remain backwards-compatible.
+This catalog is consumed by `agent-scaffold` ≥ v0.3. On older scaffold versions the `capabilities:` field is silently ignored — recipes remain backwards-compatible.
 
 > **Machine-readable index:** This directory's contents are aggregated into the top-level [`catalog.yaml`](../../catalog.yaml). If you're building a tool that consumes this repo, read the catalog rather than walking these files directly. See [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md).
 
@@ -21,6 +21,8 @@ Each capability declares, in frontmatter:
 - `verification: {tier, …}` — the trust tier (`T1` = pinned + reviewed; `T2` adds CI conformance; `T3+` add signing / SBOM / SLSA).
 
 A generator chooses a valid, verified configuration by binding each port to an adapter (respecting `cardinality`) and checking the `compatibility[]` edges.
+
+The generator also emits a **derived** `catalog.capabilities[].context_summary` per adapter (name + kind + description + env vars + docker service + bootstrap + `provides` flags) — a compact block a consumer can inject instead of the full markdown body to cut context tokens. It is generated, not authored, so it never appears in this frontmatter.
 
 ## When to add a capability vs. extend stack/
 
@@ -80,9 +82,12 @@ The dotted capability id always matches the path: `vector_db.qdrant` ⇄ `vector
 ---
 id: vector_db.qdrant                 # required — dotted: <kind>.<name>; must match file path
 kind: vector_db                      # required — one of 18 known kinds (see "Capability kinds" below)
+implements: {port: vector_db, interface_version: ">=1.0"}  # required — the port this adapter binds (port == kind)
 layer: data                          # required — one of catalog.LAYER_ORDER; drives bootstrap sequencing
-provides: [embeddings_store]         # optional — free-form capability tags used for substitution / dedup
-requires: []                         # optional — other capability ids this one depends on (id-resolved)
+provides: [embeddings_store]         # canonical capability flags — the compatibility-model substitution currency
+requires: []                         # optional — capability ids/flags this one needs (→ catalog.compatibility[])
+excludes: []                         # optional — ids/flags/ports that cannot co-occur (hard)
+conflicts: []                        # optional — soft incompatibilities (consumer warns)
 bootstrap_inputs: {}                 # optional — map of values this capability's bootstrap step expects from its requires deps
 env_vars: [QDRANT_URL, QDRANT_API_KEY]   # canonical env var names the generated app must reference
 docker:                              # optional — omit for managed-only services
@@ -96,7 +101,7 @@ docker:                              # optional — omit for managed-only servic
     interval: 5s
     timeout: 5s
     retries: 5
-probe: qdrant_collections            # name of a probe in agent_scaffold.probes.PROBES (Phase 2 may add it)
+probe: qdrant_collections            # name of a probe in agent_scaffold.probes.PROBES
 bootstrap_step: bootstrap_vector_db  # orchestrator step that initializes the service post docker_up
 provisioning_time: ~10s              # coarse estimate ("instant", "~10s", "~60s", "~5min")
 cost_tier: free                      # one of: free | fixed-monthly | per-call
@@ -110,6 +115,8 @@ card:                                # required — MCP-Server-Card-style discov
   required_credentials: []           # for hosted/SaaS capabilities, list env vars carrying secrets
 tags: [vector-search, retrieval, self-hosted]    # optional — hybrid-intake discovery tokens
 when_to_load: "recipe declares vector_db.qdrant" # optional — one-line predicate
+parameters: {}                       # optional — JSON-Schema (+ defaults) for the adapter's tunables
+verification: {tier: T1}             # required — trust tier: T1 pinned+reviewed / T2 +CI conformance / T3+ signing
 docs: |                              # short markdown block injected into the LLM context tier
   Free-form. One paragraph max — depth lives in the body below the frontmatter
   and in the linked stack/ doc.
@@ -122,21 +129,26 @@ docs: |                              # short markdown block injected into the LL
 |-------|-------|
 | `id` | Dotted `<kind>.<name>`. Lowercase, `_` separator inside each part allowed (`vector_db.pgvector`). Must equal the file path under `capabilities/`. |
 | `kind` | One of the 18 known kinds. Adding a new kind is additive — the generator's `kind` field is a free string and unknown kinds degrade gracefully on older consumers. |
+| `implements` | `{port, interface_version}` — the port this adapter binds (`port` equals `kind`). The generator validates the port exists. |
 | `layer` | One of `catalog.LAYER_ORDER`. The catalog generator validates this; the value drives bootstrap-step sequencing across capabilities. |
 | `env_vars` | List of canonical environment variable names. The generated app and `.env.example` must use exactly these names. |
 | `card.name` | Human-readable display name. |
 | `card.description` | One-sentence neutral description — what the tool is, not why to pick it. |
 | `cost_tier` | One of `free`, `fixed-monthly`, `per-call`. Drives the recipe-level `cost_profile:` aggregation. |
+| `verification` | `{tier}` — `T1` (pinned + reviewed), `T2` (+ CI conformance), `T3+` (+ signing / SBOM / SLSA). The pragmatic trust floor. |
 
 ### Optional fields
 
 | Field | When to set it |
 |-------|----------------|
-| `provides` | Use for capability dedup. Two capabilities providing `embeddings_store` are treated as substitutes (resolver picks the first declared on the recipe). |
-| `requires` | List of other capability ids this one depends on. Generator validates each id resolves. E.g. `obs.langfuse` declares `requires: [relational.postgres]` because Langfuse stores its state on Postgres. |
+| `provides` | **Canonical capability flags** — the substitution currency the compatibility model references (`card.capabilities_provided` is human-discovery copy). Two adapters sharing a flag are substitutes. |
+| `requires` | List of other capability ids/flags this one depends on. Generator validates each id resolves; denormalized into `catalog.compatibility[]`. E.g. `obs.langfuse` declares `requires: [relational.postgres]` because Langfuse stores its state on Postgres. |
+| `excludes` | Ids / flags / ports that cannot co-occur with this adapter (hard incompatibility). Denormalized into `catalog.compatibility[]`. |
+| `conflicts` | Soft incompatibilities — a consumer warns rather than hard-fails. |
+| `parameters` | JSON-Schema (+ defaults) for the adapter's tunables (folds ad-hoc config knobs like MCP transport, embedding dims). |
 | `bootstrap_inputs` | Free-form map of inputs this capability's `bootstrap_step` reads from its `requires:` dependencies — e.g. `{database_name: langfuse}` indicates Langfuse expects a database named `langfuse` to exist on the Postgres instance before it boots. |
 | `docker` | Whenever the service can run locally in compose. Omit for purely managed services (e.g. some `host.*` and `obs.langsmith`). |
-| `probe` | Name of a probe function. If the probe doesn't yet exist in agent-scaffold, leave a comment in the brief — Phase 2 fills in any gaps. |
+| `probe` | Name of a probe function. If the probe doesn't yet exist in agent-scaffold, note it in the brief. |
 | `bootstrap_step` | Required when post-`docker_up` initialization is needed (creating collections, topics, datasources). Omit for "compose up is sufficient" services like Redis. |
 | `provisioning_time` | Coarse string (`instant`, `~10s`, `~60s`, `~5min`). Lets scaffold render progress estimates during `docker compose up + bootstrap`. |
 | `est_tokens` | Coarse integer estimate of the doc's whole-file token cost. Lets a consumer budget its context window when whole-file-loading capability docs into LLM context. |
@@ -169,7 +181,7 @@ emit_files:
     dest: frontend/
 ```
 
-The scaffold's copier (Phase 3b) walks the glob and recreates the structure under `dest`. It never overwrites files the model emitted in the same path — the LLM's specialization wins.
+The scaffold's copier walks the glob and recreates the structure under `dest`. It never overwrites files the model emitted in the same path — the LLM's specialization wins.
 
 ## Host capability shape
 
@@ -193,7 +205,7 @@ The `target` string matches what `agent-scaffold deploy --target <name>` expects
 
 ## Versioning
 
-The catalog has no schema version field today. The Phase 1b loader treats unknown keys as warnings (not errors) so additive fields can land without breaking older scaffolds. If a breaking change is needed, add `schema_version: 2` to the affected files and coordinate a scaffold release.
+The catalog carries `schema_version: 1` (the YAML shape) and `contract_version: 1` (the semantic guarantees) — see the [split-version model](../../MANIFEST_SCHEMA.md#schema_version-and-contract_version-the-split-version-model). Additive fields — new optional frontmatter keys, new `kind`s, the port-typing fields above — bump **neither**: consumers parse with `extra: ignore`, so older scaffolds drop unknown keys silently. A field removal or type change bumps `schema_version`; a tightened guarantee bumps `contract_version`.
 
 ## Capability kinds
 
@@ -223,11 +235,13 @@ When adding or updating a capability:
 
 - [ ] `id` exactly matches the file path under `capabilities/`
 - [ ] `kind` is one of the 18 known kinds (or a new one — additive change)
+- [ ] `implements: {port}` set — the port id equals the `kind`
 - [ ] `layer` is one of `catalog.LAYER_ORDER`
 - [ ] `env_vars` are CANONICAL (no project-specific prefixes) — the generated app uses these names verbatim
 - [ ] If `docker:` is set, image tag is pinned (no `:latest`)
 - [ ] `card.name` + `card.description` populated (neutral one-sentence description)
 - [ ] `cost_tier` set (`free` / `fixed-monthly` / `per-call`)
+- [ ] `verification: {tier}` set (`T1` minimum — pinned + reviewed)
 - [ ] `requires:` declared if this capability needs another capability up before it boots; `bootstrap_inputs:` declared if the bootstrap step reads values from the dependency
 - [ ] Body has: H1 title, one-paragraph factual intro, `## Client integration` (Python + TS), `## Troubleshoot` (table), `## See also` (cross-link to stack/ + getting-started)
 - [ ] Body does NOT include `## Why pick this` or `## When to swap it`

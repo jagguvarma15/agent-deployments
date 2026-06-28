@@ -200,6 +200,8 @@ Recipe frontmatter references these via `agent_pattern:`, `primitives:`, and `mo
 | `env_contract` | object | **auto-derived** | Generator-emitted dedup of every selected capability's `env_vars` with source annotations. Authors do NOT include this in frontmatter. |
 | `est_tokens` | int | no | Coarse whole-file token estimate; consumer's context-window budget hint. |
 | `acceptance_contracts` | object | no | Machine-checkable contracts a consumer can validate the generated project against. See `### recipes[].acceptance_contracts` below. |
+| `bindings` | object | **derived** | Generator-derived port → adapter map for this recipe's `capabilities[]`. See `### recipes[].bindings`. |
+| `context_manifest` | object | **derived** | Generator-derived closed, pre-costed context set (load_list projection + capability closure) a consumer loads instead of running speculative discovery. See `### recipes[].context_manifest`. |
 
 All optional fields are passed through verbatim from the recipe's frontmatter. New optional fields can be added in source recipes without bumping `schema_version` (consumers use forward-compat parsing).
 
@@ -398,6 +400,7 @@ These five fields are additive at the v1 schema and ignored cleanly by older sca
 | `conflicts` | string[] | no | Soft incompatibilities — a consumer warns rather than hard-fails. |
 | `parameters` | object | no | JSON-Schema-style parameter block (type / properties / defaults) folding the adapter's ad-hoc config knobs. |
 | `verification` | object | no | Verification floor: `{tier: T1\|T2\|T3+, …}`. See `### Verification tiers`. |
+| `context_summary` | string | **derived** | Generator-derived compact summary (name + kind + description + env vars + docker service + bootstrap + `provides` flags). Lets a consumer inject a few lines instead of the full markdown body. |
 
 The full capability spec (Docker fragment, ports, volumes, healthcheck, etc.) stays in the source markdown's frontmatter; consumers can fetch the source file when they need the deeper detail. The catalog surfaces just enough to make discovery and `docker_service` lookup cheap.
 
@@ -466,6 +469,37 @@ Each adapter declares a `verification.tier` on a pragmatic floor:
 | `T1` | Pinned versions declared + human-reviewed. |
 | `T2` | T1 + lockfile + the adapter's templates build & smoke green in CI (default-eligible). |
 | `T3+` | Aspirational: cosign signature + SBOM + SLSA provenance. Documented, not required for v1. |
+
+### `recipes[].bindings` (port → adapter map)
+
+Generator-derived from the recipe's `capabilities[]`: each capability's `implements.port` (see `ports[]`) groups its adapters by port. An **exactly-one** port maps to a single adapter id; a **many** port maps to a sorted list. Cardinality violations warn at build time.
+
+```yaml
+bindings: {model: stack.llm-claude, vector_db: vector_db.qdrant, obs: [obs.grafana-stack, obs.langfuse]}
+```
+
+A consumer reads `bindings` to know which vetted adapter fills each selection axis without re-deriving it from `capabilities[]`.
+
+### `recipes[].context_manifest` (closed, pre-costed context set)
+
+Generator-derived. The context a consumer should load for this recipe — the recipe's `load_list` projected to `docs[]` plus the resolved capability closure — so the consumer loads exactly this and **skips speculative discovery** (prose-keyword scans, transitive link walks).
+
+| Field | Type | Notes |
+|---|---|---|
+| `docs[]` | object[] | One per `load_list` entry: `{path, required, cache_tier?, when?, est_tokens?}`. `when` is kept **symbolic** (the consumer evaluates it against `{language, framework, topology, capabilities}`), not pre-expanded. `est_tokens` is filled only for docs that resolve to a local file; remote (blueprint-URL) docs omit it. |
+| `capabilities[]` | string[] | The recipe's `capabilities` plus their `requires` transitively (the closure), so the consumer has the full adapter set in one place. |
+| `est_total_tokens` | int | Sum of the recipe's own `est_tokens` + known per-doc `est_tokens` + each closure capability's `est_tokens`. A one-glance budget hint (lower bound — remote docs aren't counted). |
+
+```yaml
+context_manifest:
+  docs:
+    - {path: "https://github.com/.../patterns/rag/overview.md", required: true, cache_tier: hot}
+    - {path: ../frameworks/pydantic-ai.md, required: true, cache_tier: hot, when: "language == 'python'", est_tokens: 2675}
+  capabilities: [vector_db.qdrant, relational.postgres, obs.langfuse]
+  est_total_tokens: 14200
+```
+
+It is **additive**: a consumer that ignores it keeps today's discovery behavior; one that honours it loads the closed set and drops the speculative passes.
 
 ### `frameworks[]`
 
