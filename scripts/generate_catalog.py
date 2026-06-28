@@ -520,8 +520,9 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
             entry["conflicts"] = fm["conflicts"]
         if "parameters" in fm:
             entry["parameters"] = fm["parameters"]
-        if "verification" in fm:
-            entry["verification"] = fm["verification"]
+        # verification is generator-derived (see derive_verification), not
+        # authored — the tier reflects real evidence (validated-recipe coverage),
+        # so it can't be over-claimed in frontmatter.
         # Derived, generation-oriented summary (no hand-authoring) — lets a
         # consumer inject a compact block instead of the full markdown body.
         entry["context_summary"] = _derive_context_summary(entry, fm)
@@ -787,6 +788,39 @@ def build_context_manifest(
         manifest["capabilities"] = cap_closure
         manifest["est_total_tokens"] = est_total
         r["context_manifest"] = manifest
+
+
+def derive_verification(
+    recipes: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
+) -> None:
+    """Derive each adapter's ``verification`` block from real, deterministic
+    evidence — no live-CI-green or signing claims are baked in (those would flap
+    or be untrue).
+
+    - ``tier``: ``T2`` when the adapter is integrated in a **validated** recipe
+      (``status: Blueprint (validated)`` — a committed, reviewed reference
+      implementation, so the adapter has actually been wired up end-to-end);
+      ``T1`` otherwise (the pinned-or-managed + reviewed-via-PR floor). ``T3``
+      (cosign / SBOM / SLSA) stays aspirational — nothing claims it yet.
+    - ``delivery``: ``self-hosted`` (we pin the docker image) or ``managed`` (SaaS).
+    - ``verified_in``: the validated recipes that exercise the adapter — the T2
+      evidence — omitted for T1.
+    """
+    validated = {r["slug"] for r in recipes if r.get("status") == "Blueprint (validated)"}
+    used: dict[str, list[str]] = {}
+    for r in recipes:
+        if r["slug"] in validated:
+            for cid in r.get("capabilities") or []:
+                used.setdefault(cid, []).append(r["slug"])
+    for c in capabilities:
+        verified_in = sorted(used.get(c["id"], []))
+        ver: dict[str, Any] = OrderedDict()
+        ver["tier"] = "T2" if verified_in else "T1"
+        ver["delivery"] = "self-hosted" if c.get("docker_service") else "managed"
+        if verified_in:
+            ver["verified_in"] = verified_in
+        c["verification"] = ver
 
 
 def collect_path_only(glob: tuple[str, ...], non_recipe_stems: frozenset[str]) -> list[Any]:
@@ -1661,6 +1695,7 @@ def build_catalog(
     catalog["compatibility"] = build_compatibility(catalog["capabilities"])
     derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
     build_context_manifest(catalog["recipes"], catalog["capabilities"])
+    derive_verification(catalog["recipes"], catalog["capabilities"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
     catalog["cross_cutting_docs"] = collect_path_only(CROSS_CUTTING_GLOB, non_recipe_stems)

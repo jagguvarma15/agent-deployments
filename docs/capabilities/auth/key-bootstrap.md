@@ -24,8 +24,6 @@ card:
   required_credentials: []
 tags: [auth, api-key, bootstrap, dev]
 when_to_load: "a chat frontend is present and the agent needs a key to reply"
-verification:
-  tier: T1
 ---
 
 # Runtime environment bootstrap

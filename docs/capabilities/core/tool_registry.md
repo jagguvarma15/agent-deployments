@@ -29,8 +29,6 @@ docs: |
   domain tool functions.
 tags: [core, tool-use, permissions, retry]
 when_to_load: "recipe tier is T1 or higher (the tier preset seeds core.tool_registry)"
-verification:
-  tier: T1
 ---
 
 # Core: Tool registry

@@ -28,8 +28,6 @@ docs: |
   eval` and renders pass/fail + LLM-judge scores.
 tags: [eval, prompt-testing, yaml-config]
 when_to_load: "recipe declares eval.promptfoo"
-verification:
-  tier: T1
 ---
 
 # Capability: eval.promptfoo

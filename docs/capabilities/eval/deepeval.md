@@ -24,8 +24,6 @@ docs: |
   precision/recall). Python-native test suite that runs as `pytest` cases.
 tags: [eval, llm-eval, python]
 when_to_load: "recipe declares eval.deepeval"
-verification:
-  tier: T1
 ---
 
 # Capability: eval.deepeval

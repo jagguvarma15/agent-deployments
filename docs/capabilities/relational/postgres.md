@@ -38,8 +38,6 @@ docs: |
   step (Alembic in Python, Drizzle Kit in TypeScript).
 tags: [relational, sql, self-hosted]
 when_to_load: "recipe declares relational.postgres"
-verification:
-  tier: T1
 ---
 
 # Capability: relational.postgres

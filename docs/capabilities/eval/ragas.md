@@ -25,8 +25,6 @@ docs: |
   against a labeled test set.
 tags: [eval, rag-eval, python]
 when_to_load: "recipe declares eval.ragas"
-verification:
-  tier: T1
 ---
 
 # Capability: eval.ragas

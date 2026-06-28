@@ -45,8 +45,6 @@ docs: |
   process. Requires `relational.postgres` for Temporal's persistence store.
 tags: [durable, workflow-engine, long-running]
 when_to_load: "recipe declares durable.temporal"
-verification:
-  tier: T1
 ---
 
 # Capability: durable.temporal

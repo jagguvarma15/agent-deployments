@@ -399,7 +399,7 @@ These five fields are additive at the v1 schema and ignored cleanly by older sca
 | `excludes` | string[] | no | Ids / flags / ports that cannot co-occur with this adapter (hard incompatibility). |
 | `conflicts` | string[] | no | Soft incompatibilities — a consumer warns rather than hard-fails. |
 | `parameters` | object | no | JSON-Schema-style parameter block (type / properties / defaults) folding the adapter's ad-hoc config knobs. |
-| `verification` | object | no | Verification floor: `{tier: T1\|T2\|T3+, …}`. See `### Verification tiers`. |
+| `verification` | object | **derived** | Generator-derived trust block: `{tier, delivery, verified_in?}`. See `### Verification tiers`. |
 | `context_summary` | string | **derived** | Generator-derived compact summary (name + kind + description + env vars + docker service + bootstrap + `provides` flags). Lets a consumer inject a few lines instead of the full markdown body. |
 
 The full capability spec (Docker fragment, ports, volumes, healthcheck, etc.) stays in the source markdown's frontmatter; consumers can fetch the source file when they need the deeper detail. The catalog surfaces just enough to make discovery and `docker_service` lookup cheap.
@@ -462,13 +462,15 @@ Resolution (documented here; executed by the future scaffold resolver): propagat
 
 ### Verification tiers
 
-Each adapter declares a `verification.tier` on a pragmatic floor:
+`verification` is **generator-derived** from deterministic evidence — never hand-authored, so a tier can't be over-claimed. Shape: `{tier, delivery, verified_in?}`.
 
-| Tier | Meaning |
+| Field | Meaning |
 |---|---|
-| `T1` | Pinned versions declared + human-reviewed. |
-| `T2` | T1 + lockfile + the adapter's templates build & smoke green in CI (default-eligible). |
-| `T3+` | Aspirational: cosign signature + SBOM + SLSA provenance. Documented, not required for v1. |
+| `tier` | `T1` = pinned-or-managed + reviewed via PR (the floor). `T2` = T1 + the adapter is integrated in a **validated** recipe (`status: Blueprint (validated)` — a committed, reviewed reference implementation that wires it up end-to-end). `T3+` (cosign / SBOM / SLSA provenance) is aspirational — nothing claims it yet. |
+| `delivery` | `self-hosted` (this repo pins the adapter's docker image) or `managed` (a SaaS the consumer points at). |
+| `verified_in` | The validated recipes that exercise the adapter — the evidence behind a `T2`. Omitted for `T1`. |
+
+The tier is a pure function of repo content (recipe `status` + capability usage), so it stays deterministic and truthful: a `T2` means a reviewed reference implementation actually integrates the adapter, not a self-asserted claim.
 
 ### `recipes[].bindings` (port → adapter map)
 

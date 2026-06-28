@@ -33,8 +33,6 @@ docs: |
   Bootstrap step creates collections after docker_up.
 tags: [vector-search, retrieval, self-hosted, embedded]
 when_to_load: "recipe declares vector_db.chroma"
-verification:
-  tier: T1
 ---
 
 # Capability: vector_db.chroma

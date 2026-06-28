@@ -30,8 +30,6 @@ docs: |
   optional table + ivfflat index.
 tags: [vector-search, retrieval, postgres-native]
 when_to_load: "recipe declares vector_db.pgvector"
-verification:
-  tier: T1
 ---
 
 # Capability: vector_db.pgvector

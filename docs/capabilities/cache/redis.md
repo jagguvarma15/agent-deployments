@@ -33,8 +33,6 @@ docs: |
   low-throughput event source. No post-up bootstrap needed.
 tags: [cache, in-memory, rate-limiting, session-store]
 when_to_load: "recipe declares cache.redis"
-verification:
-  tier: T1
 ---
 
 # Capability: cache.redis
