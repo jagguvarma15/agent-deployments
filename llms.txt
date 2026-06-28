@@ -2,13 +2,13 @@
 
 > Canonical: https://raw.githubusercontent.com/jagguvarma15/agent-deployments/main/llms.txt
 
-> Production-shaped markdown specs for AI agents. The stack-decision layer of the three-repo pipeline: [agent-blueprints](https://github.com/jagguvarma15/agent-blueprints) (architecture) → **agent-deployments** (specs + stack) → [agent-scaffold](https://github.com/jagguvarma15/agent-scaffold) (generator). After you pick a cognitive pattern in blueprints, this repo tells you what to build it on.
+> Production-shaped markdown specs for AI agents. The **verified-options** layer of the three-repo pipeline: [agent-blueprints](https://github.com/jagguvarma15/agent-blueprints) (design core) → **agent-deployments** (port-typed verified options) → [agent-scaffold](https://github.com/jagguvarma15/agent-scaffold) (compose engine). After you pick a cognitive pattern in blueprints, this repo is the registry of vetted adapters to run it on.
 
-Every recipe is a full-spec markdown blueprint with frontmatter that consumers (AI tools, scaffold CLIs) parse to assemble a runnable project. The canonical machine-readable index is `catalog.yaml`.
+Every recipe is a full-spec markdown blueprint with frontmatter that consumers (AI tools, scaffold CLIs) parse to assemble a runnable project. Recipes bind **port-typed adapters** (model / vector_db / framework / host / …) carrying `verification` tiers; `catalog.ports[]` + `catalog.compatibility[]` let a generator resolve a valid set. The canonical machine-readable index is `catalog.yaml`.
 
 ## Start here
 
-- [catalog.yaml](catalog.yaml): single source of truth — embeds the blueprints catalog (patterns + primitives + modifiers + compositions) and this repo's recipes, capabilities, frameworks, stack docs.
+- [catalog.yaml](catalog.yaml): single source of truth — embeds the blueprints catalog (patterns + primitives + modifiers + compositions) and this repo's recipes, **ports, port-typed adapters (capabilities), compatibility edges**, frameworks, and stack docs.
 - [CONSUMER_CONTRACT.md](CONSUMER_CONTRACT.md): the canonical 9-step recipe a tool follows to turn a catalog entry into a working local project. Includes prompt-cache tiering, load-list breakpointing, acceptance validation, and cache-hit-rate monitoring.
 - [STRUCTURE.md](STRUCTURE.md): directory map. Read this if you need orientation before walking the tree.
 - [agents.md](agents.md): how to programmatically consume the catalog. Entry shapes, resolution rules, pinning convention.
