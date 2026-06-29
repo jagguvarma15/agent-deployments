@@ -411,6 +411,7 @@ def collect_recipes(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
             "topology",
             "complexity",
             "agent_pattern",
+            "pattern_levels",
             "agent_role",
             "primitives",
             "modifiers",
@@ -451,6 +452,12 @@ def collect_recipes(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
                     merged["cache_tier"] = default_cache_tier(merged["path"])
                 normalized.append(merged)
             entry["load_list"] = normalized
+        pl = entry.get("pattern_levels")
+        if pl is not None and (not isinstance(pl, list) or any(lv not in _LEVEL_KEYS for lv in pl)):
+            raise SystemExit(
+                f"error: {path.relative_to(REPO_ROOT)}: pattern_levels must be a subset of "
+                f"{list(_LEVEL_KEYS)}, got {pl!r}"
+            )
         out.append(entry)
     out.sort(key=lambda e: e["slug"])
     return out
@@ -523,6 +530,9 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
         # verification is generator-derived (see derive_verification), not
         # authored — the tier reflects real evidence (validated-recipe coverage),
         # so it can't be over-claimed in frontmatter.
+        # Machine-readable adapter -> deep stack-doc edge (the menu's stack leaf).
+        if "stack_docs" in fm:
+            entry["stack_docs"] = fm["stack_docs"]
         # Derived, generation-oriented summary (no hand-authoring) — lets a
         # consumer inject a compact block instead of the full markdown body.
         entry["context_summary"] = _derive_context_summary(entry, fm)
@@ -721,20 +731,74 @@ def _est_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
+_LEVEL_KEYS = ("overview", "architecture", "flow", "design", "implementation")
+
+
+def _urlify_blueprint_refs(entries: list[dict[str, Any]]) -> None:
+    """Rewrite blueprint-relative doc paths in embedded cohort entries to GitHub
+    URLs a consumer can resolve — the per-pattern *level menu*. Touches each
+    entry's ``tier_files`` (level → path) values and ``ir_fragment_ref``.
+    Idempotent: already-absolute URLs are left alone."""
+
+    def _to_url(p: Any) -> Any:
+        if isinstance(p, str) and not p.startswith(("http://", "https://")):
+            return BLUEPRINTS_DOC_URL_BASE + p
+        return p
+
+    for e in entries:
+        tf = e.get("tier_files")
+        if isinstance(tf, dict):
+            e["tier_files"] = OrderedDict((k, _to_url(v)) for k, v in tf.items())
+        if "ir_fragment_ref" in e:
+            e["ir_fragment_ref"] = _to_url(e["ir_fragment_ref"])
+
+
+def _manifest_doc(
+    recipe_dir: Path,
+    path: str,
+    source: str,
+    required: bool,
+    when: str | None,
+    cache_tier: str | None,
+) -> tuple[dict[str, Any], int]:
+    """Build one context_manifest doc entry + its local est_tokens (0 for remote)."""
+    doc: dict[str, Any] = OrderedDict()
+    doc["path"] = path
+    doc["required"] = required
+    doc["source"] = source
+    if cache_tier:
+        doc["cache_tier"] = cache_tier
+    if when:
+        doc["when"] = when
+    est = 0
+    if not path.startswith(("http://", "https://")):
+        resolved = (recipe_dir / path).resolve()
+        if resolved.is_file():
+            est = _est_tokens(resolved.read_text(encoding="utf-8"))
+            doc["est_tokens"] = est
+    return doc, est
+
+
 def build_context_manifest(
     recipes: list[dict[str, Any]],
     capabilities: list[dict[str, Any]],
+    tier_files_by_id: dict[str, Any],
 ) -> None:
-    """Emit each recipe's ``context_manifest``: the closed, pre-costed context
-    set a consumer should load — the recipe's ``load_list`` projected to
-    ``{path, required, cache_tier, when, est_tokens}`` (predicates kept symbolic,
-    not pre-expanded) plus the resolved capability closure (the recipe's
-    ``capabilities`` and their ``requires`` transitively).
+    """Emit each recipe's ``context_manifest`` — the resolved, deduplicated,
+    pre-costed *menu* of exactly what a consumer loads for THIS recipe's pattern
+    + chosen adapters. Three sources, each tagged with ``source``:
 
-    Additive + deterministic. A consumer that honours the manifest loads exactly
-    these docs/capabilities and skips speculative discovery (prose-alias scans,
-    transitive link walks). Per-doc ``est_tokens`` are filled only for docs that
-    resolve to a local file; remote (blueprint-URL) docs carry no estimate.
+    - the author's ``load_list`` (``source: load_list``);
+    - the recipe's ``agent_pattern`` levels (``pattern_levels``, default
+      ``[overview]``) resolved to GitHub URLs via the cohort's ``tier_files``
+      (``source: pattern_level:<level>``);
+    - each closure adapter's ``stack_docs``, made recipe-relative
+      (``source: adapter_stack:<id>``).
+
+    Deduplicated by path/URL (a stack doc already in the load_list isn't
+    re-added); per-doc ``est_tokens`` for local files only (remote blueprint
+    URLs carry none). Additive + deterministic — a consumer that honours it
+    loads exactly this and skips speculative discovery.
     """
     cap_by_id = {c["id"]: c for c in capabilities}
 
@@ -753,32 +817,41 @@ def build_context_manifest(
 
     for r in recipes:
         recipe_dir = (REPO_ROOT / r["path"]).parent
-        docs: list[dict[str, Any]] = []
-        doc_tokens = 0
-        for item in r.get("load_list") or []:
-            if not isinstance(item, dict) or not isinstance(item.get("path"), str):
-                continue
-            path = item["path"]
-            doc: dict[str, Any] = OrderedDict()
-            doc["path"] = path
-            doc["required"] = bool(item.get("required", True))
-            if item.get("cache_tier"):
-                doc["cache_tier"] = item["cache_tier"]
-            if item.get("when"):
-                doc["when"] = item["when"]
-            if not path.startswith(("http://", "https://")):
-                resolved = (recipe_dir / path).resolve()
-                if resolved.is_file():
-                    est = _est_tokens(resolved.read_text(encoding="utf-8"))
-                    doc["est_tokens"] = est
-                    doc_tokens += est
-            docs.append(doc)
         cap_closure = _closure(list(r.get("capabilities") or []))
+        # (path, source, required, when, cache_tier) in priority order.
+        sources: list[tuple[str, str, bool, str | None, str | None]] = []
+        for item in r.get("load_list") or []:
+            if isinstance(item, dict) and isinstance(item.get("path"), str):
+                sources.append(
+                    (item["path"], "load_list", bool(item.get("required", True)),
+                     item.get("when"), item.get("cache_tier"))
+                )
+        tf = tier_files_by_id.get(r.get("agent_pattern"))
+        if isinstance(tf, dict):
+            for level in r.get("pattern_levels") or ["overview"]:
+                url = tf.get(level)
+                if isinstance(url, str):
+                    sources.append((url, f"pattern_level:{level}", True, None, None))
+        for cid in cap_closure:
+            cap = cap_by_id.get(cid)
+            for sd in (cap.get("stack_docs") if cap else None) or []:
+                rel = sd if sd.startswith(("../", "http://", "https://")) else "../" + sd
+                sources.append((rel, f"adapter_stack:{cid}", False, None, None))
+
+        docs: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        doc_tokens = 0
+        for path, source, required, when, cache_tier in sources:
+            if path in seen:
+                continue
+            seen.add(path)
+            doc, est = _manifest_doc(recipe_dir, path, source, required, when, cache_tier)
+            doc_tokens += est
+            docs.append(doc)
+
         if not docs and not cap_closure:
             continue
-        est_total = doc_tokens
-        if isinstance(r.get("est_tokens"), int):
-            est_total += r["est_tokens"]
+        est_total = doc_tokens + (r["est_tokens"] if isinstance(r.get("est_tokens"), int) else 0)
         for cid in cap_closure:
             cap = cap_by_id.get(cid)
             if cap and isinstance(cap.get("est_tokens"), int):
@@ -1686,6 +1759,18 @@ def build_catalog(
     catalog["modifiers"] = blueprints_catalog.get("modifiers") or []
     catalog["compositions"] = blueprints_catalog.get("compositions") or []
 
+    # URL-ify embedded blueprint doc refs (the per-pattern tier_files level menu
+    # + ir_fragment_ref) so consumers resolve them, then index level → URL by id
+    # for the context_manifest builder.
+    for _cohort in ("patterns", "workflows", "primitives", "modifiers"):
+        _urlify_blueprint_refs(catalog[_cohort])
+    tier_files_by_id = {
+        e["id"]: e.get("tier_files")
+        for cohort in ("patterns", "workflows", "primitives", "modifiers")
+        for e in catalog[cohort]
+        if e.get("id")
+    }
+
     # This repo's own content.
     catalog["recipes"] = collect_recipes(non_recipe_stems)
     catalog["capabilities"] = collect_capabilities(non_recipe_stems)
@@ -1694,7 +1779,7 @@ def build_catalog(
     fill_port_defaults(catalog["ports"], catalog["capabilities"])
     catalog["compatibility"] = build_compatibility(catalog["capabilities"])
     derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
-    build_context_manifest(catalog["recipes"], catalog["capabilities"])
+    build_context_manifest(catalog["recipes"], catalog["capabilities"], tier_files_by_id)
     derive_verification(catalog["recipes"], catalog["capabilities"])
     catalog["frameworks"] = collect_frameworks(non_recipe_stems)
     catalog["stack"] = collect_path_only(STACK_GLOB, non_recipe_stems)
