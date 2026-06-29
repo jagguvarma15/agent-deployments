@@ -46,6 +46,9 @@ docs: |
   run as additional compose services via emit_files.
 tags: [observability, metrics, self-hosted]
 when_to_load: "recipe declares obs.grafana-stack"
+stack_docs:
+  - stack/opentelemetry.md
+  - stack/prometheus-grafana.md
 ---
 
 # Capability: obs.grafana-stack
