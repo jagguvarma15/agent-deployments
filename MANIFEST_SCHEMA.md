@@ -168,6 +168,8 @@ Pass-through from the blueprints catalog. See [agent-blueprints/PATTERNS_CATALOG
 
 Recipe frontmatter references these via `agent_pattern:`, `primitives:`, and `modifiers:`; the catalog generator validates every id at build time and refuses to emit a catalog with an unresolved reference.
 
+**Per-pattern level menu.** Each entry's `tier_files` maps the five depth levels — `overview` / `architecture` / `flow` / `design` / `implementation` — to **GitHub URLs** (the generator rewrites the blueprints-relative paths to resolvable URLs), and `ir_fragment_ref` points at the implementation-level doc. A consumer grabs only the level(s) it needs (e.g. `tier_files["architecture"]`) instead of the whole pattern; a recipe declares its subset via `recipes[].pattern_levels`, resolved into `context_manifest`.
+
 ### `recipes[]`
 
 | Field | Type | Required | Notes |
@@ -199,6 +201,7 @@ Recipe frontmatter references these via `agent_pattern:`, `primitives:`, and `mo
 | `env_overrides` | object | no | App-level env var defaults merged on top of the auto-derived `env_contract`. |
 | `env_contract` | object | **auto-derived** | Generator-emitted dedup of every selected capability's `env_vars` with source annotations. Authors do NOT include this in frontmatter. |
 | `est_tokens` | int | no | Coarse whole-file token estimate; consumer's context-window budget hint. |
+| `pattern_levels` | string[] | no | Which of the `agent_pattern`'s five `tier_files` levels (`overview`/`architecture`/`flow`/`design`/`implementation`) the menu loads; default `[overview]`. Resolved into `context_manifest`. |
 | `acceptance_contracts` | object | no | Machine-checkable contracts a consumer can validate the generated project against. See `### recipes[].acceptance_contracts` below. |
 | `bindings` | object | **derived** | Generator-derived port → adapter map for this recipe's `capabilities[]`. See `### recipes[].bindings`. |
 | `context_manifest` | object | **derived** | Generator-derived closed, pre-costed context set (load_list projection + capability closure) a consumer loads instead of running speculative discovery. See `### recipes[].context_manifest`. |
@@ -399,8 +402,9 @@ These five fields are additive at the v1 schema and ignored cleanly by older sca
 | `excludes` | string[] | no | Ids / flags / ports that cannot co-occur with this adapter (hard incompatibility). |
 | `conflicts` | string[] | no | Soft incompatibilities — a consumer warns rather than hard-fails. |
 | `parameters` | object | no | JSON-Schema-style parameter block (type / properties / defaults) folding the adapter's ad-hoc config knobs. |
-| `verification` | object | no | Verification floor: `{tier: T1\|T2\|T3+, …}`. See `### Verification tiers`. |
+| `verification` | object | **derived** | Generator-derived trust block: `{tier, delivery, verified_in?}`. See `### Verification tiers`. |
 | `context_summary` | string | **derived** | Generator-derived compact summary (name + kind + description + env vars + docker service + bootstrap + `provides` flags). Lets a consumer inject a few lines instead of the full markdown body. |
+| `stack_docs` | string[] | no | The adapter's deep `docs/stack/<x>.md` reference(s) — the machine-readable adapter→stack edge. Resolved into a recipe's `context_manifest` (`source: adapter_stack:<id>`) so picking the adapter grabs its stack doc(s). |
 
 The full capability spec (Docker fragment, ports, volumes, healthcheck, etc.) stays in the source markdown's frontmatter; consumers can fetch the source file when they need the deeper detail. The catalog surfaces just enough to make discovery and `docker_service` lookup cheap.
 
@@ -462,13 +466,15 @@ Resolution (documented here; executed by the future scaffold resolver): propagat
 
 ### Verification tiers
 
-Each adapter declares a `verification.tier` on a pragmatic floor:
+`verification` is **generator-derived** from deterministic evidence — never hand-authored, so a tier can't be over-claimed. Shape: `{tier, delivery, verified_in?}`.
 
-| Tier | Meaning |
+| Field | Meaning |
 |---|---|
-| `T1` | Pinned versions declared + human-reviewed. |
-| `T2` | T1 + lockfile + the adapter's templates build & smoke green in CI (default-eligible). |
-| `T3+` | Aspirational: cosign signature + SBOM + SLSA provenance. Documented, not required for v1. |
+| `tier` | `T1` = pinned-or-managed + reviewed via PR (the floor). `T2` = T1 + the adapter is integrated in a **validated** recipe (`status: Blueprint (validated)` — a committed, reviewed reference implementation that wires it up end-to-end). `T3+` (cosign / SBOM / SLSA provenance) is aspirational — nothing claims it yet. |
+| `delivery` | `self-hosted` (this repo pins the adapter's docker image) or `managed` (a SaaS the consumer points at). |
+| `verified_in` | The validated recipes that exercise the adapter — the evidence behind a `T2`. Omitted for `T1`. |
+
+The tier is a pure function of repo content (recipe `status` + capability usage), so it stays deterministic and truthful: a `T2` means a reviewed reference implementation actually integrates the adapter, not a self-asserted claim.
 
 ### `recipes[].bindings` (port → adapter map)
 
@@ -480,26 +486,28 @@ bindings: {model: stack.llm-claude, vector_db: vector_db.qdrant, obs: [obs.grafa
 
 A consumer reads `bindings` to know which vetted adapter fills each selection axis without re-deriving it from `capabilities[]`.
 
-### `recipes[].context_manifest` (closed, pre-costed context set)
+### `recipes[].context_manifest` (the resolved context menu)
 
-Generator-derived. The context a consumer should load for this recipe — the recipe's `load_list` projected to `docs[]` plus the resolved capability closure — so the consumer loads exactly this and **skips speculative discovery** (prose-keyword scans, transitive link walks).
+Generator-derived. The **deduplicated, pre-costed set of exactly what a consumer loads** for this recipe's pattern + chosen adapters — load it and **skip speculative discovery** (prose-keyword scans, transitive link walks). `docs[]` unions three sources, each tagged with `source`:
 
 | Field | Type | Notes |
 |---|---|---|
-| `docs[]` | object[] | One per `load_list` entry: `{path, required, cache_tier?, when?, est_tokens?}`. `when` is kept **symbolic** (the consumer evaluates it against `{language, framework, topology, capabilities}`), not pre-expanded. `est_tokens` is filled only for docs that resolve to a local file; remote (blueprint-URL) docs omit it. |
-| `capabilities[]` | string[] | The recipe's `capabilities` plus their `requires` transitively (the closure), so the consumer has the full adapter set in one place. |
-| `est_total_tokens` | int | Sum of the recipe's own `est_tokens` + known per-doc `est_tokens` + each closure capability's `est_tokens`. A one-glance budget hint (lower bound — remote docs aren't counted). |
+| `docs[]` | object[] | `{path, required, source, cache_tier?, when?, est_tokens?}`. `source` is `load_list` (author-curated), `pattern_level:<level>` (a level URL from the `agent_pattern`'s `tier_files`, per `pattern_levels`), or `adapter_stack:<cap-id>` (a closure adapter's `stack_docs`, made recipe-relative). **Deduplicated** by path/URL (a stack doc already in the load_list isn't re-added). `when` is kept **symbolic** (consumer evaluates it); `est_tokens` is filled for local files only (remote blueprint URLs omit it). |
+| `capabilities[]` | string[] | The recipe's `capabilities` plus their `requires` transitively (the closure). |
+| `est_total_tokens` | int | Recipe `est_tokens` + known per-doc `est_tokens` + each closure capability's `est_tokens`. A one-glance budget hint (lower bound — remote docs uncounted). |
 
 ```yaml
 context_manifest:
   docs:
-    - {path: "https://github.com/.../patterns/rag/overview.md", required: true, cache_tier: hot}
-    - {path: ../frameworks/pydantic-ai.md, required: true, cache_tier: hot, when: "language == 'python'", est_tokens: 2675}
+    - {path: "https://github.com/.../patterns/rag/overview.md", required: true, source: load_list, cache_tier: hot}
+    - {path: ../stack/vector-qdrant.md, required: true, source: load_list, cache_tier: hot, est_tokens: 1083}
+    - {path: "https://github.com/.../patterns/rag/architecture.md", required: true, source: "pattern_level:architecture"}
+    - {path: ../stack/connection-pooling-pgbouncer.md, required: false, source: "adapter_stack:relational.postgres", est_tokens: 2001}
   capabilities: [vector_db.qdrant, relational.postgres, obs.langfuse]
-  est_total_tokens: 14200
+  est_total_tokens: 36513
 ```
 
-It is **additive**: a consumer that ignores it keeps today's discovery behavior; one that honours it loads the closed set and drops the speculative passes.
+It is **additive**: a consumer that ignores it keeps today's discovery behavior; one that honours it loads the closed menu and drops the speculative passes.
 
 ### `frameworks[]`
 

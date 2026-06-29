@@ -34,8 +34,8 @@ docs: |
   embeddings on first run.
 tags: [vector-search, retrieval, self-hosted]
 when_to_load: "recipe declares vector_db.qdrant"
-verification:
-  tier: T1
+stack_docs:
+  - stack/vector-qdrant.md
 ---
 
 # Capability: vector_db.qdrant

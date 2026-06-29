@@ -25,8 +25,8 @@ docs: |
   `.env.local`. API-key based — no local container.
 tags: [observability, llm-tracing, hosted]
 when_to_load: "recipe declares obs.langsmith"
-verification:
-  tier: T1
+stack_docs:
+  - stack/tracing-langfuse.md
 ---
 
 # Capability: obs.langsmith

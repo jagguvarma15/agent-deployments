@@ -43,8 +43,6 @@ docs: |
   alongside Postgres in compose.
 tags: [memory_store, long-term-memory, hosted]
 when_to_load: "recipe declares memory_store.zep"
-verification:
-  tier: T1
 ---
 
 # Capability: memory_store.zep

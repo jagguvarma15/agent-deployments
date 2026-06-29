@@ -27,8 +27,6 @@ docs: |
   frontend/ during generation.
 tags: [frontend, python, prototype]
 when_to_load: "recipe declares frontend.streamlit"
-verification:
-  tier: T1
 ---
 
 # Capability: frontend.streamlit
