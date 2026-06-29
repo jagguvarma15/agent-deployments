@@ -44,6 +44,8 @@ docs: |
   instead for ≤10k events/sec workloads.
 tags: [queue, high-throughput, durable]
 when_to_load: "recipe declares queue.kafka"
+stack_docs:
+  - stack/kafka.md
 ---
 
 # Capability: queue.kafka
