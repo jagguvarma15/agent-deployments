@@ -30,6 +30,9 @@ docs: |
   optional table + ivfflat index.
 tags: [vector-search, retrieval, postgres-native]
 when_to_load: "recipe declares vector_db.pgvector"
+stack_docs:
+  - stack/relational-postgres.md
+  - stack/vector-qdrant.md
 ---
 
 # Capability: vector_db.pgvector
