@@ -748,6 +748,7 @@ A future content scope will populate a `### Generation prompt` H3 section in eve
 | `status` | Yes | v0.2.x | |
 | `languages` | Yes | v0.2.x | |
 | `agent_pattern` | Yes | v0.3+ | Must resolve to a `catalog.patterns[].id` |
+| `pattern_levels` | Optional | v0.4+ | Subset of `overview`/`architecture`/`flow`/`design`/`implementation`; default `[overview]`. Which `agent_pattern` levels the menu loads (resolved into `context_manifest`). |
 | `primitives` | Recommended | v0.3+ | Empty list allowed; ids must resolve to `catalog.primitives[]` |
 | `modifiers` | Optional | v0.3+ | Ids must resolve to `catalog.modifiers[]` |
 | `load_list` | Recommended | v0.3+ | Falls back to prose `### Load list` when absent |
