@@ -35,8 +35,6 @@ docs: |
   First-time deploys need an interactive `fly launch --no-deploy`.
 tags: [host, paas, docker]
 when_to_load: "recipe declares host.fly"
-verification:
-  tier: T1
 ---
 
 # Capability: host.fly

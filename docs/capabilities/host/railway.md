@@ -35,8 +35,6 @@ docs: |
   default).
 tags: [host, paas, github-integrated]
 when_to_load: "recipe declares host.railway"
-verification:
-  tier: T1
 ---
 
 # Capability: host.railway

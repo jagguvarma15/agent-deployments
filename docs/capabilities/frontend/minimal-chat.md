@@ -22,8 +22,6 @@ card:
 emit_files:
   - source: templates/minimal-chat/**
     dest: frontend/
-verification:
-  tier: T1
 ---
 
 # Minimal Chat UI (Vite + React + TypeScript)

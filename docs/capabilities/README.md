@@ -18,11 +18,10 @@ Each capability declares, in frontmatter:
 - `provides: [<flag>, …]` — the **canonical capability flags** the compatibility model references (the substitution currency; `card.capabilities_provided` is human discovery copy).
 - `requires` / `excludes` / `conflicts` — cross-tree feature-model edges, denormalized into `catalog.compatibility[]` (`{a, b, relation, via}`) alongside same-port `substitutes`.
 - `parameters` — a JSON-Schema (+ defaults) for the adapter's tunables.
-- `verification: {tier, …}` — the trust tier (`T1` = pinned + reviewed; `T2` adds CI conformance; `T3+` add signing / SBOM / SLSA).
 
 A generator chooses a valid, verified configuration by binding each port to an adapter (respecting `cardinality`) and checking the `compatibility[]` edges.
 
-The generator also emits a **derived** `catalog.capabilities[].context_summary` per adapter (name + kind + description + env vars + docker service + bootstrap + `provides` flags) — a compact block a consumer can inject instead of the full markdown body to cut context tokens. It is generated, not authored, so it never appears in this frontmatter.
+The generator **derives** two fields per adapter (not authored in frontmatter): `catalog.capabilities[].verification` = `{tier, delivery, verified_in?}` — `T2` means the adapter is integrated in a validated reference implementation (see [`MANIFEST_SCHEMA.md`](../../MANIFEST_SCHEMA.md) § Verification tiers), `delivery` is `self-hosted` / `managed` — and `catalog.capabilities[].context_summary`, a compact body substitute a consumer can inject instead of the full markdown body to cut context tokens.
 
 ## When to add a capability vs. extend stack/
 
@@ -88,6 +87,7 @@ provides: [embeddings_store]         # canonical capability flags — the compat
 requires: []                         # optional — capability ids/flags this one needs (→ catalog.compatibility[])
 excludes: []                         # optional — ids/flags/ports that cannot co-occur (hard)
 conflicts: []                        # optional — soft incompatibilities (consumer warns)
+stack_docs: [stack/vector-qdrant.md] # optional — deep stack-reference doc(s); the adapter→stack edge
 bootstrap_inputs: {}                 # optional — map of values this capability's bootstrap step expects from its requires deps
 env_vars: [QDRANT_URL, QDRANT_API_KEY]   # canonical env var names the generated app must reference
 docker:                              # optional — omit for managed-only services
@@ -116,7 +116,6 @@ card:                                # required — MCP-Server-Card-style discov
 tags: [vector-search, retrieval, self-hosted]    # optional — hybrid-intake discovery tokens
 when_to_load: "recipe declares vector_db.qdrant" # optional — one-line predicate
 parameters: {}                       # optional — JSON-Schema (+ defaults) for the adapter's tunables
-verification: {tier: T1}             # required — trust tier: T1 pinned+reviewed / T2 +CI conformance / T3+ signing
 docs: |                              # short markdown block injected into the LLM context tier
   Free-form. One paragraph max — depth lives in the body below the frontmatter
   and in the linked stack/ doc.
@@ -135,7 +134,6 @@ docs: |                              # short markdown block injected into the LL
 | `card.name` | Human-readable display name. |
 | `card.description` | One-sentence neutral description — what the tool is, not why to pick it. |
 | `cost_tier` | One of `free`, `fixed-monthly`, `per-call`. Drives the recipe-level `cost_profile:` aggregation. |
-| `verification` | `{tier}` — `T1` (pinned + reviewed), `T2` (+ CI conformance), `T3+` (+ signing / SBOM / SLSA). The pragmatic trust floor. |
 
 ### Optional fields
 
@@ -241,7 +239,6 @@ When adding or updating a capability:
 - [ ] If `docker:` is set, image tag is pinned (no `:latest`)
 - [ ] `card.name` + `card.description` populated (neutral one-sentence description)
 - [ ] `cost_tier` set (`free` / `fixed-monthly` / `per-call`)
-- [ ] `verification: {tier}` set (`T1` minimum — pinned + reviewed)
 - [ ] `requires:` declared if this capability needs another capability up before it boots; `bootstrap_inputs:` declared if the bootstrap step reads values from the dependency
 - [ ] Body has: H1 title, one-paragraph factual intro, `## Client integration` (Python + TS), `## Troubleshoot` (table), `## See also` (cross-link to stack/ + getting-started)
 - [ ] Body does NOT include `## Why pick this` or `## When to swap it`

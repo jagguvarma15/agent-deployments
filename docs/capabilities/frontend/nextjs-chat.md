@@ -27,8 +27,6 @@ docs: |
   frontend/ during generation.
 tags: [frontend, react, streaming]
 when_to_load: "recipe declares frontend.nextjs-chat"
-verification:
-  tier: T1
 ---
 
 # Capability: frontend.nextjs-chat

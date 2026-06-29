@@ -35,8 +35,6 @@ docs: |
   default).
 tags: [host, serverless, frontend-first]
 when_to_load: "recipe declares host.vercel"
-verification:
-  tier: T1
 ---
 
 # Capability: host.vercel

@@ -26,8 +26,6 @@ docs: |
   `guardrails: [guardrail.llama-guard]`.
 tags: [guardrail, safety, llama]
 when_to_load: "recipe declares guardrail.llama-guard"
-verification:
-  tier: T1
 ---
 
 # Capability: guardrail.llama-guard

@@ -25,8 +25,8 @@ docs: |
   against a labeled test set.
 tags: [eval, rag-eval, python]
 when_to_load: "recipe declares eval.ragas"
-verification:
-  tier: T1
+stack_docs:
+  - stack/eval-deepeval-ragas-promptfoo.md
 ---
 
 # Capability: eval.ragas

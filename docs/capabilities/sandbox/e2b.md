@@ -25,8 +25,6 @@ docs: |
   scaffold prompts for the API key.
 tags: [sandbox, code-execution, hosted]
 when_to_load: "recipe declares sandbox.e2b"
-verification:
-  tier: T1
 ---
 
 # Capability: sandbox.e2b

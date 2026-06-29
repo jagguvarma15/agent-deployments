@@ -26,8 +26,8 @@ docs: |
   step name covers both Kafka topics and Redis Streams consumer groups).
 tags: [queue, lightweight, redis]
 when_to_load: "recipe declares queue.redis-streams"
-verification:
-  tier: T1
+stack_docs:
+  - stack/cache-redis.md
 ---
 
 # Capability: queue.redis-streams

@@ -25,8 +25,6 @@ docs: |
   LLM prompt to lift recall@5 by 20-40 points on benchmark datasets.
 tags: [rerank, hosted, embeddings-companion]
 when_to_load: "recipe declares rerank.cohere"
-verification:
-  tier: T1
 ---
 
 # Capability: rerank.cohere
