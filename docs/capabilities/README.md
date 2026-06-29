@@ -87,6 +87,7 @@ provides: [embeddings_store]         # canonical capability flags — the compat
 requires: []                         # optional — capability ids/flags this one needs (→ catalog.compatibility[])
 excludes: []                         # optional — ids/flags/ports that cannot co-occur (hard)
 conflicts: []                        # optional — soft incompatibilities (consumer warns)
+stack_docs: [stack/vector-qdrant.md] # optional — deep stack-reference doc(s); the adapter→stack edge
 bootstrap_inputs: {}                 # optional — map of values this capability's bootstrap step expects from its requires deps
 env_vars: [QDRANT_URL, QDRANT_API_KEY]   # canonical env var names the generated app must reference
 docker:                              # optional — omit for managed-only services
