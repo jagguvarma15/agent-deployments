@@ -33,6 +33,8 @@ docs: |
   Bootstrap step creates collections after docker_up.
 tags: [vector-search, retrieval, self-hosted, embedded]
 when_to_load: "recipe declares vector_db.chroma"
+stack_docs:
+  - stack/vector-qdrant.md
 ---
 
 # Capability: vector_db.chroma
