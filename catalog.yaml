@@ -35,12 +35,11 @@ patterns:
   description: RAG where the agent plans retrievals, decomposes queries, routes across sources, reflects on sufficiency, and enforces citation-bound answers.
   dir: patterns/agentic_rag
   tier_files:
-    overview: patterns/agentic_rag/overview.md
-    design: patterns/agentic_rag/design.md
-    implementation: patterns/agentic_rag/implementation.md
-    evolution: patterns/agentic_rag/evolution.md
-    observability: patterns/agentic_rag/observability.md
-    cost-and-latency: patterns/agentic_rag/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/implementation.md
   evolvesFrom:
   - rag
   - plan_and_execute
@@ -64,6 +63,8 @@ patterns:
   - rag-poisoning-defense
   costTier: medium
   latencyTier: medium-high
+  scale: production
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/implementation.md
   extras:
     prompts: patterns/agentic_rag/prompts/
     schemas: patterns/agentic_rag/schemas/
@@ -74,11 +75,11 @@ patterns:
   description: Generate-evaluate feedback loop that iteratively improves output.
   dir: patterns/evaluator-optimizer
   tier_files:
-    overview: patterns/evaluator-optimizer/overview.md
-    design: patterns/evaluator-optimizer/design.md
-    implementation: patterns/evaluator-optimizer/implementation.md
-    observability: patterns/evaluator-optimizer/observability.md
-    cost-and-latency: patterns/evaluator-optimizer/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/implementation.md
   evolvesInto:
   - reflection
   composableWith:
@@ -91,6 +92,8 @@ patterns:
   - evaluation
   costTier: medium-high
   latencyTier: high
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/implementation.md
   extras:
     code: patterns/evaluator-optimizer/code/
 - id: event_driven
@@ -100,12 +103,11 @@ patterns:
   description: Agents triggered by queue or stream events rather than HTTP requests.
   dir: patterns/event_driven
   tier_files:
-    overview: patterns/event_driven/overview.md
-    design: patterns/event_driven/design.md
-    implementation: patterns/event_driven/implementation.md
-    evolution: patterns/event_driven/evolution.md
-    observability: patterns/event_driven/observability.md
-    cost-and-latency: patterns/event_driven/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/implementation.md
   evolvesFrom:
   - tool_use
   composableWith:
@@ -125,6 +127,8 @@ patterns:
   - dlq
   costTier: medium
   latencyTier: medium
+  scale: production
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/implementation.md
   extras:
     prompts: patterns/event_driven/prompts/
     schemas: patterns/event_driven/schemas/
@@ -137,12 +141,11 @@ patterns:
   description: Multi-session agent tasks that span hours to weeks; checkpoint-and-resume across crashes, deploys, and external waits.
   dir: patterns/long_horizon
   tier_files:
-    overview: patterns/long_horizon/overview.md
-    design: patterns/long_horizon/design.md
-    implementation: patterns/long_horizon/implementation.md
-    evolution: patterns/long_horizon/evolution.md
-    observability: patterns/long_horizon/observability.md
-    cost-and-latency: patterns/long_horizon/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/implementation.md
   evolvesFrom:
   - saga
   - event_driven
@@ -167,6 +170,8 @@ patterns:
   - cross-session
   costTier: medium-high
   latencyTier: very-high
+  scale: production
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/implementation.md
   extras:
     prompts: patterns/long_horizon/prompts/
     schemas: patterns/long_horizon/schemas/
@@ -177,12 +182,11 @@ patterns:
   description: Supervisor-worker delegation across multiple autonomous agents.
   dir: patterns/multi_agent
   tier_files:
-    overview: patterns/multi_agent/overview.md
-    design: patterns/multi_agent/design.md
-    implementation: patterns/multi_agent/implementation.md
-    evolution: patterns/multi_agent/evolution.md
-    observability: patterns/multi_agent/observability.md
-    cost-and-latency: patterns/multi_agent/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/implementation.md
   evolvesFrom:
   - orchestrator-worker
   - routing
@@ -201,6 +205,8 @@ patterns:
   - enterprise
   costTier: high
   latencyTier: high
+  scale: production
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/implementation.md
   extras:
     prompts: patterns/multi_agent/prompts/
     schemas: patterns/multi_agent/schemas/
@@ -213,11 +219,11 @@ patterns:
   description: LLM decomposes a task and delegates to specialized workers.
   dir: patterns/orchestrator-worker
   tier_files:
-    overview: patterns/orchestrator-worker/overview.md
-    design: patterns/orchestrator-worker/design.md
-    implementation: patterns/orchestrator-worker/implementation.md
-    observability: patterns/orchestrator-worker/observability.md
-    cost-and-latency: patterns/orchestrator-worker/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/implementation.md
   evolvesInto:
   - plan_and_execute
   - multi_agent
@@ -231,6 +237,8 @@ patterns:
   - specialization
   costTier: medium-high
   latencyTier: medium
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/implementation.md
   extras:
     code: patterns/orchestrator-worker/code/
 - id: parallel-calls
@@ -240,11 +248,11 @@ patterns:
   description: Concurrent LLM calls on independent inputs, aggregated at the end.
   dir: patterns/parallel-calls
   tier_files:
-    overview: patterns/parallel-calls/overview.md
-    design: patterns/parallel-calls/design.md
-    implementation: patterns/parallel-calls/implementation.md
-    observability: patterns/parallel-calls/observability.md
-    cost-and-latency: patterns/parallel-calls/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/implementation.md
   evolvesInto:
   - rag
   - routing
@@ -259,6 +267,8 @@ patterns:
   - aggregation
   costTier: medium
   latencyTier: low
+  scale: prototype
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/implementation.md
   extras:
     code: patterns/parallel-calls/code/
 - id: plan_and_execute
@@ -268,12 +278,11 @@ patterns:
   description: LLM creates a full plan upfront, then executes each step sequentially.
   dir: patterns/plan_and_execute
   tier_files:
-    overview: patterns/plan_and_execute/overview.md
-    design: patterns/plan_and_execute/design.md
-    implementation: patterns/plan_and_execute/implementation.md
-    evolution: patterns/plan_and_execute/evolution.md
-    observability: patterns/plan_and_execute/observability.md
-    cost-and-latency: patterns/plan_and_execute/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/implementation.md
   evolvesFrom:
   - orchestrator-worker
   composableWith:
@@ -288,6 +297,8 @@ patterns:
   - trackable
   costTier: medium
   latencyTier: medium-high
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/implementation.md
   extras:
     prompts: patterns/plan_and_execute/prompts/
     schemas: patterns/plan_and_execute/schemas/
@@ -300,11 +311,11 @@ patterns:
   description: Sequential LLM calls with validation gates between steps.
   dir: patterns/prompt-chaining
   tier_files:
-    overview: patterns/prompt-chaining/overview.md
-    design: patterns/prompt-chaining/design.md
-    implementation: patterns/prompt-chaining/implementation.md
-    observability: patterns/prompt-chaining/observability.md
-    cost-and-latency: patterns/prompt-chaining/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/implementation.md
   evolvesInto:
   - react
   - tool_use
@@ -319,6 +330,8 @@ patterns:
   - low-latency
   costTier: low
   latencyTier: medium
+  scale: prototype
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/implementation.md
   extras:
     code: patterns/prompt-chaining/code/
 - id: rag
@@ -328,12 +341,11 @@ patterns:
   description: 'Retrieval-augmented generation: retrieve relevant context before generating.'
   dir: patterns/rag
   tier_files:
-    overview: patterns/rag/overview.md
-    design: patterns/rag/design.md
-    implementation: patterns/rag/implementation.md
-    evolution: patterns/rag/evolution.md
-    observability: patterns/rag/observability.md
-    cost-and-latency: patterns/rag/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/implementation.md
   evolvesFrom:
   - parallel-calls
   composableWith:
@@ -351,6 +363,8 @@ patterns:
   - semantic-search
   costTier: low-medium
   latencyTier: low-medium
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/implementation.md
   extras:
     prompts: patterns/rag/prompts/
     schemas: patterns/rag/schemas/
@@ -362,12 +376,11 @@ patterns:
   description: 'Reason-act loop: the LLM reasons, calls a tool, observes, and repeats until done.'
   dir: patterns/react
   tier_files:
-    overview: patterns/react/overview.md
-    design: patterns/react/design.md
-    implementation: patterns/react/implementation.md
-    evolution: patterns/react/evolution.md
-    observability: patterns/react/observability.md
-    cost-and-latency: patterns/react/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/implementation.md
   evolvesFrom:
   - prompt-chaining
   composableWith:
@@ -384,6 +397,8 @@ patterns:
   - open-ended
   costTier: medium
   latencyTier: variable
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/implementation.md
   extras:
     prompts: patterns/react/prompts/
     schemas: patterns/react/schemas/
@@ -395,12 +410,11 @@ patterns:
   description: LLM critiques its own output and self-improves through structured feedback.
   dir: patterns/reflection
   tier_files:
-    overview: patterns/reflection/overview.md
-    design: patterns/reflection/design.md
-    implementation: patterns/reflection/implementation.md
-    evolution: patterns/reflection/evolution.md
-    observability: patterns/reflection/observability.md
-    cost-and-latency: patterns/reflection/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/implementation.md
   evolvesFrom:
   - evaluator-optimizer
   composableWith:
@@ -416,6 +430,8 @@ patterns:
   - improvement
   costTier: medium-high
   latencyTier: high
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/implementation.md
   extras:
     prompts: patterns/reflection/prompts/
     schemas: patterns/reflection/schemas/
@@ -427,12 +443,11 @@ patterns:
   description: Intent classification dispatches inputs to specialized handlers.
   dir: patterns/routing
   tier_files:
-    overview: patterns/routing/overview.md
-    design: patterns/routing/design.md
-    implementation: patterns/routing/implementation.md
-    evolution: patterns/routing/evolution.md
-    observability: patterns/routing/observability.md
-    cost-and-latency: patterns/routing/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/implementation.md
   evolvesFrom:
   - parallel-calls
   composableWith:
@@ -448,6 +463,8 @@ patterns:
   - multi-skill
   costTier: low
   latencyTier: low
+  scale: prototype
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/implementation.md
   extras:
     prompts: patterns/routing/prompts/
     schemas: patterns/routing/schemas/
@@ -459,12 +476,11 @@ patterns:
   description: Long-running, multi-step business processes that need compensation when an intermediate step fails.
   dir: patterns/saga
   tier_files:
-    overview: patterns/saga/overview.md
-    design: patterns/saga/design.md
-    implementation: patterns/saga/implementation.md
-    evolution: patterns/saga/evolution.md
-    observability: patterns/saga/observability.md
-    cost-and-latency: patterns/saga/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/implementation.md
   evolvesFrom:
   - tool_use
   - prompt-chaining
@@ -484,6 +500,8 @@ patterns:
   - choreography
   costTier: medium
   latencyTier: high
+  scale: production
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/implementation.md
   extras:
     prompts: patterns/saga/prompts/
     schemas: patterns/saga/schemas/
@@ -497,11 +515,11 @@ workflows:
   description: Generate-evaluate feedback loop that iteratively improves output.
   dir: patterns/evaluator-optimizer
   tier_files:
-    overview: patterns/evaluator-optimizer/overview.md
-    design: patterns/evaluator-optimizer/design.md
-    implementation: patterns/evaluator-optimizer/implementation.md
-    observability: patterns/evaluator-optimizer/observability.md
-    cost-and-latency: patterns/evaluator-optimizer/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/implementation.md
   evolvesInto:
   - reflection
   composableWith:
@@ -514,6 +532,8 @@ workflows:
   - evaluation
   costTier: medium-high
   latencyTier: high
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/implementation.md
   extras:
     code: patterns/evaluator-optimizer/code/
 - id: orchestrator-worker
@@ -523,11 +543,11 @@ workflows:
   description: LLM decomposes a task and delegates to specialized workers.
   dir: patterns/orchestrator-worker
   tier_files:
-    overview: patterns/orchestrator-worker/overview.md
-    design: patterns/orchestrator-worker/design.md
-    implementation: patterns/orchestrator-worker/implementation.md
-    observability: patterns/orchestrator-worker/observability.md
-    cost-and-latency: patterns/orchestrator-worker/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/implementation.md
   evolvesInto:
   - plan_and_execute
   - multi_agent
@@ -541,6 +561,8 @@ workflows:
   - specialization
   costTier: medium-high
   latencyTier: medium
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/implementation.md
   extras:
     code: patterns/orchestrator-worker/code/
 - id: parallel-calls
@@ -550,11 +572,11 @@ workflows:
   description: Concurrent LLM calls on independent inputs, aggregated at the end.
   dir: patterns/parallel-calls
   tier_files:
-    overview: patterns/parallel-calls/overview.md
-    design: patterns/parallel-calls/design.md
-    implementation: patterns/parallel-calls/implementation.md
-    observability: patterns/parallel-calls/observability.md
-    cost-and-latency: patterns/parallel-calls/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/implementation.md
   evolvesInto:
   - rag
   - routing
@@ -569,6 +591,8 @@ workflows:
   - aggregation
   costTier: medium
   latencyTier: low
+  scale: prototype
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/implementation.md
   extras:
     code: patterns/parallel-calls/code/
 - id: prompt-chaining
@@ -578,11 +602,11 @@ workflows:
   description: Sequential LLM calls with validation gates between steps.
   dir: patterns/prompt-chaining
   tier_files:
-    overview: patterns/prompt-chaining/overview.md
-    design: patterns/prompt-chaining/design.md
-    implementation: patterns/prompt-chaining/implementation.md
-    observability: patterns/prompt-chaining/observability.md
-    cost-and-latency: patterns/prompt-chaining/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/implementation.md
   evolvesInto:
   - react
   - tool_use
@@ -597,6 +621,8 @@ workflows:
   - low-latency
   costTier: low
   latencyTier: medium
+  scale: prototype
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/implementation.md
   extras:
     code: patterns/prompt-chaining/code/
 primitives:
@@ -607,12 +633,11 @@ primitives:
   description: 'Persistent state across sessions: short-term, long-term, and semantic memory.'
   dir: primitives/memory
   tier_files:
-    overview: primitives/memory/overview.md
-    design: primitives/memory/design.md
-    implementation: primitives/memory/implementation.md
-    evolution: primitives/memory/evolution.md
-    observability: primitives/memory/observability.md
-    cost-and-latency: primitives/memory/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/implementation.md
   evolvesFrom:
   - prompt-chaining
   composableWith:
@@ -629,6 +654,8 @@ primitives:
   - retrieval
   costTier: medium
   latencyTier: medium
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/implementation.md
   extras:
     prompts: primitives/memory/prompts/
     schemas: primitives/memory/schemas/
@@ -640,12 +667,11 @@ primitives:
   description: File-based, agent-discovered procedural modules. Cheap to ship many; loaded on demand at runtime.
   dir: primitives/skills
   tier_files:
-    overview: primitives/skills/overview.md
-    design: primitives/skills/design.md
-    implementation: primitives/skills/implementation.md
-    evolution: primitives/skills/evolution.md
-    observability: primitives/skills/observability.md
-    cost-and-latency: primitives/skills/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/implementation.md
   evolvesFrom:
   - tool_use
   composableWith:
@@ -665,6 +691,8 @@ primitives:
   - agent-extensible
   costTier: low
   latencyTier: low
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/implementation.md
   extras:
     prompts: primitives/skills/prompts/
     schemas: primitives/skills/schemas/
@@ -676,12 +704,11 @@ primitives:
   description: Named, role-scoped agent instances spawned by a parent for delimited tasks; each has its own context window, tool grants, and (optionally) model.
   dir: primitives/sub_agents
   tier_files:
-    overview: primitives/sub_agents/overview.md
-    design: primitives/sub_agents/design.md
-    implementation: primitives/sub_agents/implementation.md
-    evolution: primitives/sub_agents/evolution.md
-    observability: primitives/sub_agents/observability.md
-    cost-and-latency: primitives/sub_agents/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/implementation.md
   evolvesFrom:
   - tool_use
   composableWith:
@@ -703,6 +730,8 @@ primitives:
   - specialization
   costTier: low-medium
   latencyTier: low-medium
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/implementation.md
   extras:
     prompts: primitives/sub_agents/prompts/
     schemas: primitives/sub_agents/schemas/
@@ -713,12 +742,11 @@ primitives:
   description: Structured function calling with schema-validated tool dispatch.
   dir: primitives/tool_use
   tier_files:
-    overview: primitives/tool_use/overview.md
-    design: primitives/tool_use/design.md
-    implementation: primitives/tool_use/implementation.md
-    evolution: primitives/tool_use/evolution.md
-    observability: primitives/tool_use/observability.md
-    cost-and-latency: primitives/tool_use/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/implementation.md
   evolvesFrom:
   - prompt-chaining
   composableWith:
@@ -734,6 +762,8 @@ primitives:
   - deterministic
   costTier: low-medium
   latencyTier: low
+  scale: prototype
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/implementation.md
   extras:
     prompts: primitives/tool_use/prompts/
     schemas: primitives/tool_use/schemas/
@@ -746,12 +776,11 @@ modifiers:
   description: Layered input / tool / output policy checks plus a dual-LLM split that breaks the indirect-prompt-injection path.
   dir: modifiers/guardrails
   tier_files:
-    overview: modifiers/guardrails/overview.md
-    design: modifiers/guardrails/design.md
-    implementation: modifiers/guardrails/implementation.md
-    evolution: modifiers/guardrails/evolution.md
-    observability: modifiers/guardrails/observability.md
-    cost-and-latency: modifiers/guardrails/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/implementation.md
   evolvesFrom:
   - tool_use
   composableWith:
@@ -775,6 +804,8 @@ modifiers:
   latencyTier: medium
   appliesTo:
   - any
+  scale: production
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/implementation.md
   extras:
     prompts: modifiers/guardrails/prompts/
     schemas: modifiers/guardrails/schemas/
@@ -785,12 +816,11 @@ modifiers:
   description: Agent proposes an action; a human approves, denies, or modifies before the action commits.
   dir: modifiers/human_in_the_loop
   tier_files:
-    overview: modifiers/human_in_the_loop/overview.md
-    design: modifiers/human_in_the_loop/design.md
-    implementation: modifiers/human_in_the_loop/implementation.md
-    evolution: modifiers/human_in_the_loop/evolution.md
-    observability: modifiers/human_in_the_loop/observability.md
-    cost-and-latency: modifiers/human_in_the_loop/cost-and-latency.md
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
+    architecture: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/architecture.md
+    flow: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/flow.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/implementation.md
   evolvesFrom:
   - tool_use
   composableWith:
@@ -809,6 +839,8 @@ modifiers:
   - escalation
   costTier: low
   latencyTier: very-high
+  scale: standard
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/implementation.md
   extras:
     prompts: modifiers/human_in_the_loop/prompts/
     schemas: modifiers/human_in_the_loop/schemas/
@@ -1088,60 +1120,81 @@ recipes:
     docs:
     - path: ../frameworks/claude-agent-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 5880
     - path: ../frameworks/claude-agent-sdk-typescript.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 683
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/tool-protocol-mcp.md
       required: false
+      source: load_list
       cache_tier: hot
       est_tokens: 2102
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/testing-strategy.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1867
     - path: ../cross-cutting/eval-data.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 3733
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
+    - path: ../stack/relational-postgres.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 1095
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 30795
+    est_total_tokens: 33891
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1318,79 +1371,99 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/langgraph.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 3636
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 33940
+    est_total_tokens: 35941
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1576,76 +1649,95 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/pydantic-ai.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 2675
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 32279
+    est_total_tokens: 34280
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1681,6 +1773,11 @@ recipes:
   - typescript
   topology: multi-agent-hierarchical
   agent_pattern: routing
+  pattern_levels:
+  - overview
+  - architecture
+  - flow
+  - design
   agent_role: You are a customer support agent. Understand the user's issue, route it to the right specialty, and respond clearly and empathetically.
   primitives:
   - tool_use
@@ -1862,79 +1959,108 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/pydantic-ai.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 2675
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/architecture.md
+      required: true
+      source: pattern_level:architecture
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/flow.md
+      required: true
+      source: pattern_level:flow
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/design.md
+      required: true
+      source: pattern_level:design
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 33279
+    est_total_tokens: 35280
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1970,6 +2096,11 @@ recipes:
   - typescript
   topology: single
   agent_pattern: rag
+  pattern_levels:
+  - overview
+  - architecture
+  - flow
+  - design
   agent_role: You are a documentation assistant. Answer using only the retrieved documents and cite each source; if the docs do not cover it, say so plainly.
   primitives: []
   required_files:
@@ -2134,82 +2265,111 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/pydantic-ai.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 2675
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/vector-qdrant.md
       required: true
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'vector_db.qdrant'
       est_tokens: 1083
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/architecture.md
+      required: true
+      source: pattern_level:architecture
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/flow.md
+      required: true
+      source: pattern_level:flow
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/design.md
+      required: true
+      source: pattern_level:design
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34512
+    est_total_tokens: 36513
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2435,76 +2595,95 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/langgraph.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 3636
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34440
+    est_total_tokens: 36441
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2705,82 +2884,105 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/langgraph.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 3636
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/vector-qdrant.md
       required: true
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'vector_db.qdrant'
       est_tokens: 1083
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+      required: true
+      source: pattern_level:overview
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35473
+    est_total_tokens: 37474
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2996,76 +3198,95 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/crewai.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 2513
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 32917
+    est_total_tokens: 34918
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3241,76 +3462,95 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/pydantic-ai.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 2675
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
     - relational.postgres
-    est_total_tokens: 31979
+    est_total_tokens: 33980
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -3341,6 +3581,11 @@ recipes:
   - typescript
   topology: single
   agent_pattern: react
+  pattern_levels:
+  - overview
+  - architecture
+  - flow
+  - design
   agent_role: You are a research assistant. Plan the investigation, use tools to gather evidence, and deliver a well-sourced, structured answer.
   primitives:
   - tool_use
@@ -3492,76 +3737,104 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/pydantic-ai.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 2675
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2653
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../cross-cutting/auth-jwt.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1842
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/rate-limiting.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1293
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/architecture.md
+      required: true
+      source: pattern_level:architecture
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/flow.md
+      required: true
+      source: pattern_level:flow
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/design.md
+      required: true
+      source: pattern_level:design
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
     capabilities:
     - relational.postgres
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 32979
+    est_total_tokens: 34980
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3877,121 +4150,165 @@ recipes:
     docs:
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
       required: true
+      source: load_list
       cache_tier: hot
     - path: ../frameworks/langgraph.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 3636
     - path: ../frameworks/mastra.md
       required: true
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 2356
     - path: ../cross-cutting/project-layout.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2781
     - path: ../stack/llm-claude.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 730
     - path: ../stack/api-fastapi.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'python'
       est_tokens: 837
     - path: ../stack/api-hono.md
       required: false
+      source: load_list
       cache_tier: hot
       when: language == 'typescript'
       est_tokens: 900
     - path: ../stack/relational-postgres.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'relational.postgres'
       est_tokens: 1095
     - path: ../stack/cache-redis.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'cache.redis'
       est_tokens: 1713
     - path: ../stack/tracing-langfuse.md
       required: false
+      source: load_list
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
     - path: ../stack/secrets-management.md
       required: true
+      source: load_list
       cache_tier: hot
       est_tokens: 2556
     - path: ../cross-cutting/idempotency.md
       required: true
+      source: load_list
       cache_tier: warm
       est_tokens: 2179
     - path: ../cross-cutting/resilience.md
       required: true
+      source: load_list
       cache_tier: warm
       est_tokens: 4059
     - path: ../cross-cutting/backpressure.md
       required: true
+      source: load_list
       cache_tier: warm
       est_tokens: 2529
     - path: ../cross-cutting/dlq-operations.md
       required: true
+      source: load_list
       cache_tier: warm
       est_tokens: 2423
     - path: ../cross-cutting/logging-structured.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1450
     - path: ../cross-cutting/observability.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1991
     - path: ../cross-cutting/testing-strategy.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 1867
     - path: ../cross-cutting/multi-tenancy.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 3166
     - path: ../cross-cutting/cost-tracking.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 3293
     - path: ../cross-cutting/model-routing.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 3123
     - path: ../cross-cutting/health-graceful-shutdown.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 2692
     - path: ../cross-cutting/security-hardening.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 2990
     - path: ../cross-cutting/authorization-rbac.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 2879
     - path: ../cross-cutting/audit-logging.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 2792
     - path: ../cross-cutting/pii-gdpr.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 2823
     - path: ../cross-cutting/prompt-management.md
       required: false
+      source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
+    - path: ../stack/vector-qdrant.md
+      required: false
+      source: adapter_stack:vector_db.qdrant
+      est_tokens: 1083
+    - path: ../stack/opentelemetry.md
+      required: false
+      source: adapter_stack:obs.grafana-stack
+      est_tokens: 2405
+    - path: ../stack/prometheus-grafana.md
+      required: false
+      source: adapter_stack:obs.grafana-stack
+      est_tokens: 2173
     capabilities:
     - cache.redis
     - relational.postgres
@@ -4002,7 +4319,7 @@ recipes:
     - frontend.nextjs-chat
     - host.vercel
     - eval.promptfoo
-    est_total_tokens: 74029
+    est_total_tokens: 81691
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -4116,6 +4433,8 @@ capabilities:
   implements:
     port: cache
     interface_version: '1.0'
+  stack_docs:
+  - stack/cache-redis.md
   context_summary: 'Redis (cache) — Redis 7 in-memory key-value store with Streams, hashes, and pub/sub.
 
     Env vars: REDIS_URL. Docker service: redis (redis:7-alpine). Provides: cache, session_store, rate_limit_backend.'
@@ -4235,6 +4554,8 @@ capabilities:
   implements:
     port: embedding
     interface_version: '1.0'
+  stack_docs:
+  - stack/llm-claude.md
   context_summary: 'OpenAI Embeddings (embedding) — OpenAI text-embedding-3-small (1536 dim) for RAG ingestion and query encoding.
 
     Env vars: OPENAI_API_KEY. Provides: text_embeddings.'
@@ -4273,6 +4594,8 @@ capabilities:
   implements:
     port: eval
     interface_version: '1.0'
+  stack_docs:
+  - stack/eval-deepeval-ragas-promptfoo.md
   context_summary: 'DeepEval (eval) — Python-native LLM/RAG eval framework with pytest integration and built-in RAG metrics.
 
     Env vars: ANTHROPIC_API_KEY, OPENAI_API_KEY. Bootstrap: bootstrap_evals. Provides: eval_runner, rag_metrics.'
@@ -4352,6 +4675,8 @@ capabilities:
   implements:
     port: eval
     interface_version: '1.0'
+  stack_docs:
+  - stack/eval-deepeval-ragas-promptfoo.md
   context_summary: 'RAGAS (eval) — Academic-style RAG benchmarking against a labeled dataset with answer/context metrics.
 
     Env vars: ANTHROPIC_API_KEY, OPENAI_API_KEY. Bootstrap: bootstrap_evals. Provides: eval_runner, rag_metrics, benchmark.'
@@ -4666,6 +4991,8 @@ capabilities:
   implements:
     port: mcp
     interface_version: '1.0'
+  stack_docs:
+  - stack/tool-protocol-mcp.md
   context_summary: 'Tavily (MCP) (mcp) — Tavily web search exposed as an MCP server over streamable_http transport.
 
     Env vars: TAVILY_API_KEY. Provides: web_search, web_extract.'
@@ -4759,6 +5086,9 @@ capabilities:
   implements:
     port: obs
     interface_version: '1.0'
+  stack_docs:
+  - stack/opentelemetry.md
+  - stack/prometheus-grafana.md
   context_summary: 'Grafana stack (Grafana + Prometheus + Tempo) (obs) — Metrics + traces + dashboards for the full agent stack via OpenTelemetry.
 
     Env vars: GRAFANA_URL, GRAFANA_ADMIN_PASSWORD, PROMETHEUS_URL, TEMPO_URL. Docker service: grafana (grafana/grafana:10.4.0). Bootstrap: bootstrap_observability. Provides: metrics, tracing, dashboards, alerting.'
@@ -4810,6 +5140,8 @@ capabilities:
   implements:
     port: obs
     interface_version: '1.0'
+  stack_docs:
+  - stack/tracing-langfuse.md
   context_summary: 'Langfuse (obs) — Self-hosted LLM observability with traces, scores, and dataset-backed evaluations.
 
     Env vars: LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_NEXTAUTH_SECRET, LANGFUSE_SALT. Docker service: langfuse (langfuse/langfuse:2). Bootstrap: bootstrap_langfuse. Provides: tracing, llm_observability, scoring.'
@@ -4854,6 +5186,8 @@ capabilities:
   implements:
     port: obs
     interface_version: '1.0'
+  stack_docs:
+  - stack/tracing-langfuse.md
   context_summary: 'LangSmith (obs) — Hosted LLM observability for LangChain / LangGraph apps. Auto-instruments via env vars.
 
     Env vars: LANGCHAIN_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_PROJECT, LANGCHAIN_ENDPOINT. Bootstrap: bootstrap_langsmith. Provides: tracing, llm_observability.'
@@ -4896,6 +5230,8 @@ capabilities:
   implements:
     port: queue
     interface_version: '1.0'
+  stack_docs:
+  - stack/kafka.md
   context_summary: 'Apache Kafka (queue) — Kafka 3.x in KRaft mode (no ZooKeeper) for high-throughput durable event log.
 
     Env vars: KAFKA_BOOTSTRAP_SERVERS, KAFKA_CLIENT_ID. Docker service: kafka (bitnami/kafka:3.7). Bootstrap: bootstrap_kafka. Provides: event_source, durable_log, replay.'
@@ -4933,6 +5269,8 @@ capabilities:
   implements:
     port: queue
     interface_version: '1.0'
+  stack_docs:
+  - stack/cache-redis.md
   context_summary: 'Redis Streams (queue) — Redis Streams as the event source — log-shaped data type with consumer groups and ACK.
 
     Env vars: REDIS_URL. Bootstrap: bootstrap_kafka. Provides: event_source.'
@@ -4976,6 +5314,9 @@ capabilities:
   implements:
     port: relational
     interface_version: '1.0'
+  stack_docs:
+  - stack/connection-pooling-pgbouncer.md
+  - stack/relational-postgres.md
   context_summary: 'PostgreSQL (relational) — Postgres 16 with JSONB, transactions, and pgvector extension support.
 
     Env vars: DATABASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB. Docker service: postgres (postgres:16-alpine). Provides: relational_store, transactions, json_store.'
@@ -5091,6 +5432,8 @@ capabilities:
   implements:
     port: vector_db
     interface_version: '1.0'
+  stack_docs:
+  - stack/vector-qdrant.md
   context_summary: 'Chroma (vector_db) — Open-source vector DB with single-container deploy and HTTP-only API.
 
     Env vars: CHROMA_URL, CHROMA_TENANT, CHROMA_DATABASE. Docker service: chroma (chromadb/chroma:0.5.20). Bootstrap: bootstrap_vector_db. Provides: embeddings_store, collection_init.'
@@ -5131,6 +5474,9 @@ capabilities:
   implements:
     port: vector_db
     interface_version: '1.0'
+  stack_docs:
+  - stack/relational-postgres.md
+  - stack/vector-qdrant.md
   context_summary: 'pgvector (vector_db) — Postgres extension adding a `vector` data type with cosine/euclidean/dot-product distance operators.
 
     Env vars: DATABASE_URL. Bootstrap: bootstrap_vector_db. Provides: embeddings_store.'
@@ -5174,6 +5520,8 @@ capabilities:
   implements:
     port: vector_db
     interface_version: '1.0'
+  stack_docs:
+  - stack/vector-qdrant.md
   context_summary: 'Qdrant (vector_db) — Self-hosted vector DB with REST + gRPC endpoints, named collections, and payload filtering.
 
     Env vars: QDRANT_URL, QDRANT_API_KEY. Docker service: qdrant (qdrant/qdrant:v1.12.0). Bootstrap: bootstrap_vector_db. Provides: embeddings_store, collection_init, payload_filtering.'
@@ -5726,28 +6074,28 @@ cross_cutting_docs:
 - docs/cross-cutting/testing-strategy.md
 - docs/cross-cutting/validation-strategy.md
 pattern_docs:
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
 primitive_docs:
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
 modifier_docs:
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
 suggestions:
   blueprints_version: 7420e28
   description: Per-combo stack recommendations scoped to upstream blueprints version 7420e28. One file per pattern × primitives × modifiers combination.
