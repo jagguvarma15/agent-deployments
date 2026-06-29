@@ -27,6 +27,8 @@ docs: |
   alternative (no MCP framing) use `live_data.tavily`.
 tags: [mcp, web-search, hosted]
 when_to_load: "recipe declares mcp_servers with capability: mcp.tavily"
+stack_docs:
+  - stack/tool-protocol-mcp.md
 ---
 
 # Capability: mcp.tavily
