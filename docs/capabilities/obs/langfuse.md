@@ -43,6 +43,8 @@ docs: |
   web UI handles workspace + project + API-key creation on first visit.
 tags: [observability, llm-tracing, self-hosted]
 when_to_load: "recipe declares obs.langfuse"
+stack_docs:
+  - stack/tracing-langfuse.md
 ---
 
 # Capability: obs.langfuse
