@@ -28,6 +28,8 @@ docs: |
   this stack remains Anthropic Claude.
 tags: [embeddings, openai, hosted]
 when_to_load: "recipe declares embedding.openai"
+stack_docs:
+  - stack/llm-claude.md
 ---
 
 # Capability: embedding.openai
