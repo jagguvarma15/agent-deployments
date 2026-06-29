@@ -38,6 +38,9 @@ docs: |
   step (Alembic in Python, Drizzle Kit in TypeScript).
 tags: [relational, sql, self-hosted]
 when_to_load: "recipe declares relational.postgres"
+stack_docs:
+  - stack/connection-pooling-pgbouncer.md
+  - stack/relational-postgres.md
 ---
 
 # Capability: relational.postgres
