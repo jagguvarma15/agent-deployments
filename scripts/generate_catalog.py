@@ -222,6 +222,68 @@ VALID_CAPABILITY_KINDS = frozenset(
     ]
 )
 
+# Generation-tier presets — the T0→T4 ladder published as catalog.tiers, the
+# single source of truth for the ordered capability bundles the scaffold seeds
+# into resolution when `--tier` (or a recipe `tier:`) is set. The scaffold
+# carries an identical embedded copy (tiers._DEFAULT_PRESETS) purely as an
+# offline fallback for builds that predate this block.
+#
+# Capability ids may name core primitives not yet emitted (core.prompts,
+# core.io_schema, core.step_log, core.tracing land with the tiered generation
+# contract). That is deliberate: the consumer resolves an unbuilt id inertly
+# (into ResolvedStack.unresolved) rather than failing, so forward-declaring the
+# full ladder keeps tier membership stable across the rollout. Validation is
+# therefore structural (see validate_tiers) — it does NOT require every id to
+# exist yet. Tiers stack: T4 ⊇ T3 ⊇ T2 ⊇ T1 ⊇ T0 via `extends`.
+TIER_PRESETS: list[dict[str, Any]] = [
+    {
+        "name": "T0",
+        "title": "Chat",
+        "description": "Conversational agent: owned editable prompts + schema-validated I/O.",
+        "extends": None,
+        "capabilities": ["core.spec", "core.prompts", "core.io_schema"],
+        "overlays": [],
+    },
+    {
+        "name": "T1",
+        "title": "Tool agent",
+        "description": "Adds a typed tool registry, permission tiers, and compact-error retry.",
+        "extends": "T0",
+        "capabilities": ["core.tool_registry"],
+        "overlays": [],
+    },
+    {
+        "name": "T2",
+        "title": "Workflow",
+        "description": "Adds a serializable step-log as state (pause / resume / retry / trace).",
+        "extends": "T1",
+        "capabilities": ["core.step_log"],
+        "overlays": [],
+    },
+    {
+        "name": "T3",
+        "title": "Production",
+        "description": "Adds an eval seam seeded from the spec + structured tracing.",
+        "extends": "T2",
+        "capabilities": ["core.tracing", "eval.promptfoo"],
+        "overlays": [],
+    },
+    {
+        "name": "T4",
+        "title": "Enterprise",
+        "description": "Production plus opt-in overlays: multi-agent, HITL, durable, guardrails, obs.",
+        "extends": "T3",
+        "capabilities": [],
+        "overlays": [
+            "multi_agent",
+            "human_in_the_loop",
+            "durable.temporal",
+            "guardrail.llama-guard",
+            "obs.langfuse",
+        ],
+    },
+]
+
 # Recognized backend entry-point basenames. A recipe that ships application
 # source must list one of these in `required_files`, or run (which discovers
 # the entry point by basename) has nothing the generation contract guaranteed.
@@ -610,6 +672,63 @@ def validate_ports(ports: list[dict[str, Any]]) -> None:
             errors.append(f"port {p['id']}: declares both protocol and concern; pick one")
     if errors:
         raise SystemExit("Port validation failed:\n  " + "\n  ".join(errors))
+
+
+def build_tiers() -> list[dict[str, Any]]:
+    """The generation-tier ladder for catalog.tiers, deterministically ordered."""
+    return [
+        OrderedDict(
+            [
+                ("name", t["name"]),
+                ("title", t["title"]),
+                ("description", t["description"]),
+                ("extends", t["extends"]),
+                ("capabilities", list(t["capabilities"])),
+                ("overlays", list(t["overlays"])),
+            ]
+        )
+        for t in TIER_PRESETS
+    ]
+
+
+def validate_tiers(tiers: list[dict[str, Any]]) -> None:
+    """Fail closed on a structurally broken tier ladder.
+
+    Checks only what the consumer's TierEntry cannot recover from: a missing
+    name, a duplicate name, an `extends` pointing at a tier not in the block, or
+    a cycle in the extends chain. Capability-id existence is deliberately NOT
+    checked — tier ids are forward-declared ahead of their capability docs (see
+    TIER_PRESETS) and the consumer resolves an unbuilt id inertly.
+    """
+    errors: list[str] = []
+    names = [t.get("name") for t in tiers]
+    seen: set[str] = set()
+    for name in names:
+        if not name:
+            errors.append("a tier is missing its `name`")
+        elif name in seen:
+            errors.append(f"duplicate tier name {name!r}")
+        else:
+            seen.add(name)
+    known = {n for n in names if n}
+    for t in tiers:
+        ext = t.get("extends")
+        if ext is not None and ext not in known:
+            errors.append(f"tier {t.get('name')!r} extends unknown tier {ext!r}")
+    by_name = {t.get("name"): t for t in tiers if t.get("name")}
+    for t in tiers:
+        chain: set[str] = set()
+        cursor: dict[str, Any] | None = t
+        while cursor is not None:
+            cid = cursor.get("name")
+            if cid in chain:
+                errors.append(f"tier {t.get('name')!r} has a cycle in its `extends` chain")
+                break
+            chain.add(cid)
+            ext = cursor.get("extends")
+            cursor = by_name.get(ext) if ext else None
+    if errors:
+        raise SystemExit("Tier validation failed:\n  " + "\n  ".join(errors))
 
 
 def build_compatibility(capabilities: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1778,6 +1897,10 @@ def build_catalog(
     validate_ports(catalog["ports"])
     fill_port_defaults(catalog["ports"], catalog["capabilities"])
     catalog["compatibility"] = build_compatibility(catalog["capabilities"])
+    # Generation-tier ladder (T0→T4). Structural validation only — tier
+    # capability ids are forward-declared ahead of their docs (see TIER_PRESETS).
+    catalog["tiers"] = build_tiers()
+    validate_tiers(catalog["tiers"])
     derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
     build_context_manifest(catalog["recipes"], catalog["capabilities"], tier_files_by_id)
     derive_verification(catalog["recipes"], catalog["capabilities"])
