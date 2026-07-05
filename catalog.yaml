@@ -5820,6 +5820,49 @@ compatibility:
   b: vector_db.qdrant
   relation: substitutes
   via: port:vector_db
+tiers:
+- name: T0
+  title: Chat
+  description: 'Conversational agent: owned editable prompts + schema-validated I/O.'
+  extends: null
+  capabilities:
+  - core.spec
+  - core.prompts
+  - core.io_schema
+  overlays: []
+- name: T1
+  title: Tool agent
+  description: Adds a typed tool registry, permission tiers, and compact-error retry.
+  extends: T0
+  capabilities:
+  - core.tool_registry
+  overlays: []
+- name: T2
+  title: Workflow
+  description: Adds a serializable step-log as state (pause / resume / retry / trace).
+  extends: T1
+  capabilities:
+  - core.step_log
+  overlays: []
+- name: T3
+  title: Production
+  description: Adds an eval seam seeded from the spec + structured tracing.
+  extends: T2
+  capabilities:
+  - core.tracing
+  - eval.promptfoo
+  overlays: []
+- name: T4
+  title: Enterprise
+  description: 'Production plus opt-in overlays: multi-agent, HITL, durable, guardrails, obs.'
+  extends: T3
+  capabilities: []
+  overlays:
+  - multi_agent
+  - human_in_the_loop
+  - durable.temporal
+  - guardrail.llama-guard
+  - obs.langfuse
 frameworks:
 - id: claude_agent_sdk_python
   language: python
