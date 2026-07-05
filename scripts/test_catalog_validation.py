@@ -225,6 +225,64 @@ def test_canonical_capability_kinds_match_schema_doc() -> None:
     )
 
 
+def test_tier_presets_are_structurally_valid() -> None:
+    """The published T0→T4 ladder passes structural validation and carries the
+    expected tier names."""
+    tiers = g.build_tiers()
+    g.validate_tiers(tiers)  # must not raise
+    assert [t["name"] for t in tiers] == ["T0", "T1", "T2", "T3", "T4"]
+
+
+def test_tiers_form_superset_chain() -> None:
+    """Each tier extends the one below (T4 ⊇ … ⊇ T0), so the scaffold expands a
+    tier into a strict superset of every tier under it."""
+    by_name = {t["name"]: t for t in g.build_tiers()}
+    assert by_name["T0"]["extends"] is None
+    for lower, higher in (("T0", "T1"), ("T1", "T2"), ("T2", "T3"), ("T3", "T4")):
+        assert by_name[higher]["extends"] == lower
+
+
+def test_tier_ladder_carries_expected_capabilities() -> None:
+    """Content lock: the core primitives each tier introduces stay put, so the
+    ladder can't silently lose a capability across a regen."""
+    by_name = {t["name"]: t for t in g.build_tiers()}
+    assert "core.spec" in by_name["T0"]["capabilities"]
+    assert "core.tool_registry" in by_name["T1"]["capabilities"]
+    assert "core.step_log" in by_name["T2"]["capabilities"]
+    assert "eval.promptfoo" in by_name["T3"]["capabilities"]
+    assert "human_in_the_loop" in by_name["T4"]["overlays"]
+
+
+def test_validate_tiers_rejects_unknown_extends() -> None:
+    tiers = [{"name": "T0", "extends": None}, {"name": "T1", "extends": "T9"}]
+    try:
+        g.validate_tiers(tiers)
+    except SystemExit as exc:
+        assert "T9" in str(exc)
+    else:
+        raise AssertionError("extends of an unknown tier must fail validation")
+
+
+def test_validate_tiers_rejects_cycle() -> None:
+    tiers = [{"name": "A", "extends": "B"}, {"name": "B", "extends": "A"}]
+    try:
+        g.validate_tiers(tiers)
+    except SystemExit as exc:
+        assert "cycle" in str(exc)
+    else:
+        raise AssertionError("a cycle in the extends chain must fail validation")
+
+
+def test_validate_tiers_rejects_duplicate_name() -> None:
+    tiers = [{"name": "T0", "extends": None}, {"name": "T0", "extends": None}]
+    try:
+        g.validate_tiers(tiers)
+    except SystemExit as exc:
+        assert "duplicate" in str(exc)
+    else:
+        raise AssertionError("a duplicate tier name must fail validation")
+
+
 def test_required_files_must_name_entry_point() -> None:
     """A recipe that lists files must include a recognized backend entry point —
     run discovers the entry by basename, so otherwise it can't launch."""
