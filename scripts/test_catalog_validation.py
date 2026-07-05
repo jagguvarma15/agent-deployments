@@ -225,6 +225,40 @@ def test_canonical_capability_kinds_match_schema_doc() -> None:
     )
 
 
+def test_t0_core_capabilities_present() -> None:
+    """The T0 chat substrate (core.prompts, core.io_schema) is in the catalog as
+    `core` capabilities, so the T0 tier's seeds resolve instead of going inert."""
+    caps = {c["id"]: c for c in g.collect_capabilities(frozenset(g.DEFAULT_NON_RECIPE_STEMS))}
+    for cid in ("core.prompts", "core.io_schema"):
+        assert cid in caps, f"{cid} missing from collected capabilities"
+        assert caps[cid]["kind"] == "core"
+
+
+def test_t0_core_capability_templates_exist() -> None:
+    """Each T0 core capability ships the template files its emit_files declares —
+    the scaffold copies these verbatim into the generated project."""
+    base = g.REPO_ROOT / "docs" / "capabilities" / "core" / "templates"
+    for rel in (
+        "prompts/loader.py",
+        "prompts/__init__.py",
+        "prompts/system.txt",
+        "prompts/README.md",
+        "io_schema/schemas.py",
+        "io_schema/__init__.py",
+        "io_schema/README.md",
+    ):
+        assert (base / rel).is_file(), f"missing template {rel}"
+
+
+def test_t0_prompt_templates_have_no_stray_markdown() -> None:
+    """Prompt templates are .txt (not .md): the scaffold's capability loader
+    recurses `docs/capabilities/**/*.md`, so a non-README .md under templates
+    would trip a spurious 'missing frontmatter' warning on every run."""
+    prompts = g.REPO_ROOT / "docs" / "capabilities" / "core" / "templates" / "prompts"
+    stray = [p.name for p in prompts.glob("*.md") if p.stem.lower() != "readme"]
+    assert not stray, f"non-README .md prompt templates would warn on load: {stray}"
+
+
 def test_tier_presets_are_structurally_valid() -> None:
     """The published T0→T4 ladder passes structural validation and carries the
     expected tier names."""
