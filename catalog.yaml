@@ -4445,6 +4445,68 @@ capabilities:
     - customer-support-triage
     - docs-rag-qa
     - research-assistant
+- id: core.io_schema
+  kind: core
+  path: docs/capabilities/core/io_schema.md
+  layer: agent
+  env_vars: []
+  provisioning_time: instant
+  cost_tier: free
+  card:
+    name: I/O schema
+    description: Pydantic request/response models for the canonical /chat contract — schema-validated I/O at the HTTP boundary. Part of the T0 chat substrate.
+    capabilities_provided:
+    - io_schema
+    - request_validation
+    required_credentials: []
+  tags:
+  - core
+  - io
+  - validation
+  when_to_load: recipe tier is T0 or higher (the tier preset seeds core.io_schema)
+  provides:
+  - io_schema
+  - request_validation
+  implements:
+    port: core
+    interface_version: '1.0'
+  context_summary: 'I/O schema (core) — Pydantic request/response models for the canonical /chat contract — schema-validated I/O at the HTTP boundary. Part of the T0 chat substrate.
+
+    Provides: io_schema, request_validation.'
+  verification:
+    tier: T1
+    delivery: managed
+- id: core.prompts
+  kind: core
+  path: docs/capabilities/core/prompts.md
+  layer: agent
+  env_vars: []
+  provisioning_time: instant
+  cost_tier: free
+  card:
+    name: Owned prompts
+    description: Editable Markdown prompt files + a loader — the agent's system prompt lives in prompts/system.txt, not a hardcoded string. Part of the T0 chat substrate.
+    capabilities_provided:
+    - prompts
+    - prompt_loader
+    required_credentials: []
+  tags:
+  - core
+  - prompts
+  - ownership
+  when_to_load: recipe tier is T0 or higher (the tier preset seeds core.prompts)
+  provides:
+  - prompts
+  - prompt_loader
+  implements:
+    port: core
+    interface_version: '1.0'
+  context_summary: 'Owned prompts (core) — Editable Markdown prompt files + a loader — the agent''s system prompt lives in prompts/system.txt, not a hardcoded string. Part of the T0 chat substrate.
+
+    Provides: prompts, prompt_loader.'
+  verification:
+    tier: T1
+    delivery: managed
 - id: core.tool_registry
   kind: core
   path: docs/capabilities/core/tool_registry.md
@@ -5570,7 +5632,7 @@ ports:
   path: docs/ports/core.md
   required: true
   cardinality: one
-  default: core.tool_registry
+  default: null
   interface_version: '1.0'
   kinds:
   - core
@@ -5741,6 +5803,18 @@ ports:
   - vector_db
   adapter_home: capabilities
 compatibility:
+- a: core.io_schema
+  b: core.prompts
+  relation: substitutes
+  via: port:core
+- a: core.io_schema
+  b: core.tool_registry
+  relation: substitutes
+  via: port:core
+- a: core.prompts
+  b: core.tool_registry
+  relation: substitutes
+  via: port:core
 - a: durable.temporal
   b: relational.postgres
   relation: requires
