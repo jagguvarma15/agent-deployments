@@ -4507,6 +4507,39 @@ capabilities:
   verification:
     tier: T1
     delivery: managed
+- id: core.step_log
+  kind: core
+  path: docs/capabilities/core/step_log.md
+  layer: agent
+  env_vars: []
+  provisioning_time: instant
+  cost_tier: free
+  card:
+    name: Step log
+    description: A serializable step-log — the agent's run state as an append-only, secret-redacted jsonl event log under .agent/runs/. Pause / resume / retry / trace. The T2 workflow substrate.
+    capabilities_provided:
+    - step_log
+    - run_log
+    required_credentials: []
+  tags:
+  - core
+  - step-log
+  - state
+  - resume
+  - observability
+  when_to_load: recipe tier is T2 or higher (the tier preset seeds core.step_log)
+  provides:
+  - step_log
+  - run_log
+  implements:
+    port: core
+    interface_version: '1.0'
+  context_summary: 'Step log (core) — A serializable step-log — the agent''s run state as an append-only, secret-redacted jsonl event log under .agent/runs/. Pause / resume / retry / trace. The T2 workflow substrate.
+
+    Provides: step_log, run_log.'
+  verification:
+    tier: T1
+    delivery: managed
 - id: core.tool_registry
   kind: core
   path: docs/capabilities/core/tool_registry.md
@@ -5808,10 +5841,22 @@ compatibility:
   relation: substitutes
   via: port:core
 - a: core.io_schema
+  b: core.step_log
+  relation: substitutes
+  via: port:core
+- a: core.io_schema
   b: core.tool_registry
   relation: substitutes
   via: port:core
 - a: core.prompts
+  b: core.step_log
+  relation: substitutes
+  via: port:core
+- a: core.prompts
+  b: core.tool_registry
+  relation: substitutes
+  via: port:core
+- a: core.step_log
   b: core.tool_registry
   relation: substitutes
   via: port:core
