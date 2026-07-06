@@ -259,6 +259,23 @@ def test_t0_prompt_templates_have_no_stray_markdown() -> None:
     assert not stray, f"non-README .md prompt templates would warn on load: {stray}"
 
 
+def test_t2_core_step_log_present() -> None:
+    """The T2 workflow substrate (core.step_log) is in the catalog as a `core`
+    capability, so the T2 tier's seed resolves instead of going inert."""
+    caps = {c["id"]: c for c in g.collect_capabilities(frozenset(g.DEFAULT_NON_RECIPE_STEMS))}
+    assert "core.step_log" in caps, "core.step_log missing from collected capabilities"
+    assert caps["core.step_log"]["kind"] == "core"
+
+
+def test_t2_core_step_log_template_exists() -> None:
+    """core.step_log ships the single module its emit_files declares — the
+    scaffold copies it verbatim to agent/steplog.py in the generated project."""
+    template = (
+        g.REPO_ROOT / "docs" / "capabilities" / "core" / "templates" / "step_log" / "steplog.py"
+    )
+    assert template.is_file(), "missing template step_log/steplog.py"
+
+
 def test_tier_presets_are_structurally_valid() -> None:
     """The published T0→T4 ladder passes structural validation and carries the
     expected tier names."""
