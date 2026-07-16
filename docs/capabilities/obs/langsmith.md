@@ -12,10 +12,10 @@ probe: langsmith_workspace
 bootstrap_step: bootstrap_langsmith
 provisioning_time: instant
 cost_tier: fixed-monthly
-est_tokens: 650
+est_tokens: 850
 card:
   name: LangSmith
-  description: "Hosted LLM observability for LangChain / LangGraph apps. Auto-instruments via env vars."
+  description: "Hosted LLM observability. Auto-instruments LangChain/LangGraph via env vars; any other framework must add the langsmith SDK and wrap its LLM client."
   capabilities_provided: [llm_tracing, tool_call_tracing, dataset_eval]
   required_credentials: [LANGCHAIN_API_KEY]
 emit_files: []
@@ -83,27 +83,94 @@ LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
 
 ## Client integration
 
-LangSmith auto-instruments LangChain / LangGraph via env vars. No explicit client wiring required when `LANGCHAIN_TRACING_V2=true`.
+**Env vars alone emit nothing.** The four `LANGCHAIN_*` vars only configure the
+LangSmith SDK — a trace appears only when the process runs instrumented code.
 
-**Python (manual trace if needed):**
+**Generator requirement (hard):** when the recipe's framework is not
+LangChain / LangGraph, the generated project MUST add the `langsmith` package
+to its dependencies and wrap its LLM client as shown below. A project that
+only sets env vars ships a silent no-op.
+
+### What to capture
+
+- **One root run per user request** — decorate the request handler (or the one
+  function all handlers funnel through) with `@traceable(run_type="chain")`.
+  Give it a stable `name`; attach `metadata` (session / user id) and `tags`
+  (environment) where available.
+- **Every LLM call** — via the wrapped client. Model, prompts, token usage,
+  and latency are captured automatically and nest under the root run.
+- **Every tool call** — `@traceable(run_type="tool")` on each tool function.
+- **Retrieval calls** — `@traceable(run_type="retriever")` on vector-store /
+  search lookups so hit lists are inspectable per run.
+- **Errors** — exceptions raised inside a traced function are recorded on that
+  run and propagate up the run tree; don't swallow them below the decorator.
+
+Valid `run_type` values: `chain`, `llm`, `tool`, `retriever`, `embedding`,
+`prompt`, `parser`. All decorators and the wrapper are safe no-ops when
+`LANGCHAIN_TRACING_V2` / `LANGSMITH_TRACING` is not `"true"`, so instrumented
+code ships safely with tracing off.
+
+### How, per framework
+
+**LangChain / LangGraph (Python or TS):** auto-instruments via the env vars.
+Nothing to add — `langsmith` ships as a dependency of `langchain-core`.
+
+**Pydantic AI / raw Anthropic SDK (Python):** add `langsmith` to the project
+dependencies (`langsmith>=0.9,<1`), wrap the (async) Anthropic client, and
+hand it to the model:
 
 ```python
+from anthropic import AsyncAnthropic
 from langsmith import traceable
+from langsmith.wrappers import wrap_anthropic
+from pydantic_ai import Agent
+from pydantic_ai.models.anthropic import AnthropicModel
+from pydantic_ai.providers.anthropic import AnthropicProvider
 
-@traceable(name="research_step")
-async def research_step(question: str) -> str:
-    return await llm.ainvoke(question)
+client = wrap_anthropic(AsyncAnthropic())  # every messages.create is traced
+agent = Agent(
+    AnthropicModel(model_name, provider=AnthropicProvider(anthropic_client=client)),
+    system_prompt=...,
+)
+
+@traceable(run_type="chain", name="research")  # root run per request
+async def handle(question: str) -> str:
+    result = await agent.run(question)
+    return result.output
+
+@traceable(run_type="tool")  # one per tool
+async def web_search(query: str) -> str: ...
 ```
 
-**TypeScript:**
+Raw SDK is the same wrapper: `client = wrap_anthropic(Anthropic())` (or
+`AsyncAnthropic()`), then call `client.messages.create(...)` as normal.
+
+**TypeScript (non-LangChain):** add `langsmith`, wrap the SDK:
 
 ```ts
+import Anthropic from "@anthropic-ai/sdk";
+import { wrapSDK } from "langsmith/wrappers";
 import { traceable } from "langsmith/traceable";
 
-const researchStep = traceable(
-  async (question: string) => await llm.invoke(question),
-  { name: "research_step" }
+const client = wrapSDK(new Anthropic());
+const handle = traceable(
+  async (question: string) => { /* client.messages.create(...) */ },
+  { name: "research", run_type: "chain" }
 );
+```
+
+### Compose contract
+
+The app service's `environment:` block must declare all four vars —
+`LANGCHAIN_API_KEY` in the **no-value form** (host passthrough; never give a
+secret a default), the three non-secret vars with defaulted interpolation:
+
+```yaml
+environment:
+  LANGCHAIN_API_KEY:
+  LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
+  LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-<project-name>}
+  LANGCHAIN_ENDPOINT: ${LANGCHAIN_ENDPOINT:-https://api.smith.langchain.com}
 ```
 
 ## Cloud / production
@@ -114,6 +181,7 @@ Same setup. Production projects typically rotate `LANGCHAIN_API_KEY` per-environ
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
+| Traces never appear in UI | App has no instrumentation (non-LangChain framework without the `langsmith` wrapper) | Add the dependency and wrap the client (see Client integration) |
 | Traces never appear in UI | `LANGCHAIN_TRACING_V2` not set in the process | Confirm env is loaded; agent process must inherit `LANGCHAIN_TRACING_V2=true` |
 | `401 Unauthorized` | Wrong workspace key | Recreate key under the workspace whose project you're tracing into |
 | Project name mismatch | Recipe declared `bootstrap_config.langsmith.project_name` but env shows `default` | Re-run `bootstrap_langsmith` after the recipe edit |
