@@ -5260,10 +5260,10 @@ capabilities:
   probe: langsmith_workspace
   provisioning_time: instant
   cost_tier: fixed-monthly
-  est_tokens: 650
+  est_tokens: 850
   card:
     name: LangSmith
-    description: Hosted LLM observability for LangChain / LangGraph apps. Auto-instruments via env vars.
+    description: Hosted LLM observability. Auto-instruments LangChain/LangGraph via env vars; any other framework must add the langsmith SDK and wrap its LLM client.
     capabilities_provided:
     - llm_tracing
     - tool_call_tracing
@@ -5283,7 +5283,7 @@ capabilities:
     interface_version: '1.0'
   stack_docs:
   - stack/tracing-langfuse.md
-  context_summary: 'LangSmith (obs) — Hosted LLM observability for LangChain / LangGraph apps. Auto-instruments via env vars.
+  context_summary: 'LangSmith (obs) — Hosted LLM observability. Auto-instruments LangChain/LangGraph via env vars; any other framework must add the langsmith SDK and wrap its LLM client.
 
     Env vars: LANGCHAIN_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_PROJECT, LANGCHAIN_ENDPOINT. Bootstrap: bootstrap_langsmith. Provides: tracing, llm_observability.'
   verification:
