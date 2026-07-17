@@ -334,6 +334,65 @@ def test_validate_tiers_rejects_duplicate_name() -> None:
         raise AssertionError("a duplicate tier name must fail validation")
 
 
+def test_bundle_presets_are_structurally_valid() -> None:
+    """The published bundles pass validation against the real capability set
+    and keep their names — the scaffold's preset pickers key on these."""
+    bundles = g.build_bundles()
+    caps = g.collect_capabilities(frozenset(g.DEFAULT_NON_RECIPE_STEMS))
+    g.validate_bundles(bundles, caps)  # must not raise
+    assert [b["name"] for b in bundles] == ["rag-simple", "rag-complex", "guardrails-basic"]
+
+
+def test_bundles_expand_to_expected_capabilities() -> None:
+    """Content lock: the preset shapes stay put across regens."""
+    by_name = {b["name"]: b for b in g.build_bundles()}
+    assert by_name["rag-simple"]["capabilities"] == ["vector_db.pgvector", "embedding.openai"]
+    assert by_name["rag-complex"]["capabilities"] == [
+        "vector_db.qdrant",
+        "embedding.openai",
+        "rerank.cohere",
+    ]
+    assert by_name["guardrails-basic"]["capabilities"] == ["guardrail.llama-guard"]
+
+
+def test_validate_bundles_rejects_unknown_capability() -> None:
+    """Unlike tiers, bundle ids must resolve — a preset that expands to a
+    missing id silently drops a layer from the generated stack."""
+    bundles = [{"name": "x", "title": "X", "description": "d", "capabilities": ["vector_db.nope"]}]
+    caps = [{"id": "vector_db.pgvector"}]
+    try:
+        g.validate_bundles(bundles, caps)
+    except SystemExit as exc:
+        assert "vector_db.nope" in str(exc)
+    else:
+        raise AssertionError("an unknown bundle capability id must fail validation")
+
+
+def test_validate_bundles_rejects_duplicate_and_empty() -> None:
+    caps = [{"id": "cache.redis"}]
+    bundles = [
+        {"name": "dup", "title": "A", "description": "d", "capabilities": ["cache.redis"]},
+        {"name": "dup", "title": "B", "description": "d", "capabilities": []},
+    ]
+    try:
+        g.validate_bundles(bundles, caps)
+    except SystemExit as exc:
+        assert "duplicate" in str(exc)
+        assert "no capabilities" in str(exc)
+    else:
+        raise AssertionError("duplicate names and empty bundles must fail validation")
+
+
+def test_obs_hosting_flows_from_frontmatter() -> None:
+    """The authored hosting modes surface on the generated entries; the field
+    stays opt-in for capabilities that never author it."""
+    caps = {c["id"]: c for c in g.collect_capabilities(frozenset(g.DEFAULT_NON_RECIPE_STEMS))}
+    assert caps["obs.langfuse"]["hosting"] == ["cloud", "docker"]
+    assert caps["obs.langsmith"]["hosting"] == ["cloud"]
+    assert caps["obs.grafana-stack"]["hosting"] == ["docker"]
+    assert "hosting" not in caps["cache.redis"]
+
+
 def test_required_files_must_name_entry_point() -> None:
     """A recipe that lists files must include a recognized backend entry point —
     run discovers the entry by basename, so otherwise it can't launch."""
