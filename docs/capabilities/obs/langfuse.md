@@ -30,6 +30,7 @@ probe: langfuse_health
 bootstrap_step: bootstrap_langfuse
 provisioning_time: ~30s
 cost_tier: free
+hosting: [cloud, docker]
 est_tokens: 800
 card:
   name: Langfuse
