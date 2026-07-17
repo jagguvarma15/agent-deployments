@@ -34,6 +34,10 @@ python scripts/generate_catalog.py   # rewrites catalog.yaml
    chroma 8002, zep 8003, frontends 3000/5173/8501, …). The lint rejects two
    services in a recipe's resolved stack binding the same host port.
 5. Declare `layer`, `requires`, `cost_tier` per the v0.3 contract.
+6. If the capability can run in more than one place (managed cloud vs the
+   compose fragment), declare `hosting: [cloud, docker]` (or the applicable
+   subset) so consumers can offer the choice. Optional — absent means
+   consumers infer from `docker.service` presence.
 
 ## Add a recipe — `docs/recipes/<name>.md`
 

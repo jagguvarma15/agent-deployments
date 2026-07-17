@@ -2,7 +2,7 @@
 # Edit source docs (their YAML frontmatter) or the upstream blueprints
 # catalog, then regenerate.
 schema_version: 1
-generator_version: 1.4.0
+generator_version: 1.5.0
 contract_version: 1
 LAYER_ORDER:
 - id: infrastructure
@@ -5173,6 +5173,8 @@ capabilities:
   - metrics
   - self-hosted
   when_to_load: recipe declares obs.grafana-stack
+  hosting:
+  - docker
   provides:
   - metrics
   - tracing
@@ -5228,6 +5230,9 @@ capabilities:
   - llm-tracing
   - self-hosted
   when_to_load: recipe declares obs.langfuse
+  hosting:
+  - cloud
+  - docker
   provides:
   - tracing
   - llm_observability
@@ -5275,6 +5280,8 @@ capabilities:
   - llm-tracing
   - hosted
   when_to_load: recipe declares obs.langsmith
+  hosting:
+  - cloud
   provides:
   - tracing
   - llm_observability
@@ -5982,6 +5989,25 @@ tiers:
   - durable.temporal
   - guardrail.llama-guard
   - obs.langfuse
+bundles:
+- name: rag-simple
+  title: Simple RAG
+  description: 'Single-stage retrieval: pgvector rides the existing postgres, OpenAI embeddings, top-k cosine into the prompt.'
+  capabilities:
+  - vector_db.pgvector
+  - embedding.openai
+- name: rag-complex
+  title: Advanced RAG
+  description: Hybrid dense plus keyword retrieval on Qdrant with Cohere reranking between retrieval and the LLM.
+  capabilities:
+  - vector_db.qdrant
+  - embedding.openai
+  - rerank.cohere
+- name: guardrails-basic
+  title: Guardrails
+  description: Input and output classification with Llama Guard before and after the agent loop.
+  capabilities:
+  - guardrail.llama-guard
 frameworks:
 - id: claude_agent_sdk_python
   language: python

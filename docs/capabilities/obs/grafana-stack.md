@@ -25,6 +25,7 @@ probe: grafana_health
 bootstrap_step: bootstrap_observability
 provisioning_time: ~30s
 cost_tier: free
+hosting: [docker]
 est_tokens: 950
 card:
   name: Grafana stack (Grafana + Prometheus + Tempo)
