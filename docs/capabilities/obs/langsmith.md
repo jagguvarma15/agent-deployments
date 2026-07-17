@@ -12,6 +12,7 @@ probe: langsmith_workspace
 bootstrap_step: bootstrap_langsmith
 provisioning_time: instant
 cost_tier: fixed-monthly
+hosting: [cloud]
 est_tokens: 850
 card:
   name: LangSmith
