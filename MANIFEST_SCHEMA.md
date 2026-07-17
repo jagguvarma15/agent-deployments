@@ -51,7 +51,7 @@ Recipes' `agent_pattern:` frontmatter field uses these canonical ids. The `alias
 
 ```yaml
 schema_version: 1
-generator_version: 1.3.0
+generator_version: 1.5.0
 contract_version: 1
 
 # Pointer + convention block that lets consumers reach blueprints content
@@ -89,6 +89,9 @@ recipes:        [...]    # docs/recipes/*.md frontmatter aggregated (+ auto-deri
 capabilities:   [...]    # docs/capabilities/<kind>/*.md frontmatter aggregated (the port-typed adapters)
 ports:          [...]    # docs/ports/*.md — abstract port contracts capabilities bind to
 compatibility:  [...]    # derived feature-model edges (requires / substitutes) across adapters
+tiers:          [...]    # generation-tier ladder T0-T4; each entry extends the one below
+bundles:        [...]    # named flat capability sets (rag-simple, rag-complex, guardrails-basic);
+                         # every listed id is validated against capabilities at generation time
 frameworks:     [...]    # docs/frameworks/*.md frontmatter aggregated
 stack:          [...]    # paths only — docs/stack/*.md
 cross_cutting_docs: [...]  # paths only — docs/cross-cutting/*.md
@@ -351,6 +354,10 @@ Two optional hybrid-intake discovery fields. Together they let a consumer (or an
 
 Both fields are pass-through — the generator surfaces them verbatim under `capabilities[].tags` and `capabilities[].when_to_load` without further validation beyond type. Authoring them is encouraged but not required; consumers that need lazy intake build their own indexes from these.
 
+#### `capabilities[].hosting`
+
+Optional authored list of hosting modes the consumer may pick for this capability: `cloud` (managed service, wired by credentials), `docker` (self-hosted via the capability's compose fragment), or both. Distinct from the derived `verification.delivery`, which records how the validated recipes actually ran it — `hosting` states what is possible, `delivery` what was verified. Currently authored on the observability capabilities: `obs.langfuse` is `[cloud, docker]`, `obs.langsmith` is `[cloud]`, `obs.grafana-stack` is `[docker]`. Consumers that see no `hosting` field fall back to inferring from `docker_service` presence.
+
 ### Framework fields (additive)
 
 #### `frameworks[].tags` and `frameworks[].when_to_load`
@@ -402,6 +409,7 @@ These five fields are additive at the v1 schema and ignored cleanly by older sca
 | `excludes` | string[] | no | Ids / flags / ports that cannot co-occur with this adapter (hard incompatibility). |
 | `conflicts` | string[] | no | Soft incompatibilities — a consumer warns rather than hard-fails. |
 | `parameters` | object | no | JSON-Schema-style parameter block (type / properties / defaults) folding the adapter's ad-hoc config knobs. |
+| `hosting` | string[] | no | Authored hosting modes the consumer may pick: `cloud`, `docker`, or both. See `#### capabilities[].hosting`. |
 | `verification` | object | **derived** | Generator-derived trust block: `{tier, delivery, verified_in?}`. See `### Verification tiers`. |
 | `context_summary` | string | **derived** | Generator-derived compact summary (name + kind + description + env vars + docker service + bootstrap + `provides` flags). Lets a consumer inject a few lines instead of the full markdown body. |
 | `stack_docs` | string[] | no | The adapter's deep `docs/stack/<x>.md` reference(s) — the machine-readable adapter→stack edge. Resolved into a recipe's `context_manifest` (`source: adapter_stack:<id>`) so picking the adapter grabs its stack doc(s). |
@@ -463,6 +471,25 @@ compatibility:
 ```
 
 Resolution (documented here; executed by the future scaffold resolver): propagate the `requires` closure → default-fill unbound required / exactly-one ports from `ports[].default` → validate cardinality + `excludes` / `conflicts`. It is a feature-model walk, not a SAT solver (a SAT/soundness pass lives offline in `scripts/`).
+
+### `tiers[]` and `bundles[]` (named capability sets)
+
+Two curated grouping blocks, both defined as data in `generate_catalog.py` and emitted verbatim:
+
+| Block | Shape | Semantics |
+|---|---|---|
+| `tiers` | `{name, title, description, extends, capabilities, overlays}` | The T0-T4 generation ladder. Each tier `extends` the one below, so a consumer expands a tier into the cumulative superset. Capability ids may be forward-declared ahead of their docs (structural validation only). |
+| `bundles` | `{name, title, description, capabilities}` | Flat named presets a consumer expands in one pick (`rag-simple`, `rag-complex`, `guardrails-basic`). No extends chain. Every listed id **must** resolve to a real capability entry — `validate_bundles` fails the build otherwise, because a preset that expands to a missing id silently drops a layer from the generated stack. |
+
+```yaml
+bundles:
+  - name: rag-simple
+    title: Simple RAG
+    description: "Single-stage retrieval: pgvector rides the existing postgres, ..."
+    capabilities: [vector_db.pgvector, embedding.openai]
+```
+
+Both blocks are additive at the v1 schema; older consumers ignore them (`extra: ignore`).
 
 ### Verification tiers
 
