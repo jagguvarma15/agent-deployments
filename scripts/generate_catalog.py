@@ -78,7 +78,7 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
-GENERATOR_VERSION = "1.4.0"
+GENERATOR_VERSION = "1.5.0"
 
 # Contract version: semantic guarantees consumers can pin against. Independent
 # of schema_version (YAML shape). Bumped when stable-field semantics change or
@@ -281,6 +281,41 @@ TIER_PRESETS: list[dict[str, Any]] = [
             "guardrail.llama-guard",
             "obs.langfuse",
         ],
+    },
+]
+
+# Named capability bundles: flat sets a consumer can expand into its stack in
+# one pick (the scaffold's RAG and guardrails presets). Unlike tiers there is
+# no extends chain — each bundle stands alone — and every listed id must
+# resolve to a real capability doc (validate_bundles enforces this, unlike
+# tiers whose core.* ids are forward-declared).
+BUNDLE_PRESETS: list[dict[str, Any]] = [
+    {
+        "name": "rag-simple",
+        "title": "Simple RAG",
+        "description": (
+            "Single-stage retrieval: pgvector rides the existing postgres, "
+            "OpenAI embeddings, top-k cosine into the prompt."
+        ),
+        "capabilities": ["vector_db.pgvector", "embedding.openai"],
+    },
+    {
+        "name": "rag-complex",
+        "title": "Advanced RAG",
+        "description": (
+            "Hybrid dense plus keyword retrieval on Qdrant with Cohere "
+            "reranking between retrieval and the LLM."
+        ),
+        "capabilities": ["vector_db.qdrant", "embedding.openai", "rerank.cohere"],
+    },
+    {
+        "name": "guardrails-basic",
+        "title": "Guardrails",
+        "description": (
+            "Input and output classification with Llama Guard before and "
+            "after the agent loop."
+        ),
+        "capabilities": ["guardrail.llama-guard"],
     },
 ]
 
@@ -576,6 +611,12 @@ def collect_capabilities(non_recipe_stems: frozenset[str]) -> list[dict[str, Any
             entry["tags"] = fm["tags"]
         if "when_to_load" in fm:
             entry["when_to_load"] = fm["when_to_load"]
+        # Authored hosting modes (optional, additive): where this capability can
+        # run, e.g. [cloud], [docker], or [cloud, docker]. Distinct from the
+        # generator-derived verification.delivery (which records how the
+        # validated recipes ran it) — hosting states what the consumer may pick.
+        if "hosting" in fm:
+            entry["hosting"] = fm["hosting"]
         # Port-typed registry fields (additive). `provides` is the canonical
         # capability-flag set the feature model references — revived here (it was
         # previously parsed but dropped). The rest land as adapters are migrated.
@@ -729,6 +770,49 @@ def validate_tiers(tiers: list[dict[str, Any]]) -> None:
             cursor = by_name.get(ext) if ext else None
     if errors:
         raise SystemExit("Tier validation failed:\n  " + "\n  ".join(errors))
+
+
+def build_bundles() -> list[dict[str, Any]]:
+    """Named flat capability bundles for catalog.bundles, in declaration order."""
+    return [
+        OrderedDict(
+            [
+                ("name", b["name"]),
+                ("title", b["title"]),
+                ("description", b["description"]),
+                ("capabilities", list(b["capabilities"])),
+            ]
+        )
+        for b in BUNDLE_PRESETS
+    ]
+
+
+def validate_bundles(bundles: list[dict[str, Any]], capabilities: list[dict[str, Any]]) -> None:
+    """Fail closed on a broken bundle block.
+
+    Unlike tiers, every bundle capability id MUST resolve to a real capability
+    entry: bundles are consumer-facing presets, and a preset that expands to a
+    missing id silently drops a layer from the generated stack.
+    """
+    errors: list[str] = []
+    known_ids = {c.get("id") for c in capabilities}
+    seen: set[str] = set()
+    for b in bundles:
+        name = b.get("name")
+        if not name:
+            errors.append("a bundle is missing its `name`")
+        elif name in seen:
+            errors.append(f"duplicate bundle name {name!r}")
+        else:
+            seen.add(name)
+        ids = b.get("capabilities") or []
+        if not ids:
+            errors.append(f"bundle {name!r} lists no capabilities")
+        for cap_id in ids:
+            if cap_id not in known_ids:
+                errors.append(f"bundle {name!r} references unknown capability {cap_id!r}")
+    if errors:
+        raise SystemExit("Bundle validation failed:\n  " + "\n  ".join(errors))
 
 
 def build_compatibility(capabilities: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1901,6 +1985,10 @@ def build_catalog(
     # capability ids are forward-declared ahead of their docs (see TIER_PRESETS).
     catalog["tiers"] = build_tiers()
     validate_tiers(catalog["tiers"])
+    # Named capability bundles (RAG presets, guardrails). Unlike tiers, every
+    # listed id must resolve against the capabilities just collected.
+    catalog["bundles"] = build_bundles()
+    validate_bundles(catalog["bundles"], catalog["capabilities"])
     derive_recipe_bindings(catalog["recipes"], catalog["capabilities"], catalog["ports"])
     build_context_manifest(catalog["recipes"], catalog["capabilities"], tier_files_by_id)
     derive_verification(catalog["recipes"], catalog["capabilities"])
