@@ -340,7 +340,12 @@ def test_bundle_presets_are_structurally_valid() -> None:
     bundles = g.build_bundles()
     caps = g.collect_capabilities(frozenset(g.DEFAULT_NON_RECIPE_STEMS))
     g.validate_bundles(bundles, caps)  # must not raise
-    assert [b["name"] for b in bundles] == ["rag-simple", "rag-complex", "guardrails-basic"]
+    assert [b["name"] for b in bundles] == [
+        "rag-simple",
+        "rag-complex",
+        "rag-local",
+        "guardrails-basic",
+    ]
 
 
 def test_bundles_expand_to_expected_capabilities() -> None:
@@ -352,6 +357,7 @@ def test_bundles_expand_to_expected_capabilities() -> None:
         "embedding.openai",
         "rerank.cohere",
     ]
+    assert by_name["rag-local"]["capabilities"] == ["vector_db.pgvector", "embedding.local-bge"]
     assert by_name["guardrails-basic"]["capabilities"] == ["guardrail.llama-guard"]
 
 
