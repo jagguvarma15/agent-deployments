@@ -4507,6 +4507,38 @@ capabilities:
   verification:
     tier: T1
     delivery: managed
+- id: core.spec
+  kind: core
+  path: docs/capabilities/core/spec.md
+  layer: agent
+  env_vars: []
+  provisioning_time: instant
+  cost_tier: free
+  card:
+    name: Agent spec
+    description: 'The durable machine-readable statement of what the agent is: recipe, tier, role, resolved capability stack, model, and environment contract, written to .agent/spec.md. The T0 anchor every later tier builds on.'
+    capabilities_provided:
+    - spec
+    - agent_spec
+    required_credentials: []
+  tags:
+  - core
+  - spec
+  - contract
+  - provenance
+  when_to_load: always at T0 and above (the tier preset seeds core.spec)
+  provides:
+  - spec
+  - agent_spec
+  implements:
+    port: core
+    interface_version: '1.0'
+  context_summary: 'Agent spec (core) — The durable machine-readable statement of what the agent is: recipe, tier, role, resolved capability stack, model, and environment contract, written to .agent/spec.md. The T0 anchor every later tier builds on.
+
+    Provides: spec, agent_spec.'
+  verification:
+    tier: T1
+    delivery: managed
 - id: core.step_log
   kind: core
   path: docs/capabilities/core/step_log.md
@@ -4571,6 +4603,39 @@ capabilities:
   context_summary: 'Tool registry (core) — Typed tool registry with Always/Ask/Never permission tiers and compact-error retry — the T1 tool-agent substrate.
 
     Provides: tool_registry, tool_permissions, compact_error_retry.'
+  verification:
+    tier: T1
+    delivery: managed
+- id: core.tracing
+  kind: core
+  path: docs/capabilities/core/tracing.md
+  layer: agent
+  env_vars: []
+  provisioning_time: instant
+  cost_tier: free
+  card:
+    name: Tracing
+    description: Structured span emission around model and tool calls — request id, model, token counts, duration — as redacted JSONL with no backend required. The T3 production substrate; obs.* backends export what this emits.
+    capabilities_provided:
+    - tracing
+    - spans
+    required_credentials: []
+  tags:
+  - core
+  - tracing
+  - spans
+  - observability
+  - production
+  when_to_load: recipe tier is T3 or higher (the tier preset seeds core.tracing)
+  provides:
+  - tracing
+  - spans
+  implements:
+    port: core
+    interface_version: '1.0'
+  context_summary: 'Tracing (core) — Structured span emission around model and tool calls — request id, model, token counts, duration — as redacted JSONL with no backend required. The T3 production substrate; obs.* backends export what this emits.
+
+    Provides: tracing, spans.'
   verification:
     tier: T1
     delivery: managed
@@ -5848,6 +5913,10 @@ compatibility:
   relation: substitutes
   via: port:core
 - a: core.io_schema
+  b: core.spec
+  relation: substitutes
+  via: port:core
+- a: core.io_schema
   b: core.step_log
   relation: substitutes
   via: port:core
@@ -5855,6 +5924,14 @@ compatibility:
   b: core.tool_registry
   relation: substitutes
   via: port:core
+- a: core.io_schema
+  b: core.tracing
+  relation: substitutes
+  via: port:core
+- a: core.prompts
+  b: core.spec
+  relation: substitutes
+  via: port:core
 - a: core.prompts
   b: core.step_log
   relation: substitutes
@@ -5863,8 +5940,32 @@ compatibility:
   b: core.tool_registry
   relation: substitutes
   via: port:core
+- a: core.prompts
+  b: core.tracing
+  relation: substitutes
+  via: port:core
+- a: core.spec
+  b: core.step_log
+  relation: substitutes
+  via: port:core
+- a: core.spec
+  b: core.tool_registry
+  relation: substitutes
+  via: port:core
+- a: core.spec
+  b: core.tracing
+  relation: substitutes
+  via: port:core
 - a: core.step_log
   b: core.tool_registry
+  relation: substitutes
+  via: port:core
+- a: core.step_log
+  b: core.tracing
+  relation: substitutes
+  via: port:core
+- a: core.tool_registry
+  b: core.tracing
   relation: substitutes
   via: port:core
 - a: durable.temporal
