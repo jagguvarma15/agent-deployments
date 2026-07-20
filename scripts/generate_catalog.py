@@ -309,6 +309,16 @@ BUNDLE_PRESETS: list[dict[str, Any]] = [
         "capabilities": ["vector_db.qdrant", "embedding.openai", "rerank.cohere"],
     },
     {
+        "name": "rag-local",
+        "title": "Local RAG",
+        "description": (
+            "Single-stage retrieval with local BGE-M3 embeddings under TEI: "
+            "no embedding API key, no per-call cost, documents stay on the "
+            "machine."
+        ),
+        "capabilities": ["vector_db.pgvector", "embedding.local-bge"],
+    },
+    {
         "name": "guardrails-basic",
         "title": "Guardrails",
         "description": (
