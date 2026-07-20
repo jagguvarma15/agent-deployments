@@ -4687,6 +4687,48 @@ capabilities:
   verification:
     tier: T1
     delivery: self-hosted
+- id: embedding.local-bge
+  kind: embedding
+  path: docs/capabilities/embedding/local-bge.md
+  layer: agent
+  env_vars:
+  - EMBEDDINGS_URL
+  docker_service: embeddings
+  ports:
+  - 8080:80
+  provisioning_time: ~60s first run (model download), instant after
+  cost_tier: free
+  est_tokens: 550
+  card:
+    name: Local BGE-M3 embeddings
+    description: BAAI/bge-m3 (1024 dim) served by Text Embeddings Inference in a local container — no API key, no per-call cost, data never leaves the machine.
+    capabilities_provided:
+    - text_embeddings
+    - local_inference
+    required_credentials: []
+  tags:
+  - embeddings
+  - local
+  - self-hosted
+  - bge
+  - tei
+  when_to_load: recipe declares embedding.local-bge
+  hosting:
+  - docker
+  provides:
+  - text_embeddings
+  - local_inference
+  implements:
+    port: embedding
+    interface_version: '1.0'
+  stack_docs:
+  - stack/llm-claude.md
+  context_summary: 'Local BGE-M3 embeddings (embedding) — BAAI/bge-m3 (1024 dim) served by Text Embeddings Inference in a local container — no API key, no per-call cost, data never leaves the machine.
+
+    Env vars: EMBEDDINGS_URL. Docker service: embeddings (ghcr.io/huggingface/text-embeddings-inference:cpu-1.6). Provides: text_embeddings, local_inference.'
+  verification:
+    tier: T1
+    delivery: self-hosted
 - id: embedding.openai
   kind: embedding
   path: docs/capabilities/embedding/openai.md
@@ -4935,6 +4977,46 @@ capabilities:
   verification:
     tier: T1
     delivery: managed
+- id: guardrail.injection-classifier
+  kind: guardrail
+  path: docs/capabilities/guardrail/injection-classifier.md
+  layer: agent
+  env_vars:
+  - GUARDRAIL_CLASSIFIER_URL
+  docker_service: guardrail-classifier
+  ports:
+  - 8081:80
+  provisioning_time: ~30s first run (model download), instant after
+  cost_tier: free
+  est_tokens: 550
+  card:
+    name: Prompt-injection classifier (local)
+    description: ProtectAI's DeBERTa-v3 prompt-injection classifier served locally by Text Embeddings Inference — input-side injection and jailbreak-attempt detection with no API key.
+    capabilities_provided:
+    - prompt_injection_detection
+    - input_classification
+    required_credentials: []
+  tags:
+  - guardrail
+  - prompt-injection
+  - security
+  - local
+  - self-hosted
+  when_to_load: recipe declares guardrail.injection-classifier
+  hosting:
+  - docker
+  provides:
+  - input_classification
+  - prompt_injection_detection
+  implements:
+    port: guardrail
+    interface_version: '1.0'
+  context_summary: 'Prompt-injection classifier (local) (guardrail) — ProtectAI''s DeBERTa-v3 prompt-injection classifier served locally by Text Embeddings Inference — input-side injection and jailbreak-attempt detection with no API key.
+
+    Env vars: GUARDRAIL_CLASSIFIER_URL. Docker service: guardrail-classifier (ghcr.io/huggingface/text-embeddings-inference:cpu-1.6). Provides: input_classification, prompt_injection_detection.'
+  verification:
+    tier: T1
+    delivery: self-hosted
 - id: guardrail.llama-guard
   kind: guardrail
   path: docs/capabilities/guardrail/llama-guard.md
@@ -5757,7 +5839,7 @@ ports:
   path: docs/ports/embedding.md
   required: false
   cardinality: one
-  default: embedding.openai
+  default: null
   interface_version: '1.0'
   kinds:
   - embedding
@@ -5794,7 +5876,7 @@ ports:
   path: docs/ports/guardrail.md
   required: false
   cardinality: many
-  default: guardrail.llama-guard
+  default: null
   interface_version: '1.0'
   kinds:
   - guardrail
@@ -5971,6 +6053,10 @@ compatibility:
 - a: durable.temporal
   b: relational.postgres
   relation: requires
+- a: embedding.local-bge
+  b: embedding.openai
+  relation: substitutes
+  via: port:embedding
 - a: eval.deepeval
   b: eval.promptfoo
   relation: substitutes
@@ -5995,6 +6081,10 @@ compatibility:
   b: frontend.streamlit
   relation: substitutes
   via: port:frontend
+- a: guardrail.injection-classifier
+  b: guardrail.llama-guard
+  relation: substitutes
+  via: port:guardrail
 - a: host.fly
   b: host.railway
   relation: substitutes
@@ -6104,6 +6194,12 @@ bundles:
   - vector_db.qdrant
   - embedding.openai
   - rerank.cohere
+- name: rag-local
+  title: Local RAG
+  description: 'Single-stage retrieval with local BGE-M3 embeddings under TEI: no embedding API key, no per-call cost, documents stay on the machine.'
+  capabilities:
+  - vector_db.pgvector
+  - embedding.local-bge
 - name: guardrails-basic
   title: Guardrails
   description: Input and output classification with Llama Guard before and after the agent loop.
