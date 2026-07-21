@@ -13,6 +13,11 @@ hosting: [docker]
 docker:
   service: embeddings
   image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+  # TEI's CPU images publish amd64 only (no arm64 manifest through cpu-latest).
+  # Pinning the platform runs the service under emulation on Apple Silicon
+  # instead of hard-failing the pull; on amd64 hosts it matches native and is
+  # a no-op.
+  platform: linux/amd64
   environment:
     MODEL_ID: BAAI/bge-m3
   ports: ["8080:80"]

@@ -11,6 +11,11 @@ hosting: [docker]
 docker:
   service: guardrail-classifier
   image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+  # TEI's CPU images publish amd64 only (no arm64 manifest through cpu-latest).
+  # Pinning the platform runs the service under emulation on Apple Silicon
+  # instead of hard-failing the pull; on amd64 hosts it matches native and is
+  # a no-op. Verified emulated on an M-series host: healthy, ~86ms/inference.
+  platform: linux/amd64
   environment:
     MODEL_ID: protectai/deberta-v3-base-prompt-injection-v2
   ports: ["8081:80"]
