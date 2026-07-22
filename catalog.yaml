@@ -68,6 +68,7 @@ patterns:
   extras:
     prompts: patterns/agentic_rag/prompts/
     schemas: patterns/agentic_rag/schemas/
+    code: patterns/agentic_rag/code/
 - id: evaluator-optimizer
   name: Evaluator-Optimizer
   category: workflow
@@ -175,6 +176,7 @@ patterns:
   extras:
     prompts: patterns/long_horizon/prompts/
     schemas: patterns/long_horizon/schemas/
+    code: patterns/long_horizon/code/
 - id: multi_agent
   name: Multi-Agent
   category: agent
@@ -697,6 +699,36 @@ primitives:
     prompts: primitives/skills/prompts/
     schemas: primitives/skills/schemas/
     code: primitives/skills/code/
+- id: step_log
+  name: Step Log
+  category: primitive
+  complexity: Intermediate
+  description: A serializable step-log — the agent's run state as an append-only event log for pause / resume / retry / trace.
+  dir: primitives/step_log
+  tier_files:
+    overview: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/step_log/overview.md
+    design: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/step_log/design.md
+    implementation: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/step_log/implementation.md
+  evolvesFrom:
+  - tool_use
+  composableWith:
+  - react
+  - plan_and_execute
+  - multi_agent
+  requires: []
+  tags:
+  - state
+  - resume
+  - durability
+  - observability
+  - jsonl
+  costTier: low
+  latencyTier: low
+  scale: prototype
+  ir_fragment_ref: https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/step_log/implementation.md
+  extras:
+    schemas: primitives/step_log/schemas/
+    code: primitives/step_log/code/
 - id: sub_agents
   name: Sub-agents
   category: primitive
@@ -809,6 +841,7 @@ modifiers:
   extras:
     prompts: modifiers/guardrails/prompts/
     schemas: modifiers/guardrails/schemas/
+    code: modifiers/guardrails/code/
 - id: human_in_the_loop
   name: Human in the Loop
   category: modifier
@@ -6476,6 +6509,7 @@ pattern_docs:
 primitive_docs:
 - https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
 - https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/step_log/overview.md
 - https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
 - https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
 modifier_docs:
