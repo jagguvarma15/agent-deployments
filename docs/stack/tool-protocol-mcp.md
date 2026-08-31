@@ -40,20 +40,28 @@ mcp_servers:
 
 ## Integration pattern
 
-### Python (official `mcp` SDK)
+### Python (official `mcp` SDK, v2)
 
 ```python
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from mcp import Client
 
-async with streamablehttp_client("http://127.0.0.1:8004/mcp") as (read, write, _):
-    async with ClientSession(read, write) as session:
-        await session.initialize()
-        tools = await session.list_tools()
-        result = await session.call_tool("hybrid_query", {"query": "What is MCP?"})
+async with Client("http://127.0.0.1:8004/mcp") as client:
+    tools = (await client.list_tools()).tools
+    result = await client.call_tool("hybrid_query", {"query": "What is MCP?"})
 ```
 
-For a server that requires auth, pass `headers={"Authorization": f"Bearer {token}"}` to `streamablehttp_client`.
+For a server that requires auth, open the transport with a bearer-carrying `httpx.AsyncClient` and run a `ClientSession` over it:
+
+```python
+import httpx
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+
+http = httpx.AsyncClient(headers={"Authorization": f"Bearer {token}"})
+async with streamable_http_client("https://server.example/mcp", http_client=http) as (read, write):
+    async with ClientSession(read, write) as session:
+        await session.initialize()
+```
 
 ### TypeScript (official `@modelcontextprotocol/sdk`)
 
@@ -71,7 +79,7 @@ const result = await client.callTool({ name: "hybrid_query", arguments: { query:
 
 ### Binding MCP tools to an agent
 
-Prefer the framework's native MCP support over manual binding — each framework doc's `## MCP integration` section shows its idiom (`agent.run_mcp_servers()` for Pydantic AI, `mcp_servers` options for the Claude Agent SDK, adapter packages for LangGraph). Where a framework has no native support, discover with `tools/list` and register each tool with a thin forwarding function:
+Prefer the framework's native MCP support over manual binding — each framework doc's `## MCP integration` section shows its idiom (`toolsets=[MCPToolset(url)]` for Pydantic AI, `mcp_servers` options for the Claude Agent SDK, adapter packages for LangGraph). Where a framework has no native support, discover with `tools/list` and register each tool with a thin forwarding function:
 
 ```python
 # Pydantic AI, wiring discovered MCP tools manually:
