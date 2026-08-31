@@ -1156,7 +1156,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: hot
-      est_tokens: 1484
+      est_tokens: 1540
     - path: ../stack/tracing-langfuse.md
       required: false
       source: load_list
@@ -1194,7 +1194,7 @@ recipes:
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 33295
+    est_total_tokens: 33351
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1656,7 +1656,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -1737,7 +1737,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34302
+    est_total_tokens: 34360
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1970,7 +1970,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -2060,7 +2060,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35302
+    est_total_tokens: 35360
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2272,7 +2272,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -2369,7 +2369,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36535
+    est_total_tokens: 36593
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3469,7 +3469,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -3550,7 +3550,7 @@ recipes:
     - obs.langfuse
     - eval.promptfoo
     - relational.postgres
-    est_total_tokens: 34002
+    est_total_tokens: 34060
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -3744,7 +3744,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -3834,7 +3834,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35002
+    est_total_tokens: 35060
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
