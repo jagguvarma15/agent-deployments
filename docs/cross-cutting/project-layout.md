@@ -189,6 +189,7 @@ Single source of truth for the **host** ports each capability service binds. Two
 | Qdrant | `6333` (HTTP), `6334` (gRPC) | `6333` / `6334` | `QDRANT_URL` |
 | Chroma | `8002` | `8000` | `CHROMA_URL` |
 | Zep | `8003` | `8000` | `ZEP_API_URL` |
+| Arrowhead (MCP data plane) | `8004` (loopback-bound) | `8000` | `ARROWHEAD_MCP_URL` |
 | Kafka | `9092` | `9092` | `KAFKA_BOOTSTRAP_SERVERS` |
 | Langfuse | `3001` | `3000` | `LANGFUSE_HOST` |
 | Grafana | `3002` | `3000` | `GRAFANA_URL` |
