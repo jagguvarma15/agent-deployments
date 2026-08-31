@@ -94,19 +94,28 @@ No credentials are required locally, so `wire_credentials` has nothing to prompt
 
 Per-framework MCP wiring lives in each framework's `## MCP integration` section. The capability-level wiring:
 
-**Python (mcp-client):**
+**Python (official `mcp` SDK, v2):**
 
 ```python
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from mcp import Client
 
-async with streamablehttp_client("http://127.0.0.1:8004/mcp") as (read, write, _):
+async with Client("http://127.0.0.1:8004/mcp") as client:
+    tools = (await client.list_tools()).tools
+    result = await client.call_tool("hybrid_query", {"query": "refund policy", "top_k": 5})
+```
+
+When the deployed server requires auth, open the transport with a bearer-carrying
+`httpx.AsyncClient` and run a `ClientSession` over it:
+
+```python
+import httpx
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+
+http = httpx.AsyncClient(headers={"Authorization": f"Bearer {token}"})
+async with streamable_http_client("https://arrowhead.example/mcp", http_client=http) as (read, write):
     async with ClientSession(read, write) as session:
         await session.initialize()
-        tools = await session.list_tools()
-        result = await session.call_tool(
-            "hybrid_query", {"query": "refund policy", "top_k": 5}
-        )
 ```
 
 **TypeScript (@modelcontextprotocol/sdk):**
