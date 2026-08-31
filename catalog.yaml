@@ -5204,6 +5204,57 @@ capabilities:
   verification:
     tier: T1
     delivery: managed
+- id: mcp.arrowhead
+  kind: mcp
+  path: docs/capabilities/mcp/arrowhead.md
+  layer: agent
+  requires:
+  - relational.postgres
+  - vector_db.pgvector
+  env_vars: []
+  docker_service: arrowhead
+  ports:
+  - 127.0.0.1:8004:8000
+  probe: mcp_ping
+  provisioning_time: ~15s
+  cost_tier: free
+  est_tokens: 700
+  card:
+    name: Arrowhead
+    description: 'Hardened MCP data plane: document corpus, hybrid and semantic retrieval, read-only SQL, SSRF-guarded fetch, and background scans behind per-caller guards.'
+    capabilities_provided:
+    - document_store
+    - hybrid_search
+    - semantic_search
+    - sql_query
+    - http_fetch
+    - background_tasks
+    required_credentials: []
+  tags:
+  - mcp
+  - retrieval
+  - documents
+  - sql
+  - self-hosted
+  when_to_load: 'recipe declares mcp_servers with capability: mcp.arrowhead'
+  provides:
+  - document_store
+  - hybrid_search
+  - semantic_search
+  - sql_query
+  - http_fetch
+  - background_tasks
+  implements:
+    port: mcp
+    interface_version: '1.0'
+  stack_docs:
+  - stack/tool-protocol-mcp.md
+  context_summary: 'Arrowhead (mcp) — Hardened MCP data plane: document corpus, hybrid and semantic retrieval, read-only SQL, SSRF-guarded fetch, and background scans behind per-caller guards.
+
+    Docker service: arrowhead (ghcr.io/jagguvarma15/arrowhead:0.2.0). Provides: document_store, hybrid_search, semantic_search, sql_query, http_fetch, background_tasks.'
+  verification:
+    tier: T1
+    delivery: self-hosted
 - id: mcp.tavily
   kind: mcp
   path: docs/capabilities/mcp/tavily.md
@@ -5905,7 +5956,7 @@ ports:
   path: docs/ports/mcp.md
   required: false
   cardinality: many
-  default: mcp.tavily
+  default: null
   interface_version: '1.0'
   kinds:
   - mcp
@@ -6097,6 +6148,16 @@ compatibility:
   b: host.vercel
   relation: substitutes
   via: port:host
+- a: mcp.arrowhead
+  b: mcp.tavily
+  relation: substitutes
+  via: port:mcp
+- a: mcp.arrowhead
+  b: relational.postgres
+  relation: requires
+- a: mcp.arrowhead
+  b: vector_db.pgvector
+  relation: requires
 - a: memory_store.zep
   b: relational.postgres
   relation: requires
