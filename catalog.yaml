@@ -1156,7 +1156,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: hot
-      est_tokens: 2102
+      est_tokens: 1484
     - path: ../stack/tracing-langfuse.md
       required: false
       source: load_list
@@ -1194,7 +1194,7 @@ recipes:
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 33913
+    est_total_tokens: 33295
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
