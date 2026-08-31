@@ -1146,7 +1146,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -1194,7 +1194,7 @@ recipes:
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 33891
+    est_total_tokens: 33913
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1393,7 +1393,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -1463,7 +1463,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35941
+    est_total_tokens: 35963
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1667,7 +1667,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -1737,7 +1737,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34280
+    est_total_tokens: 34302
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1981,7 +1981,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2060,7 +2060,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35280
+    est_total_tokens: 35302
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2283,7 +2283,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2369,7 +2369,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36513
+    est_total_tokens: 36535
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2613,7 +2613,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2683,7 +2683,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36441
+    est_total_tokens: 36463
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2902,7 +2902,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2982,7 +2982,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 37474
+    est_total_tokens: 37496
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3216,7 +3216,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -3286,7 +3286,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34918
+    est_total_tokens: 34940
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3480,7 +3480,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -3550,7 +3550,7 @@ recipes:
     - obs.langfuse
     - eval.promptfoo
     - relational.postgres
-    est_total_tokens: 33980
+    est_total_tokens: 34002
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -3755,7 +3755,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -3834,7 +3834,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34980
+    est_total_tokens: 35002
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -4172,7 +4172,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -4319,7 +4319,7 @@ recipes:
     - frontend.nextjs-chat
     - host.vercel
     - eval.promptfoo
-    est_total_tokens: 81691
+    est_total_tokens: 81713
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
