@@ -2087,6 +2087,228 @@ recipes:
   - name: APP_PORT
     source_capability: customer-support-triage
     default: 8000
+- slug: docs-rag-arrowhead
+  path: docs/recipes/docs-rag-arrowhead.md
+  title: 'Recipe: docs-rag-arrowhead'
+  status: Blueprint (design spec)
+  languages:
+  - python
+  topology: single
+  agent_pattern: rag
+  pattern_levels:
+  - overview
+  - architecture
+  - flow
+  - design
+  agent_role: You are a documentation assistant. Answer using only documents retrieved from the data plane and cite each source path; if the corpus does not cover it, say so plainly.
+  primitives: []
+  required_files:
+  - Dockerfile
+  - docker-compose.yml
+  - .github/workflows/ci.yml
+  - app/main.py
+  - app/agent/qa.py
+  - app/tools/mcp_registry.py
+  - tests/unit/test_mcp_registry.py
+  - tests/integration/test_ask.py
+  recipe_dependencies:
+    python:
+      fastapi: '>=0.110.0'
+      pydantic-ai: '>=0.0.13'
+      pydantic-settings: '>=2.0.0'
+      mcp: '>=1.9.0'
+      structlog: '>=24.1.0'
+  external_services:
+  - postgres
+  capabilities:
+  - relational.postgres
+  - vector_db.pgvector
+  - mcp.arrowhead
+  - eval.promptfoo
+  bootstrap_config:
+    vector_collections:
+    - name: doc_chunks
+      vector_size: 1536
+      distance: cosine
+  load_list:
+  - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+    required: true
+    cache_tier: hot
+  - path: ../frameworks/pydantic-ai.md
+    required: true
+    cache_tier: hot
+  - path: ../cross-cutting/project-layout.md
+    required: true
+    cache_tier: hot
+  - path: ../stack/llm-claude.md
+    required: true
+    cache_tier: hot
+  - path: ../stack/tool-protocol-mcp.md
+    required: true
+    cache_tier: hot
+  - path: ../capabilities/mcp/arrowhead.md
+    required: true
+    cache_tier: warm
+  - path: ../stack/api-fastapi.md
+    required: false
+    cache_tier: hot
+  - path: ../stack/relational-postgres.md
+    required: false
+    cache_tier: hot
+  - path: ../cross-cutting/logging-structured.md
+    required: false
+    cache_tier: warm
+  - path: ../cross-cutting/rate-limiting.md
+    required: false
+    cache_tier: warm
+  mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
+  runtime_modes:
+    default:
+      description: Anthropic Claude + the arrowhead MCP data plane (corpus, hybrid retrieval, SQL) riding the stack's Postgres. Boots with only ANTHROPIC_API_KEY.
+      swaps: {}
+      context_budget:
+        input_max: 80000
+        output_max: 8000
+    local_only:
+      description: Self-hosted vLLM instead of Anthropic Claude — the arrowhead data plane is unchanged.
+      swaps:
+        stack/llm-claude: stack/llm-local-vllm
+      context_budget:
+        input_max: 32000
+        output_max: 4000
+  smoke_test:
+    ready: curl -sf http://localhost:8000/health && curl -sf http://127.0.0.1:8004/ready
+    exercise: "curl -sf -X POST http://localhost:8000/ask \\\n  -H 'content-type: application/json' \\\n  -d '{\"question\":\"What is the canonical stack for this agent?\"}'\n"
+    assert_jq: .answer | length > 0
+  cost_profile:
+    tier: low
+    sources:
+    - anthropic
+    typical_run_usd: 0.005
+  model_recommendation: claude-sonnet-4-6
+  env_overrides:
+    APP_PORT: 8000
+    ARROWHEAD_MCP_URL: http://127.0.0.1:8004/mcp
+  est_tokens: 3600
+  acceptance_contracts:
+    http_endpoints:
+    - path: /health
+      method: GET
+      status: 200
+    - path: /ask
+      method: POST
+      status: 200
+    required_env:
+    - name: ANTHROPIC_API_KEY
+      source: prompted
+    - name: DATABASE_URL
+      source: capability:relational.postgres
+    required_compose_services:
+    - postgres
+    - arrowhead
+    smoke_assertions:
+    - jq: .answer | length > 0
+      against: smoke_test.exercise.stdout
+  bindings:
+    eval: eval.promptfoo
+    mcp:
+    - mcp.arrowhead
+    relational: relational.postgres
+    vector_db: vector_db.pgvector
+  context_manifest:
+    docs:
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+      required: true
+      source: load_list
+      cache_tier: hot
+    - path: ../frameworks/pydantic-ai.md
+      required: true
+      source: load_list
+      cache_tier: hot
+      est_tokens: 2733
+    - path: ../cross-cutting/project-layout.md
+      required: true
+      source: load_list
+      cache_tier: hot
+      est_tokens: 2803
+    - path: ../stack/llm-claude.md
+      required: true
+      source: load_list
+      cache_tier: hot
+      est_tokens: 730
+    - path: ../stack/tool-protocol-mcp.md
+      required: true
+      source: load_list
+      cache_tier: hot
+      est_tokens: 1540
+    - path: ../capabilities/mcp/arrowhead.md
+      required: true
+      source: load_list
+      cache_tier: warm
+      est_tokens: 1854
+    - path: ../stack/api-fastapi.md
+      required: false
+      source: load_list
+      cache_tier: hot
+      est_tokens: 837
+    - path: ../stack/relational-postgres.md
+      required: false
+      source: load_list
+      cache_tier: hot
+      est_tokens: 1095
+    - path: ../cross-cutting/logging-structured.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 1450
+    - path: ../cross-cutting/rate-limiting.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 1293
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/architecture.md
+      required: true
+      source: pattern_level:architecture
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/flow.md
+      required: true
+      source: pattern_level:flow
+    - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/design.md
+      required: true
+      source: pattern_level:design
+    - path: ../stack/connection-pooling-pgbouncer.md
+      required: false
+      source: adapter_stack:relational.postgres
+      est_tokens: 2001
+    - path: ../stack/vector-qdrant.md
+      required: false
+      source: adapter_stack:vector_db.pgvector
+      est_tokens: 1083
+    capabilities:
+    - relational.postgres
+    - vector_db.pgvector
+    - mcp.arrowhead
+    - eval.promptfoo
+    est_total_tokens: 23869
+  env_contract:
+  - name: DATABASE_URL
+    source_capability: relational.postgres
+  - name: POSTGRES_USER
+    source_capability: relational.postgres
+  - name: POSTGRES_PASSWORD
+    source_capability: relational.postgres
+  - name: POSTGRES_DB
+    source_capability: relational.postgres
+  - name: ANTHROPIC_API_KEY
+    source_capability: eval.promptfoo
+  - name: APP_PORT
+    source_capability: docs-rag-arrowhead
+    default: 8000
+  - name: ARROWHEAD_MCP_URL
+    source_capability: docs-rag-arrowhead
+    default: http://127.0.0.1:8004/mcp
 - slug: docs-rag-qa
   path: docs/recipes/docs-rag-qa.md
   title: 'Recipe: docs-rag-qa'
