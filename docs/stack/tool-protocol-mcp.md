@@ -13,268 +13,116 @@ when_to_load: "recipe uses MCP tooling"
 | Option | Why not |
 |--------|---------|
 | Framework-native tools | LangChain tools, Pydantic AI tools, and Mastra tools are all framework-specific. MCP tools work across all of them |
-| OpenAPI / REST | MCP adds tool discovery (`list-tools`) and a standard invocation contract (`call-tool`) that raw REST doesn't provide |
+| OpenAPI / REST | MCP adds tool discovery (`tools/list`) and a standard invocation contract (`tools/call`) that raw REST doesn't provide |
 | Custom RPC | MCP is a Linux Foundation standard with growing ecosystem support |
 
 MCP was chosen because tools built as MCP servers are portable across frameworks. Write a tool once, use it from LangGraph, Pydantic AI, Mastra, or any MCP-compatible client.
 
 ## Core concepts
 
-- **MCP Server** -- a service that exposes tools via the MCP protocol (HTTP transport). Implements `list-tools` and `call-tool` endpoints.
-- **MCP Client** -- a client that discovers and invokes tools on an MCP server. See the Reference Implementation section below for a lightweight client.
-- **Tool schema** -- each tool has a name, description, and JSON Schema for its parameters. Clients use this schema for LLM tool binding.
+- **Wire protocol** — JSON-RPC 2.0. A session opens with an `initialize` handshake, then the client calls `tools/list` to discover tools and `tools/call` to invoke one. These are JSON-RPC methods on one endpoint, not separate REST routes.
+- **Transports** — `stdio` (the client spawns the server as a subprocess; local, single-tenant) and `streamable_http` (one HTTP endpoint, typically `/mcp`, serving JSON or an event stream; remote or shared). The catalog's `mcp.*` capabilities declare which they speak.
+- **MCP server** — a service exposing tools (and optionally resources and prompts) over the protocol. Hosted (`mcp.tavily`) or self-hosted in the compose stack (`mcp.arrowhead`).
+- **MCP client** — the agent side. Use the official SDKs (`mcp` on PyPI, `@modelcontextprotocol/sdk` on npm) rather than hand-rolling the JSON-RPC; sessions, streams, and protocol-version negotiation are easy to get subtly wrong.
+- **Tool schema** — each tool has a name, description, and JSON Schema for its parameters, carried in the `tools/list` response. Clients use this schema for LLM tool binding.
 
 ## Local setup
 
-MCP servers run as separate services in `docker-compose.yml` (or as sidecar processes):
+A recipe binds servers through its `mcp_servers:` frontmatter; each entry names an `mcp.*` capability. A self-hosted capability contributes its compose service automatically, and the scaffold's `bootstrap_mcp` step writes every bound server into the generated project's `mcp.json` registry (transport, url, headers, env var names — never values). The generated backend reads that registry at boot and registers each server with its framework's MCP support.
 
 ```yaml
-mcp-search:
-  build: ./tools/search
-  ports:
-    - "3001:3001"
+# In a recipe's frontmatter:
+mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
 ```
-
-The agent's `MCPClient` points to the server's URL.
 
 ## Integration pattern
 
-### Python
+### Python (official `mcp` SDK, v2)
 
 ```python
-from agent_common.mcp_client import MCPClient
+from mcp import Client
 
-async with MCPClient(base_url="http://localhost:3001") as client:
-    # Discover available tools
-    tools = await client.list_tools()
-    # [{"name": "search", "description": "Search the web", "parameters": {...}}]
-
-    # Call a tool
-    result = await client.call_tool("search", {"query": "What is MCP?"})
+async with Client("http://127.0.0.1:8004/mcp") as client:
+    tools = (await client.list_tools()).tools
+    result = await client.call_tool("hybrid_query", {"query": "What is MCP?"})
 ```
 
-### TypeScript
+For a server that requires auth, open the transport with a bearer-carrying `httpx.AsyncClient` and run a `ClientSession` over it:
+
+```python
+import httpx
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+
+http = httpx.AsyncClient(headers={"Authorization": f"Bearer {token}"})
+async with streamable_http_client("https://server.example/mcp", http_client=http) as (read, write):
+    async with ClientSession(read, write) as session:
+        await session.initialize()
+```
+
+### TypeScript (official `@modelcontextprotocol/sdk`)
 
 ```typescript
-import { MCPClient } from "@agent-deployments/common";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
-const client = new MCPClient({ baseUrl: "http://localhost:3001" });
+const transport = new StreamableHTTPClientTransport(new URL("http://127.0.0.1:8004/mcp"));
+const client = new Client({ name: "agent", version: "1.0.0" }, { capabilities: {} });
+await client.connect(transport);
 
-// Discover tools
 const tools = await client.listTools();
-
-// Call a tool
-const result = await client.callTool("search", { query: "What is MCP?" });
+const result = await client.callTool({ name: "hybrid_query", arguments: { query: "What is MCP?" } });
 ```
 
 ### Binding MCP tools to an agent
 
-The pattern is: discover tools from MCP server, then register them with your framework:
+Prefer the framework's native MCP support over manual binding — each framework doc's `## MCP integration` section shows its idiom (`toolsets=[MCPToolset(url)]` for Pydantic AI, `mcp_servers` options for the Claude Agent SDK, adapter packages for LangGraph). Where a framework has no native support, discover with `tools/list` and register each tool with a thin forwarding function:
 
 ```python
-# Pydantic AI example
+# Pydantic AI, wiring discovered MCP tools manually:
 from pydantic_ai import Agent
 
-agent = Agent("anthropic:claude-sonnet-4-6-20250514")
+agent = Agent("anthropic:claude-sonnet-4-6")
 
-async with MCPClient(base_url="http://localhost:3001") as mcp:
-    tools = await mcp.list_tools()
+for tool in (await session.list_tools()).tools:
+    def forward(tool_name: str):
+        async def call(**kwargs):
+            return await session.call_tool(tool_name, kwargs)
+        return call
 
-    for tool_def in tools:
-        @agent.tool_plain
-        async def mcp_tool(**kwargs):
-            return await mcp.call_tool(tool_def["name"], kwargs)
+    agent.tool_plain(name=tool.name)(forward(tool.name))
 ```
-
-## Client API
-
-### `MCPClient` (Python)
-
-| Method | Args | Returns |
-|--------|------|---------|
-| `list_tools()` | -- | `list[dict]` -- tool definitions with name, description, parameters |
-| `call_tool(name, arguments)` | tool name + args dict | `Any` -- tool result |
-| `close()` | -- | Closes the HTTP connection |
-
-Supports `async with` context manager for automatic cleanup.
-
-### `MCPClient` (TypeScript)
-
-| Method | Args | Returns |
-|--------|------|---------|
-| `listTools()` | -- | `Array<Record<string, unknown>>` |
-| `callTool(name, args)` | tool name + args object | `unknown` |
-
-Uses `fetch` with `AbortSignal.timeout` (default: 30s).
 
 ## Configuration via env
 
 | Var | Default | Effect |
 |-----|---------|--------|
-| MCP server URL | `http://localhost:3001` | Per-tool server URL, configured in prototype settings |
-| `timeoutMs` / `timeout` | 30s | Request timeout for tool calls |
+| Server URL | from the capability's `endpoint` | Written into `mcp.json`; override per deployment |
+| Credentials | named per capability (`env_vars`) | `mcp.json` carries `${VAR}` placeholders; the backend expands them from its process env |
 
 ## Where used in repo
 
-Reference implementations are inline below (formerly `common/python/agent_common/mcp_client/` and `common/typescript/src/mcp/`). Tools can be implemented as MCP servers and consumed via the client. Currently, most agents define tools inline (framework-native); MCP is the path for extracting tools into reusable services.
+The `mcp` port (`docs/ports/mcp.md`) is realized by the `mcp.*` capabilities: `mcp.tavily` (hosted web search) and `mcp.arrowhead` (self-hosted data plane). Recipes opt in via `mcp_servers:`; the frameworks matrix marks which frameworks are mcp-native.
 
 ## Building an MCP server
 
-A minimal MCP server (Python, FastAPI):
+Use an SDK, not raw HTTP routes. Minimal Python server with the official SDK:
 
 ```python
-from fastapi import FastAPI
+from mcp.server.mcpserver import MCPServer
 
-app = FastAPI()
+mcp = MCPServer("search-tools")
 
-TOOLS = [
-    {"name": "search", "description": "Search the web", "parameters": {"type": "object", "properties": {"query": {"type": "string"}}}},
-]
+@mcp.tool()
+async def search(query: str) -> str:
+    """Search the web."""
+    return f"Results for: {query}"
 
-@app.post("/list-tools")
-async def list_tools():
-    return {"tools": TOOLS}
-
-@app.post("/call-tool")
-async def call_tool(request: dict):
-    name = request["name"]
-    args = request.get("arguments", {})
-    if name == "search":
-        return {"result": f"Results for: {args.get('query', '')}"}
-    return {"error": f"Unknown tool: {name}"}
+if __name__ == "__main__":
+    mcp.run()  # stdio by default; streamable HTTP via the http transport
 ```
 
-## Reference Implementation
-
-<details>
-<summary>Python — <code>client.py</code></summary>
-
-```python
-"""MCP (Model Context Protocol) client wrapper with connection management."""
-
-from dataclasses import dataclass, field
-from typing import Any
-
-import httpx
-
-
-@dataclass
-class MCPClient:
-    """A lightweight MCP client wrapper.
-
-    Usage:
-        async with MCPClient(base_url="http://localhost:3001") as client:
-            tools = await client.list_tools()
-            result = await client.call_tool("search", {"query": "hello"})
-    """
-
-    base_url: str
-    headers: dict[str, str] = field(default_factory=dict)
-    timeout: float = 30.0
-    _http_client: httpx.AsyncClient | None = field(default=None, init=False, repr=False)
-
-    async def _get_client(self) -> httpx.AsyncClient:
-        if self._http_client is None or self._http_client.is_closed:
-            self._http_client = httpx.AsyncClient(
-                base_url=self.base_url,
-                headers=self.headers,
-                timeout=self.timeout,
-            )
-        return self._http_client
-
-    async def list_tools(self) -> list[dict[str, Any]]:
-        """List available tools from the MCP server."""
-        client = await self._get_client()
-        response = await client.post("/list-tools", json={})
-        response.raise_for_status()
-        return response.json().get("tools", [])
-
-    async def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
-        """Call a tool on the MCP server."""
-        client = await self._get_client()
-        response = await client.post(
-            "/call-tool",
-            json={"name": name, "arguments": arguments or {}},
-        )
-        response.raise_for_status()
-        return response.json()
-
-    async def close(self) -> None:
-        """Close the HTTP client."""
-        if self._http_client and not self._http_client.is_closed:
-            await self._http_client.aclose()
-            self._http_client = None
-
-    async def __aenter__(self) -> "MCPClient":
-        return self
-
-    async def __aexit__(self, *args: Any) -> None:
-        await self.close()
-```
-
-</details>
-
-<details>
-<summary>TypeScript — <code>client.ts</code></summary>
-
-```typescript
-/**
- * MCP (Model Context Protocol) client wrapper.
- */
-
-export interface MCPClientConfig {
-  baseUrl: string;
-  headers?: Record<string, string>;
-  timeoutMs?: number;
-}
-
-export class MCPClient {
-  readonly baseUrl: string;
-  readonly headers: Record<string, string>;
-  readonly timeoutMs: number;
-
-  constructor(config: MCPClientConfig) {
-    this.baseUrl = config.baseUrl;
-    this.headers = config.headers ?? {};
-    this.timeoutMs = config.timeoutMs ?? 30_000;
-  }
-
-  async listTools(): Promise<Array<Record<string, unknown>>> {
-    const response = await fetch(`${this.baseUrl}/list-tools`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...this.headers },
-      body: JSON.stringify({}),
-      signal: AbortSignal.timeout(this.timeoutMs),
-    });
-
-    if (!response.ok) {
-      throw new Error(`MCP list-tools failed: ${response.status}`);
-    }
-
-    const data = (await response.json()) as {
-      tools?: Array<Record<string, unknown>>;
-    };
-    return data.tools ?? [];
-  }
-
-  async callTool(
-    name: string,
-    args: Record<string, unknown> = {},
-  ): Promise<unknown> {
-    const response = await fetch(`${this.baseUrl}/call-tool`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...this.headers },
-      body: JSON.stringify({ name, arguments: args }),
-      signal: AbortSignal.timeout(this.timeoutMs),
-    });
-
-    if (!response.ok) {
-      throw new Error(`MCP call-tool "${name}" failed: ${response.status}`);
-    }
-
-    return response.json();
-  }
-}
-```
-
-</details>
+The SDK derives the tool schema from the signature and docstring, speaks both transports, and keeps the handshake and protocol-version negotiation correct as the spec evolves. For a production-shaped example — auth, per-caller authorization, rate limits, sanitization, audit — see the arrowhead server (`docs/capabilities/mcp/arrowhead.md`).

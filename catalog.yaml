@@ -1146,7 +1146,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -1156,7 +1156,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: hot
-      est_tokens: 2102
+      est_tokens: 1540
     - path: ../stack/tracing-langfuse.md
       required: false
       source: load_list
@@ -1194,7 +1194,7 @@ recipes:
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 33891
+    est_total_tokens: 33351
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1393,7 +1393,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -1463,7 +1463,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35941
+    est_total_tokens: 35963
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1656,7 +1656,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -1667,7 +1667,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -1737,7 +1737,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34280
+    est_total_tokens: 34360
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1970,7 +1970,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -1981,7 +1981,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2060,7 +2060,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35280
+    est_total_tokens: 35360
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2272,7 +2272,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -2283,7 +2283,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2369,7 +2369,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36513
+    est_total_tokens: 36593
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2613,7 +2613,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2683,7 +2683,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36441
+    est_total_tokens: 36463
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2902,7 +2902,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -2982,7 +2982,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 37474
+    est_total_tokens: 37496
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3216,7 +3216,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -3286,7 +3286,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34918
+    est_total_tokens: 34940
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3469,7 +3469,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -3480,7 +3480,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -3550,7 +3550,7 @@ recipes:
     - obs.langfuse
     - eval.promptfoo
     - relational.postgres
-    est_total_tokens: 33980
+    est_total_tokens: 34060
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -3744,7 +3744,7 @@ recipes:
       source: load_list
       cache_tier: hot
       when: language == 'python'
-      est_tokens: 2675
+      est_tokens: 2733
     - path: ../frameworks/vercel-ai-sdk.md
       required: true
       source: load_list
@@ -3755,7 +3755,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -3834,7 +3834,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34980
+    est_total_tokens: 35060
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -4172,7 +4172,7 @@ recipes:
       required: true
       source: load_list
       cache_tier: hot
-      est_tokens: 2781
+      est_tokens: 2803
     - path: ../stack/llm-claude.md
       required: true
       source: load_list
@@ -4319,7 +4319,7 @@ recipes:
     - frontend.nextjs-chat
     - host.vercel
     - eval.promptfoo
-    est_total_tokens: 81691
+    est_total_tokens: 81713
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -5204,6 +5204,57 @@ capabilities:
   verification:
     tier: T1
     delivery: managed
+- id: mcp.arrowhead
+  kind: mcp
+  path: docs/capabilities/mcp/arrowhead.md
+  layer: agent
+  requires:
+  - relational.postgres
+  - vector_db.pgvector
+  env_vars: []
+  docker_service: arrowhead
+  ports:
+  - 127.0.0.1:8004:8000
+  probe: mcp_ping
+  provisioning_time: ~15s
+  cost_tier: free
+  est_tokens: 700
+  card:
+    name: Arrowhead
+    description: 'Hardened MCP data plane: document corpus, hybrid and semantic retrieval, read-only SQL, SSRF-guarded fetch, and background scans behind per-caller guards.'
+    capabilities_provided:
+    - document_store
+    - hybrid_search
+    - semantic_search
+    - sql_query
+    - http_fetch
+    - background_tasks
+    required_credentials: []
+  tags:
+  - mcp
+  - retrieval
+  - documents
+  - sql
+  - self-hosted
+  when_to_load: 'recipe declares mcp_servers with capability: mcp.arrowhead'
+  provides:
+  - document_store
+  - hybrid_search
+  - semantic_search
+  - sql_query
+  - http_fetch
+  - background_tasks
+  implements:
+    port: mcp
+    interface_version: '1.0'
+  stack_docs:
+  - stack/tool-protocol-mcp.md
+  context_summary: 'Arrowhead (mcp) — Hardened MCP data plane: document corpus, hybrid and semantic retrieval, read-only SQL, SSRF-guarded fetch, and background scans behind per-caller guards.
+
+    Docker service: arrowhead (ghcr.io/jagguvarma15/arrowhead:0.2.0). Provides: document_store, hybrid_search, semantic_search, sql_query, http_fetch, background_tasks.'
+  verification:
+    tier: T1
+    delivery: self-hosted
 - id: mcp.tavily
   kind: mcp
   path: docs/capabilities/mcp/tavily.md
@@ -5905,7 +5956,7 @@ ports:
   path: docs/ports/mcp.md
   required: false
   cardinality: many
-  default: mcp.tavily
+  default: null
   interface_version: '1.0'
   kinds:
   - mcp
@@ -6097,6 +6148,16 @@ compatibility:
   b: host.vercel
   relation: substitutes
   via: port:host
+- a: mcp.arrowhead
+  b: mcp.tavily
+  relation: substitutes
+  via: port:mcp
+- a: mcp.arrowhead
+  b: relational.postgres
+  relation: requires
+- a: mcp.arrowhead
+  b: vector_db.pgvector
+  relation: requires
 - a: memory_store.zep
   b: relational.postgres
   relation: requires

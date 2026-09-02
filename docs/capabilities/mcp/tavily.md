@@ -65,16 +65,19 @@ mcp_servers:
 
 Per-framework MCP wiring lives in each framework's `## MCP integration` section ([pydantic-ai](../../frameworks/pydantic-ai.md), [vercel-ai-sdk](../../frameworks/vercel-ai-sdk.md), etc.). The capability-level wiring:
 
-**Python (mcp-client):**
+**Python (official `mcp` SDK, v2):**
 
 ```python
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+import os
 
-async with streamablehttp_client(
-    "https://mcp.tavily.com/mcp/",
-    headers={"Authorization": f"Bearer {os.environ['TAVILY_API_KEY']}"},
-) as (read, write, _):
+import httpx
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+
+http = httpx.AsyncClient(
+    headers={"Authorization": f"Bearer {os.environ['TAVILY_API_KEY']}"}
+)
+async with streamable_http_client("https://mcp.tavily.com/mcp/", http_client=http) as (read, write):
     async with ClientSession(read, write) as session:
         await session.initialize()
         tools = await session.list_tools()
