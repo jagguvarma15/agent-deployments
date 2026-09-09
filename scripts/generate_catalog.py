@@ -327,6 +327,17 @@ BUNDLE_PRESETS: list[dict[str, Any]] = [
         ),
         "capabilities": ["guardrail.llama-guard"],
     },
+    {
+        "name": "mcp-arrowhead",
+        "title": "Arrowhead MCP tools",
+        "description": (
+            "Agentic tool calling over the Model Context Protocol: document "
+            "corpus, hybrid retrieval, read-only SQL, and guarded fetch via "
+            "the self-hosted arrowhead server (auto-adds postgres and "
+            "pgvector)."
+        ),
+        "capabilities": ["mcp.arrowhead"],
+    },
 ]
 
 # Recognized backend entry-point basenames. A recipe that ships application
