@@ -71,6 +71,10 @@ capabilities:
   - vector_db.qdrant
   - obs.langfuse
   - eval.promptfoo
+mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
 bootstrap_config:
   vector_collections:
     - { name: docs_rag, vector_size: 1536, distance: cosine }
@@ -91,6 +95,7 @@ load_list:
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
   - {path: ../stack/llm-claude.md, required: true}
+  - {path: ../stack/tool-protocol-mcp.md, required: false, when: "capabilities contains 'mcp.arrowhead'"}
   - {path: ../stack/vector-qdrant.md, required: true, when: "capabilities contains 'vector_db.qdrant'"}
   - {path: ../stack/api-fastapi.md, required: false, when: "language == 'python'"}
   - {path: ../stack/api-hono.md, required: false, when: "language == 'typescript'"}
@@ -352,6 +357,10 @@ Returns `{"status": "ok"}`.
 | **Description** | Search the document knowledge base for chunks relevant to a query. Uses keyword matching (dev) or vector similarity (production with Qdrant). |
 | **Parameter** | `query` (string, required) — Natural language search query. |
 | **Return type** | `string` — Formatted matching chunks with document titles and scores, separated by dividers. Returns `"No relevant documents found."` if no matches. |
+
+## MCP tools
+
+The recipe binds the arrowhead MCP server (`mcp.arrowhead`, streamable HTTP). The generated agent reads `mcp.json`, connects with the framework's MCP client, and uses the corpus tools as a retrieval path: `doc_retrieve` and `hybrid_query` for grounded answers, `doc_search`/`doc_read` for citation lookups, and `doc_index` when new documents are ingested. Retrieval through arrowhead rides the stack's Postgres + pgvector; the in-memory keyword retriever remains the zero-dependency fallback when the server is unavailable.
 
 ## Prompt Specifications
 

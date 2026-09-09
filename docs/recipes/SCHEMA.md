@@ -308,8 +308,11 @@ MCP (Model Context Protocol) servers the generated agent connects to. Each entry
   - `id` *(required, string)*: recipe-local identifier (e.g. `tavily`).
   - `capability` *(required, string)*: capability id (e.g. `mcp.tavily`).
   - `transport` *(optional, enum)*: `stdio` (default; in-process spawn) or `streamable_http` (remote endpoint).
-  - `env` *(optional, map)*: per-server environment-variable hints. Use the literal string `required` as the value to mark that the credential is mandatory — scaffold's `wire_credentials` step prompts for it.
-- **Consumer:** v0.3+ (additive). Older scaffold ignores the key.
+  - `env` *(optional, map)*: per-server environment-variable hints. Three value forms:
+    - the literal string `required`: the credential is mandatory — scaffold's `wire_credentials` step prompts for it;
+    - the literal string `optional`: name-only hint — listed in the generated registry's `optional_env`, never prompted;
+    - any other literal (e.g. `coding`): a *default value* — the scaffold pins the bound capability's compose service environment to `${VAR:-value}` and lists the variable in the generated `.env.example`, so the recipe selects a default the environment can still override.
+- **Consumer:** v0.3+ (additive; default-value semantics v0.5+). Older scaffold ignores the key.
 - **Examples:**
 
   ```yaml
@@ -318,6 +321,10 @@ MCP (Model Context Protocol) servers the generated agent connects to. Each entry
       capability: mcp.tavily
       transport: streamable_http
       env: { TAVILY_API_KEY: required }
+    - id: arrowhead
+      capability: mcp.arrowhead
+      transport: streamable_http
+      env: { ARROWHEAD_PROFILE: coding }
     - id: postgres
       capability: mcp.postgres
       transport: stdio

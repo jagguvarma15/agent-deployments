@@ -345,6 +345,7 @@ def test_bundle_presets_are_structurally_valid() -> None:
         "rag-complex",
         "rag-local",
         "guardrails-basic",
+        "mcp-arrowhead",
     ]
 
 
@@ -359,6 +360,7 @@ def test_bundles_expand_to_expected_capabilities() -> None:
     ]
     assert by_name["rag-local"]["capabilities"] == ["vector_db.pgvector", "embedding.local-bge"]
     assert by_name["guardrails-basic"]["capabilities"] == ["guardrail.llama-guard"]
+    assert by_name["mcp-arrowhead"]["capabilities"] == ["mcp.arrowhead"]
 
 
 def test_validate_bundles_rejects_unknown_capability() -> None:
