@@ -65,6 +65,11 @@ capabilities:
   - cache.redis
   - obs.langfuse
   - eval.promptfoo
+mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
+    env: { ARROWHEAD_PROFILE: coding }
 acceptance_contracts:
   http_endpoints:
     - {path: /health, method: GET, status: 200}
@@ -83,6 +88,7 @@ load_list:
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
   - {path: ../stack/llm-claude.md, required: true}
+  - {path: ../stack/tool-protocol-mcp.md, required: false, when: "capabilities contains 'mcp.arrowhead'"}
   - {path: ../stack/api-fastapi.md, required: false, when: "language == 'python'"}
   - {path: ../stack/api-hono.md, required: false, when: "language == 'typescript'"}
   - {path: ../stack/relational-postgres.md, required: false, when: "capabilities contains 'relational.postgres'"}
@@ -428,6 +434,10 @@ Returns `{"status": "ok"}`.
 | **Description** | Generate a concrete fix suggestion for a finding, including corrected code. |
 | **Parameters** | `code` (string, required) — Original code. `issue` (string, required) — Description of the problem. |
 | **Return type** | `string` — Suggested replacement code with explanation. |
+
+## MCP tools
+
+The recipe binds the arrowhead MCP server (`mcp.arrowhead`, streamable HTTP) with `ARROWHEAD_PROFILE: coding`, which swaps the corpus toolset for the repo and assist families: `code_search`, `code_read`, `symbol_map`, and `dependency_graph` for navigating the repository under review, plus `code_explain` and `summarize_diff` for the reflection pass. The generated agent reads `mcp.json` and exposes these tools to the review graph alongside the sandbox; the profile value is a default the environment can override.
 
 ## Prompt Specifications
 
