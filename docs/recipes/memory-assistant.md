@@ -68,6 +68,10 @@ capabilities:
   - vector_db.qdrant
   - obs.langfuse
   - eval.promptfoo
+mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
 bootstrap_config:
   vector_collections:
     - { name: memories, vector_size: 1536, distance: cosine }
@@ -88,6 +92,7 @@ load_list:
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
   - {path: ../stack/llm-claude.md, required: true}
+  - {path: ../stack/tool-protocol-mcp.md, required: false, when: "capabilities contains 'mcp.arrowhead'"}
   - {path: ../stack/vector-qdrant.md, required: true, when: "capabilities contains 'vector_db.qdrant'"}
   - {path: ../stack/api-fastapi.md, required: false, when: "language == 'python'"}
   - {path: ../stack/api-hono.md, required: false, when: "language == 'typescript'"}
@@ -406,6 +411,10 @@ Returns `{"status": "ok"}`.
 | **Description** | Delete a specific memory by ID. |
 | **Parameters** | `memory_id` (string, required). `user_id` (string, required) — For authorization check. |
 | **Return type** | `string` — "deleted" or "not_found". |
+
+## MCP tools
+
+The recipe binds the arrowhead MCP server (`mcp.arrowhead`, streamable HTTP). The generated agent reads `mcp.json` and uses the memory family as the durable structured store: `memory_store`/`memory_search`/`memory_list`/`memory_delete` for long-term facts and `kv_set`/`kv_get` for per-user preferences and session state. Zep remains the conversational-memory layer; arrowhead holds the facts the agent explicitly saves and recalls.
 
 ## Prompt Specifications
 
