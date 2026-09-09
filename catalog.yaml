@@ -1277,6 +1277,10 @@ recipes:
   - path: ../stack/llm-claude.md
     required: true
     cache_tier: hot
+  - path: ../stack/tool-protocol-mcp.md
+    required: false
+    when: capabilities contains 'mcp.arrowhead'
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
@@ -1312,6 +1316,12 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
+    env:
+      ARROWHEAD_PROFILE: coding
   runtime_modes:
     default:
       description: Anthropic Claude + E2B sandbox for running test repros.
@@ -1399,6 +1409,12 @@ recipes:
       source: load_list
       cache_tier: hot
       est_tokens: 730
+    - path: ../stack/tool-protocol-mcp.md
+      required: false
+      source: load_list
+      cache_tier: hot
+      when: capabilities contains 'mcp.arrowhead'
+      est_tokens: 1540
     - path: ../stack/api-fastapi.md
       required: false
       source: load_list
@@ -1463,7 +1479,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35963
+    est_total_tokens: 37503
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2166,6 +2182,10 @@ recipes:
   - path: ../stack/llm-claude.md
     required: true
     cache_tier: hot
+  - path: ../stack/tool-protocol-mcp.md
+    required: false
+    when: capabilities contains 'mcp.arrowhead'
+    cache_tier: hot
   - path: ../stack/vector-qdrant.md
     required: true
     when: capabilities contains 'vector_db.qdrant'
@@ -2205,6 +2225,10 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
   runtime_modes:
     default:
       description: Anthropic Claude + in-memory keyword retriever + Postgres + Redis + Langfuse. Boots with only ANTHROPIC_API_KEY; Qdrant ships in compose as the production retrieval swap (point QDRANT_URL at it and replace retriever.py).
@@ -2289,6 +2313,12 @@ recipes:
       source: load_list
       cache_tier: hot
       est_tokens: 730
+    - path: ../stack/tool-protocol-mcp.md
+      required: false
+      source: load_list
+      cache_tier: hot
+      when: capabilities contains 'mcp.arrowhead'
+      est_tokens: 1540
     - path: ../stack/vector-qdrant.md
       required: true
       source: load_list
@@ -2369,7 +2399,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36593
+    est_total_tokens: 38133
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2785,6 +2815,10 @@ recipes:
   - path: ../stack/llm-claude.md
     required: true
     cache_tier: hot
+  - path: ../stack/tool-protocol-mcp.md
+    required: false
+    when: capabilities contains 'mcp.arrowhead'
+    cache_tier: hot
   - path: ../stack/vector-qdrant.md
     required: true
     when: capabilities contains 'vector_db.qdrant'
@@ -2824,6 +2858,10 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
   runtime_modes:
     default:
       description: Anthropic Claude + Zep for memory, OpenAI for embeddings.
@@ -2908,6 +2946,12 @@ recipes:
       source: load_list
       cache_tier: hot
       est_tokens: 730
+    - path: ../stack/tool-protocol-mcp.md
+      required: false
+      source: load_list
+      cache_tier: hot
+      when: capabilities contains 'mcp.arrowhead'
+      est_tokens: 1540
     - path: ../stack/vector-qdrant.md
       required: true
       source: load_list
@@ -2982,7 +3026,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 37496
+    est_total_tokens: 39036
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3643,6 +3687,10 @@ recipes:
   - path: ../stack/llm-claude.md
     required: true
     cache_tier: hot
+  - path: ../stack/tool-protocol-mcp.md
+    required: false
+    when: capabilities contains 'mcp.arrowhead'
+    cache_tier: hot
   - path: ../stack/api-fastapi.md
     required: false
     when: language == 'python'
@@ -3678,6 +3726,10 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
   runtime_modes:
     default:
       description: Anthropic Claude + Tavily web search + local Postgres/Redis/Langfuse.
@@ -3761,6 +3813,12 @@ recipes:
       source: load_list
       cache_tier: hot
       est_tokens: 730
+    - path: ../stack/tool-protocol-mcp.md
+      required: false
+      source: load_list
+      cache_tier: hot
+      when: capabilities contains 'mcp.arrowhead'
+      est_tokens: 1540
     - path: ../stack/api-fastapi.md
       required: false
       source: load_list
@@ -3834,7 +3892,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35060
+    est_total_tokens: 36600
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -5229,6 +5287,8 @@ capabilities:
     - sql_query
     - http_fetch
     - background_tasks
+    - agent_memory
+    - kv_store
     required_credentials: []
   tags:
   - mcp
@@ -5244,6 +5304,8 @@ capabilities:
   - sql_query
   - http_fetch
   - background_tasks
+  - agent_memory
+  - kv_store
   implements:
     port: mcp
     interface_version: '1.0'
@@ -5251,7 +5313,7 @@ capabilities:
   - stack/tool-protocol-mcp.md
   context_summary: 'Arrowhead (mcp) — Hardened MCP data plane: document corpus, hybrid and semantic retrieval, read-only SQL, SSRF-guarded fetch, and background scans behind per-caller guards.
 
-    Docker service: arrowhead (ghcr.io/jagguvarma15/arrowhead:0.2.0). Provides: document_store, hybrid_search, semantic_search, sql_query, http_fetch, background_tasks.'
+    Docker service: arrowhead (ghcr.io/jagguvarma15/arrowhead:0.2.832). Provides: document_store, hybrid_search, semantic_search, sql_query, http_fetch, background_tasks, agent_memory, kv_store.'
   verification:
     tier: T1
     delivery: self-hosted
@@ -6266,6 +6328,11 @@ bundles:
   description: Input and output classification with Llama Guard before and after the agent loop.
   capabilities:
   - guardrail.llama-guard
+- name: mcp-arrowhead
+  title: Arrowhead MCP tools
+  description: 'Agentic tool calling over the Model Context Protocol: document corpus, hybrid retrieval, read-only SQL, and guarded fetch via the self-hosted arrowhead server (auto-adds postgres and pgvector).'
+  capabilities:
+  - mcp.arrowhead
 frameworks:
 - id: claude_agent_sdk_python
   language: python
