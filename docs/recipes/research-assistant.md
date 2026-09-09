@@ -67,6 +67,10 @@ capabilities:
   - cache.redis
   - obs.langfuse
   - eval.promptfoo
+mcp_servers:
+  - id: arrowhead
+    capability: mcp.arrowhead
+    transport: streamable_http
 acceptance_contracts:
   http_endpoints:
     - {path: /health, method: GET, status: 200}
@@ -84,6 +88,7 @@ load_list:
   - {path: ../frameworks/vercel-ai-sdk.md, required: true, when: "language == 'typescript'"}
   - {path: ../cross-cutting/project-layout.md, required: true}
   - {path: ../stack/llm-claude.md, required: true}
+  - {path: ../stack/tool-protocol-mcp.md, required: false, when: "capabilities contains 'mcp.arrowhead'"}
   - {path: ../stack/api-fastapi.md, required: false, when: "language == 'python'"}
   - {path: ../stack/api-hono.md, required: false, when: "language == 'typescript'"}
   - {path: ../stack/relational-postgres.md, required: false, when: "capabilities contains 'relational.postgres'"}
@@ -336,6 +341,10 @@ Returns `{"status": "ok"}`.
 | **Description** | Format source citations from collected research material. |
 | **Parameter** | `sources_json` (string, required) — JSON array of source objects. |
 | **Return type** | `string` — Formatted citations. |
+
+## MCP tools
+
+The recipe binds the arrowhead MCP server (`mcp.arrowhead`, streamable HTTP). The generated agent reads `mcp.json`, connects with the framework's MCP client, and uses `safe_fetch` for SSRF-guarded page retrieval, `doc_write` plus `doc_index` to persist gathered evidence, and `hybrid_query` to recall it across research steps. Web search itself stays on the recipe's search tool; arrowhead is the guarded fetch-and-store data plane.
 
 ## Prompt Specifications
 
