@@ -430,6 +430,59 @@ def test_required_files_must_name_entry_point() -> None:
     g.validate_recipe_references([dict(base)], [], {}, allow_missing_required=True)
 
 
+def test_required_files_by_language_entry_points() -> None:
+    """The per-language mapping enforces the launchability rule per track:
+    keys limited to declared languages, lists of strings, and each language's
+    list naming an entry point whose extension belongs to that language."""
+    base = {"path": "docs/recipes/r.md", "languages": ["python", "typescript"]}
+
+    # Both tracks carry their own entry point -> passes.
+    ok = dict(base)
+    ok["required_files_by_language"] = {
+        "python": ["Dockerfile", "app/main.py", "tests/unit/test_x.py"],
+        "typescript": ["Dockerfile", "src/index.ts", "tests/unit/x.test.ts"],
+    }
+    g.validate_recipe_references([ok], [], {}, allow_missing_required=True)
+
+    # A python entry point in the typescript list does not satisfy the rule.
+    bad_lang = dict(base)
+    bad_lang["required_files_by_language"] = {
+        "typescript": ["Dockerfile", "app/main.py"],
+    }
+    try:
+        g.validate_recipe_references([bad_lang], [], {}, allow_missing_required=True)
+    except SystemExit as exc:
+        assert "entry point for that language" in str(exc)
+    else:
+        raise AssertionError("cross-language entry point must fail")
+
+    # An undeclared language key fails.
+    bad_key = dict(base)
+    bad_key["languages"] = ["python"]
+    bad_key["required_files_by_language"] = {"typescript": ["src/index.ts"]}
+    try:
+        g.validate_recipe_references([bad_key], [], {}, allow_missing_required=True)
+    except SystemExit as exc:
+        assert "not in languages" in str(exc)
+    else:
+        raise AssertionError("undeclared language key must fail")
+
+    # A non-mapping value fails; a non-list language value fails.
+    bad_shape = dict(base)
+    bad_shape["required_files_by_language"] = ["app/main.py"]
+    try:
+        g.validate_recipe_references([bad_shape], [], {}, allow_missing_required=True)
+    except SystemExit as exc:
+        assert "must be a mapping" in str(exc)
+    else:
+        raise AssertionError("non-mapping shape must fail")
+
+    # An empty per-language list is tolerated (falls back downstream).
+    empty_ok = dict(base)
+    empty_ok["required_files_by_language"] = {"python": []}
+    g.validate_recipe_references([empty_ok], [], {}, allow_missing_required=True)
+
+
 def test_port_collision_across_resolved_stack() -> None:
     """No two compose services in a recipe's resolved capability stack (incl. the
     app on APP_PORT and transitive `requires`) may bind the same host port."""
