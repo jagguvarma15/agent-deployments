@@ -42,6 +42,29 @@ required_files:
   - tests/unit/test_chunker.py
   - tests/integration/test_query.py
   - tests/eval/test_rag_grounding.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/agent/qa.py
+    - app/tools/chunker.py
+    - app/tools/retriever.py
+    - tests/unit/test_chunker.py
+    - tests/integration/test_query.py
+    - tests/eval/test_rag_grounding.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/agent/qa.ts
+    - src/tools/chunker.ts
+    - src/tools/retriever.ts
+    - tests/unit/chunker.test.ts
+    - tests/integration/query.test.ts
+    - tests/eval/rag_grounding.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"
