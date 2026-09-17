@@ -66,6 +66,47 @@ required_files:
   - tests/unit/test_orchestrator.py
   - tests/integration/test_event_loop.py
   - tests/eval/test_rebooking_decisions.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/settings.py
+    - app/consumer/redis_streams.py
+    - app/orchestrator/graph.py
+    - app/orchestrator/prompts.py
+    - app/tools/enrichment.py
+    - app/tools/actions.py
+    - app/adapters/reservation_platform.py
+    - app/adapters/notification.py
+    - app/models/events.py
+    - app/db/models.py
+    - app/api/admin.py
+    - app/observability/tracing.py
+    - tests/unit/test_orchestrator.py
+    - tests/integration/test_event_loop.py
+    - tests/eval/test_rebooking_decisions.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/config.ts
+    - src/consumer/redis_streams.ts
+    - src/orchestrator/graph.ts
+    - src/orchestrator/prompts.ts
+    - src/tools/enrichment.ts
+    - src/tools/actions.ts
+    - src/adapters/reservation_platform.ts
+    - src/adapters/notification.ts
+    - src/models/events.ts
+    - src/db/models.ts
+    - src/api/admin.ts
+    - src/observability/tracing.ts
+    - tests/unit/orchestrator.test.ts
+    - tests/integration/event_loop.test.ts
+    - tests/eval/rebooking_decisions.test.ts
 recipe_dependencies:
   python:
     redis: ">=5.0.0"
