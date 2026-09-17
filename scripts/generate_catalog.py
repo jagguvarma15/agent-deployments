@@ -534,6 +534,7 @@ def collect_recipes(non_recipe_stems: frozenset[str]) -> list[dict[str, Any]]:
             "primitives",
             "modifiers",
             "required_files",
+            "required_files_by_language",
             "recipe_dependencies",
             "external_services",
             "capabilities",
@@ -1302,6 +1303,51 @@ def validate_recipe_references(
                     f"{path}: required_files names no recognized entry point "
                     f"(one of {sorted(ENTRY_POINT_BASENAMES)}) — run cannot launch it"
                 )
+        # required_files_by_language: keys limited to declared languages; each
+        # per-language list is a list of strings naming an entry point whose
+        # extension belongs to that language (the launchability rule per track).
+        by_language = r.get("required_files_by_language")
+        if by_language is not None:
+            if not isinstance(by_language, dict):
+                errors.append(
+                    f"{path}: required_files_by_language must be a mapping of "
+                    f"language -> list of paths, got {type(by_language).__name__}"
+                )
+            else:
+                declared_languages = {
+                    str(lang).lower() for lang in (r.get("languages") or [])
+                }
+                lang_exts = {"python": (".py",), "typescript": (".ts", ".js")}
+                for lang, files in by_language.items():
+                    lang_key = str(lang).lower()
+                    if declared_languages and lang_key not in declared_languages:
+                        errors.append(
+                            f"{path}: required_files_by_language declares "
+                            f"{lang_key!r} which is not in languages"
+                        )
+                        continue
+                    if not isinstance(files, list) or not all(
+                        isinstance(f, str) for f in files
+                    ):
+                        errors.append(
+                            f"{path}: required_files_by_language[{lang_key!r}] "
+                            "must be a list of strings"
+                        )
+                        continue
+                    exts = lang_exts.get(lang_key)
+                    if exts is None or not files:
+                        continue
+                    has_lang_entry = any(
+                        f.rsplit("/", 1)[-1] in ENTRY_POINT_BASENAMES
+                        and f.endswith(exts)
+                        for f in files
+                    )
+                    if not has_lang_entry:
+                        errors.append(
+                            f"{path}: required_files_by_language[{lang_key!r}] "
+                            "names no recognized entry point for that language "
+                            "— run cannot launch it"
+                        )
         # No two compose services in the recipe's resolved capability stack may
         # bind the same host port (the project-layout port-allocation contract).
         # The app itself claims env_overrides.APP_PORT (default 8000).
