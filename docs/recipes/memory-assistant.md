@@ -39,6 +39,27 @@ required_files:
   - tests/unit/test_memory_store.py
   - tests/integration/test_assistant.py
   - tests/eval/test_recall.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/agent/assistant.py
+    - app/memory/store.py
+    - tests/unit/test_memory_store.py
+    - tests/integration/test_assistant.py
+    - tests/eval/test_recall.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/agent/assistant.ts
+    - src/memory/store.ts
+    - tests/unit/memory_store.test.ts
+    - tests/integration/assistant.test.ts
+    - tests/eval/recall.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"
