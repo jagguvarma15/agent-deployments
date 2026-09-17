@@ -39,6 +39,25 @@ required_files:
   - tests/unit/test_nodes.py
   - tests/integration/test_review_run.py
   - tests/eval/test_review_quality.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/graph/review.py
+    - tests/unit/test_nodes.py
+    - tests/integration/test_review_run.py
+    - tests/eval/test_review_quality.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/graph/review.ts
+    - tests/unit/nodes.test.ts
+    - tests/integration/review_run.test.ts
+    - tests/eval/review_quality.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"

@@ -41,6 +41,27 @@ required_files:
   - tests/unit/test_schemas.py
   - tests/integration/test_research.py
   - tests/eval/test_react_behavior.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/agent/researcher.py
+    - app/tools/web_search.py
+    - tests/unit/test_schemas.py
+    - tests/integration/test_research.py
+    - tests/eval/test_react_behavior.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/agent/researcher.ts
+    - src/tools/web_search.ts
+    - tests/unit/schemas.test.ts
+    - tests/integration/research.test.ts
+    - tests/eval/react_behavior.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"

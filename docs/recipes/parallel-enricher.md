@@ -39,6 +39,25 @@ required_files:
   - tests/unit/test_enricher.py
   - tests/integration/test_batch.py
   - tests/eval/test_enrichment_quality.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/agent/enricher.py
+    - tests/unit/test_enricher.py
+    - tests/integration/test_batch.py
+    - tests/eval/test_enrichment_quality.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/agent/enricher.ts
+    - tests/unit/enricher.test.ts
+    - tests/integration/batch.test.ts
+    - tests/eval/enrichment_quality.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"

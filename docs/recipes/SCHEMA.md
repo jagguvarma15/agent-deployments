@@ -235,6 +235,28 @@ Use placeholder names (`test_<x>.py`) only if every track shares the same naming
 
 Paths must conform to the canonical [project layout](../cross-cutting/project-layout.md) — Python recipes use `app/...` and `tests/{unit,integration,eval}/...`; TypeScript recipes use `src/...` and the same `tests/` subtree. New recipes adding paths outside that layout should justify it in their "Key files" section.
 
+#### `required_files_by_language`
+
+Per-language required file lists — the exact paths each language track must emit.
+
+- **Type:** map of language id → list of strings (project-root-relative paths)
+- **Consumer:** v0.4+ consumers prefer this mapping wholesale when it carries a non-empty list for the generation language; older consumers ignore the key and keep filtering the flat `required_files` by extension. Keep the flat list authored alongside it — released parsers hard-fail or silently drop a `required_files` that is not a plain list, so this key is strictly additive.
+- **Semantics:** each language's list is COMPLETE for that language. Language-neutral files (`Dockerfile`, `docker-compose.yml`, CI workflows) are repeated in every list; consumers never merge across languages. This also covers manifests the extension heuristic cannot classify (`pyproject.toml` vs `package.json`).
+- **Example:**
+  ```yaml
+  required_files_by_language:
+    python:
+      - Dockerfile
+      - app/main.py
+      - tests/unit/test_chunker.py
+    typescript:
+      - Dockerfile
+      - src/index.ts
+      - tests/unit/chunker.test.ts
+  ```
+
+Keys must be a subset of the recipe's declared `languages`. Each per-language list must name a recognized backend entry point for THAT language (`main.py`/`app.py`/… for `python:`, `index.ts`/`server.ts`/… for `typescript:`) — the same launchability rule the flat list carries, applied per track.
+
 #### `recipe_dependencies`
 
 Per-language pinned package versions the generated `pyproject.toml` / `package.json` must include.
@@ -760,6 +782,7 @@ A future content scope will populate a `### Generation prompt` H3 section in eve
 | `modifiers` | Optional | v0.3+ | Ids must resolve to `catalog.modifiers[]` |
 | `load_list` | Recommended | v0.3+ | Falls back to prose `### Load list` when absent |
 | `required_files` | Recommended | v0.2.x | Advisory in v0.2; possibly enforced in v0.3 |
+| `required_files_by_language` | Recommended | v0.4+ | Preferred by new consumers; the flat `required_files` stays for released parsers |
 | `recipe_dependencies` | Recommended | v0.2.x | |
 | `external_services` | Recommended (transition) | v0.2.x | Mirror of `capabilities` until v0.3 ships |
 | `capabilities` | Recommended | v0.3+ | Required once v0.3 ships |
@@ -821,6 +844,7 @@ A recipe under `docs/recipes/*.md` is schema-conformant when:
 - Every `agent_pattern:` / `primitives[]` / `modifiers[]` id resolves to a `catalog.{patterns,primitives,modifiers}[].id`.
 - `topology` (when present) is one of the canonical values; every capability `kind` is one of the allowed kinds.
 - `required_files` (when non-empty) names a recognized backend entry point (`main.py` / `app.py` / `server.py` / `index.ts` / …) — run discovers the entry by basename, so a recipe that ships source but lists no entry point passes generation yet fails at launch.
+- `required_files_by_language` (when present) declares only languages the recipe lists in `languages`, and each per-language list names an entry point whose extension belongs to that language — the launchability rule applied per track.
 - No two compose services in the recipe's resolved capability stack (declared capabilities + their transitive `requires`, plus the app on `APP_PORT`) bind the same host port.
 - Every `load_list[].path` resolves to a file on disk (the producer fails closed; the consumer fails open).
 - The body opens with `## Composes` followed by `### Load list`.

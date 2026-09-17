@@ -186,6 +186,7 @@ Recipe frontmatter references these via `agent_pattern:`, `primitives:`, and `mo
 | `complexity` | string | no | `basic`, `mid`, `complex`. |
 | `agent_pattern` | string | no | Free-form pattern label for the picker hint. |
 | `required_files` | string[] | no | Files the consumer is required to generate. |
+| `required_files_by_language` | object | no | Per-language required file lists; each list is complete for its language. |
 | `recipe_dependencies` | object | no | Per-language pinned versions. |
 | `external_services` | string[] | no | Legacy field; new recipes use `capabilities` instead. |
 | `capabilities` | string[] | no | Dotted `<kind>.<name>` IDs matching catalog entries. |
