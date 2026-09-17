@@ -45,6 +45,31 @@ required_files:
   - tests/unit/test_agents.py
   - tests/integration/test_supervisor.py
   - tests/eval/test_handoff.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/graph/supervisor.py
+    - app/agents/researcher.py
+    - app/agents/writer.py
+    - app/agents/reviewer.py
+    - tests/unit/test_agents.py
+    - tests/integration/test_supervisor.py
+    - tests/eval/test_handoff.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/graph/supervisor.ts
+    - src/agents/researcher.ts
+    - src/agents/writer.ts
+    - src/agents/reviewer.ts
+    - tests/unit/agents.test.ts
+    - tests/integration/supervisor.test.ts
+    - tests/eval/handoff.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"
