@@ -43,6 +43,29 @@ required_files:
   - tests/unit/test_agents.py
   - tests/integration/test_crew.py
   - tests/eval/test_report_quality.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/crew/devops.py
+    - app/crew/security.py
+    - app/crew/database.py
+    - tests/unit/test_agents.py
+    - tests/integration/test_crew.py
+    - tests/eval/test_report_quality.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/crew/devops.ts
+    - src/crew/security.ts
+    - src/crew/database.ts
+    - tests/unit/agents.test.ts
+    - tests/integration/crew.test.ts
+    - tests/eval/report_quality.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"
