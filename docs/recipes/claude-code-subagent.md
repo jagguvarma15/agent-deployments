@@ -42,6 +42,33 @@ required_files:
   - .env.example
   - pyproject.toml
   - README.md
+required_files_by_language:
+  python:
+    - app/main.py
+    - app/agent/host.py
+    - app/tools/web_search.py
+    - app/tools/fetch_url.py
+    - app/models/schemas.py
+    - .claude/agents/researcher.md
+    - tests/unit/test_schemas.py
+    - tests/integration/test_subagent.py
+    - tests/eval/dataset.jsonl
+    - .env.example
+    - pyproject.toml
+    - README.md
+  typescript:
+    - src/index.ts
+    - src/agent/host.ts
+    - src/tools/web_search.ts
+    - src/tools/fetch_url.ts
+    - src/models/schemas.ts
+    - .claude/agents/researcher.md
+    - tests/unit/schemas.test.ts
+    - tests/integration/subagent.test.ts
+    - tests/eval/dataset.jsonl
+    - .env.example
+    - package.json
+    - README.md
 recipe_dependencies:
   python:
     claude-agent-sdk: ">=0.2.0"
