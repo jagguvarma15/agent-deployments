@@ -44,6 +44,27 @@ required_files:
   - tests/unit/test_classifier.py
   - tests/integration/test_triage_route.py
   - tests/eval/test_specialist_handoff.py
+required_files_by_language:
+  python:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - app/main.py
+    - app/agent/triage.py
+    - app/agent/specialists.py
+    - tests/unit/test_classifier.py
+    - tests/integration/test_triage_route.py
+    - tests/eval/test_specialist_handoff.py
+  typescript:
+    - Dockerfile
+    - docker-compose.yml
+    - .github/workflows/ci.yml
+    - src/index.ts
+    - src/agent/triage.ts
+    - src/agent/specialists.ts
+    - tests/unit/classifier.test.ts
+    - tests/integration/triage_route.test.ts
+    - tests/eval/specialist_handoff.test.ts
 recipe_dependencies:
   python:
     fastapi: ">=0.110.0"
