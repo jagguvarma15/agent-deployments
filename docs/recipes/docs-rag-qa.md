@@ -130,6 +130,7 @@ load_list:
   - {path: ../cross-cutting/observability.md, required: false}
   - {path: ../cross-cutting/rate-limiting.md, required: false}
   - {path: ../cross-cutting/prompt-management.md, required: false}
+  - {path: ../cross-cutting/context-management.md, required: false}
 ---
 
 # Recipe: docs-rag-qa
@@ -161,7 +162,7 @@ Feed these files to your AI coding assistant to build this agent:
 - `docs/stack/vector-qdrant.md` — vector retrieval (core to this pattern)
 
 **Production concerns (load for Tier 3):**
-- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/context-management.md`
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
@@ -338,6 +339,8 @@ Ingest a document into the knowledge base.
 ### `POST /query`
 
 Ask a question against the knowledge base.
+
+Multi-turn: the thin `POST /chat` adapter ([contract](../reference/chat-contract.md)) forwards `history`; bound it per [context management](../cross-cutting/context-management.md).
 
 **Request:**
 
