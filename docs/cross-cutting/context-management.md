@@ -65,7 +65,7 @@ Note the role mapping: the wire role `agent` becomes the SDK role `assistant`. `
 ## Choosing the budget
 
 - `CONTEXT_INPUT_MAX` defaults from the recipe's `runtime_modes[<active mode>].context_budget.input_max` (80000 in the default mode, 32000 in `local_only`). The generator should bake the recipe value into `.env` / compose as `CONTEXT_INPUT_MAX=${CONTEXT_INPUT_MAX:-<input_max>}`.
-- **Budget the history slice, not the whole window.** Pass `budget_tokens = CONTEXT_INPUT_MAX − estimate(system prompt) − estimate(latest message) − reserve`, where `reserve` covers whatever else enters the prompt: retrieved chunks, tool schemas, injected memories. In RAG recipes retrieval is the bigger spender — history should be the first thing squeezed, which is exactly what a small `budget_tokens` does.
+- **Budget the history slice, not the whole window.** Pass `budget_tokens = CONTEXT_INPUT_MAX - estimate(system prompt) - estimate(latest message) - reserve`, where `reserve` covers whatever else enters the prompt: retrieved chunks, tool schemas, injected memories. In RAG recipes retrieval is the bigger spender — history should be the first thing squeezed, which is exactly what a small `budget_tokens` does.
 
 ## Configuration via env
 
@@ -94,7 +94,7 @@ Handler test: POST `/chat` with 200 synthetic 2 KB turns in `history`, mock the 
 - **Client-side-only trimming.** The bundled UIs cap what they send as a courtesy, but the wire accepts anything — the backend trim is the authoritative one.
 - **Raw dicts into Pydantic AI.** `message_history` takes typed messages; OpenAI-shaped dicts fail silently and the agent forgets prior turns.
 - **Mixed estimators.** Counting with a real tokenizer in one code path and chars/4 in another makes the budget mean two different things. Pick one estimator everywhere; this doc picks chars/4.
-- **Sliding window ≠ memory.** Facts older than the window are gone — that is the contract of this doc. Durable per-user facts belong in a memory store (see the [memory-assistant recipe](../recipes/memory-assistant.md) and the blueprints memory primitive), not in an ever-longer history.
+- **A sliding window is not memory.** Facts older than the window are gone — that is the contract of this doc. Durable per-user facts belong in a memory store (see the [memory-assistant recipe](../recipes/memory-assistant.md) and the blueprints memory primitive), not in an ever-longer history.
 
 ## Upgrade path: summarize-and-replace
 
