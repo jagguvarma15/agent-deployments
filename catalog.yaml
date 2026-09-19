@@ -1217,7 +1217,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1229,7 +1229,7 @@ recipes:
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 37441
+    est_total_tokens: 37442
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1531,7 +1531,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1541,7 +1541,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 41593
+    est_total_tokens: 41594
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1832,7 +1832,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1842,7 +1842,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 38450
+    est_total_tokens: 38451
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2175,7 +2175,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/architecture.md
       required: true
       source: pattern_level:architecture
@@ -2194,7 +2194,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 39450
+    est_total_tokens: 39451
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2528,7 +2528,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/architecture.md
       required: true
       source: pattern_level:architecture
@@ -2548,7 +2548,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 42223
+    est_total_tokens: 42224
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2885,7 +2885,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -2895,7 +2895,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 40553
+    est_total_tokens: 40554
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3223,7 +3223,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
       required: true
       source: pattern_level:overview
@@ -3237,7 +3237,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 43126
+    est_total_tokens: 43127
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3562,7 +3562,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -3572,7 +3572,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 39030
+    est_total_tokens: 39031
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3853,7 +3853,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -3863,7 +3863,7 @@ recipes:
     - obs.langfuse
     - eval.promptfoo
     - relational.postgres
-    est_total_tokens: 38150
+    est_total_tokens: 38151
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -4171,7 +4171,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/architecture.md
       required: true
       source: pattern_level:architecture
@@ -4190,7 +4190,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 40690
+    est_total_tokens: 40691
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -4697,7 +4697,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4090
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -4724,7 +4724,7 @@ recipes:
     - frontend.nextjs-chat
     - host.vercel
     - eval.promptfoo
-    est_total_tokens: 85803
+    est_total_tokens: 85804
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
