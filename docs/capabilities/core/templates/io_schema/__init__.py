@@ -4,6 +4,6 @@ The scaffold emits these models; import them in your request handler instead of
 passing raw dicts. See README.md.
 """
 
-from .schemas import ChatRequest, ChatResponse
+from .schemas import ChatRequest, ChatResponse, ChatTurn
 
-__all__ = ["ChatRequest", "ChatResponse"]
+__all__ = ["ChatRequest", "ChatResponse", "ChatTurn"]
