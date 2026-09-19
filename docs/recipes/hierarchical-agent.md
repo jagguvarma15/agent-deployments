@@ -145,6 +145,7 @@ load_list:
   - {path: ../cross-cutting/observability.md, required: false}
   - {path: ../cross-cutting/rate-limiting.md, required: false}
   - {path: ../cross-cutting/prompt-management.md, required: false}
+  - {path: ../cross-cutting/context-management.md, required: false}
 ---
 
 # Recipe: Hierarchical Agent
@@ -175,7 +176,7 @@ Feed these files to your AI coding assistant to build this agent:
 - `docs/stack/cache-redis.md` — rate limiting backend
 
 **Production concerns (load for Tier 3):**
-- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/context-management.md`
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
