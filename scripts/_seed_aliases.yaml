@@ -109,6 +109,13 @@ cross_cutting:
   caching-strategies: docs/cross-cutting/caching-strategies.md
   multi-tenancy: docs/cross-cutting/multi-tenancy.md
   multi tenancy: docs/cross-cutting/multi-tenancy.md
+  context management: docs/cross-cutting/context-management.md
+  context-management: docs/cross-cutting/context-management.md
+  conversation history: docs/cross-cutting/context-management.md
+  chat history: docs/cross-cutting/context-management.md
+  sliding window: docs/cross-cutting/context-management.md
+  multi-turn: docs/cross-cutting/context-management.md
+  multi turn: docs/cross-cutting/context-management.md
 
 # Files inside docs/recipes/ etc. that aren't recipes/capabilities/frameworks themselves.
 # Source: scaffold/src/agent_scaffold/discovery.py _NON_RECIPE_STEMS.
