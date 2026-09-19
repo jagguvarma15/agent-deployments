@@ -93,10 +93,13 @@ export function App() {
     setMessages((m) => [...m, { role: "user", text }]);
     setBusy(true);
     try {
+      // `messages` is still the pre-append closure value here: exactly the
+      // prior turns, oldest first. slice(-40) is a courtesy client cap; the
+      // backend trim is the authoritative bound.
       const res = await fetch(`${AGENT_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, history: messages.slice(-40) }),
       });
       if (res.status === 409) {
         // Missing or invalid credential → go to the secure setup page (full-page
