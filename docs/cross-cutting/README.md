@@ -20,6 +20,7 @@ Shared production plumbing used by all agents. Each file answers: **"What produc
 | [Audit logging](audit-logging.md) | Postgres `audit_events` + triggers; S3 archive | Immutable trail with hash-chain tamper evidence |
 | [PII handling (GDPR)](pii-gdpr.md) | `pgcrypto` / KMS envelope + tokenization | Minimization, storage, erasure, LLM redaction, DLP |
 | [Prompt management](prompt-management.md) | Langfuse `get_prompt` / LangSmith Hub / flat-file + git | Versioning, registry, A/B routing, rollback playbook |
+| [Context management](context-management.md) | stdlib (chars/4 sliding window) | Token-budget history trimming for multi-turn `/chat` |
 
 ## The 11-point production checklist
 

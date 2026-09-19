@@ -608,7 +608,7 @@ Per-mode context-window envelope. Lets the consumer (or runtime) bound prompt as
       context_budget: {input_max: 32000, output_max: 4000}
   ```
 
-When `context_budget` is absent, consumers fall back to their own per-model defaults rather than assume "unlimited."
+When `context_budget` is absent, consumers fall back to their own per-model defaults rather than assume "unlimited." Generated agents also consume `input_max` at runtime: it is the default for `CONTEXT_INPUT_MAX`, the budget the `/chat` handler trims conversation history against — see [`../cross-cutting/context-management.md`](../cross-cutting/context-management.md).
 
 #### `smoke_test` *(required)*
 

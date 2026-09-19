@@ -140,6 +140,7 @@ load_list:
   - {path: ../cross-cutting/observability.md, required: false}
   - {path: ../cross-cutting/rate-limiting.md, required: false}
   - {path: ../cross-cutting/prompt-management.md, required: false}
+  - {path: ../cross-cutting/context-management.md, required: false}
 ---
 
 # Recipe: Customer Support Triage
@@ -171,7 +172,7 @@ Feed these files to your AI coding assistant to build this agent:
 - `docs/stack/vector-qdrant.md` — knowledge base search (if using vector retrieval)
 
 **Production concerns (load for Tier 3):**
-- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md`
+- `docs/cross-cutting/auth-jwt.md` · `docs/cross-cutting/rate-limiting.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/context-management.md`
 
 **Scaffolding:** `docs/reference/docker-templates.md` · `docs/reference/docker-compose-template.md`
 
@@ -316,6 +317,8 @@ export const TriageResponse = z.object({
 ### `POST /triage`
 
 Classify a customer message and route to a specialist.
+
+Multi-turn: the thin `POST /chat` adapter ([contract](../reference/chat-contract.md)) forwards `history`; bound it per [context management](../cross-cutting/context-management.md).
 
 **Request:**
 

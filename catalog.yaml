@@ -1104,6 +1104,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude via Claude Agent SDK — Sonnet for host, Sonnet for subagents.
@@ -1210,6 +1213,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1221,7 +1229,7 @@ recipes:
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 33351
+    est_total_tokens: 37442
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1360,6 +1368,9 @@ recipes:
     required: false
     cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
+    required: false
+    cache_tier: warm
+  - path: ../cross-cutting/context-management.md
     required: false
     cache_tier: warm
   mcp_servers:
@@ -1516,6 +1527,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1525,7 +1541,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 37503
+    est_total_tokens: 41594
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1673,6 +1689,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude Sonnet across all chain steps.
@@ -1809,6 +1828,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1818,7 +1842,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34360
+    est_total_tokens: 38451
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2000,6 +2024,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude — Haiku for classification, Sonnet for specialists.
@@ -2144,6 +2171,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/architecture.md
       required: true
       source: pattern_level:architecture
@@ -2162,7 +2194,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 35360
+    est_total_tokens: 39451
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2334,6 +2366,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   mcp_servers:
   - id: arrowhead
     capability: mcp.arrowhead
@@ -2489,6 +2524,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/architecture.md
       required: true
       source: pattern_level:architecture
@@ -2508,7 +2548,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 38133
+    est_total_tokens: 42224
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2698,6 +2738,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude — Opus for supervisor, Sonnet for specialists.
@@ -2838,6 +2881,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -2847,7 +2895,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36463
+    est_total_tokens: 40554
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3013,6 +3061,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   mcp_servers:
   - id: arrowhead
     capability: mcp.arrowhead
@@ -3168,6 +3219,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
       required: true
       source: pattern_level:overview
@@ -3181,7 +3237,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 39036
+    est_total_tokens: 43127
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3360,6 +3416,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude — Sonnet for each specialist.
@@ -3499,6 +3558,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -3508,7 +3572,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 34940
+    est_total_tokens: 39031
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3649,6 +3713,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude Haiku for the enrichment fan-out.
@@ -3782,6 +3849,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -3791,7 +3863,7 @@ recipes:
     - obs.langfuse
     - eval.promptfoo
     - relational.postgres
-    est_total_tokens: 34060
+    est_total_tokens: 38151
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -3944,6 +4016,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   mcp_servers:
   - id: arrowhead
     capability: mcp.arrowhead
@@ -4092,6 +4167,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/architecture.md
       required: true
       source: pattern_level:architecture
@@ -4110,7 +4190,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 36600
+    est_total_tokens: 40691
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -4401,6 +4481,9 @@ recipes:
   - path: ../cross-cutting/prompt-management.md
     required: false
     cache_tier: warm
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   runtime_modes:
     default:
       description: Anthropic Claude + Redis Streams + Postgres + Langfuse.
@@ -4610,6 +4693,11 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -4636,7 +4724,7 @@ recipes:
     - frontend.nextjs-chat
     - host.vercel
     - eval.promptfoo
-    est_total_tokens: 81713
+    est_total_tokens: 85804
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -4771,7 +4859,7 @@ capabilities:
   cost_tier: free
   card:
     name: I/O schema
-    description: Pydantic request/response models for the canonical /chat contract — schema-validated I/O at the HTTP boundary. Part of the T0 chat substrate.
+    description: Pydantic request/response models for the canonical /chat contract, history included — schema-validated I/O at the HTTP boundary. Part of the T0 chat substrate.
     capabilities_provided:
     - io_schema
     - request_validation
@@ -4787,7 +4875,7 @@ capabilities:
   implements:
     port: core
     interface_version: '1.0'
-  context_summary: 'I/O schema (core) — Pydantic request/response models for the canonical /chat contract — schema-validated I/O at the HTTP boundary. Part of the T0 chat substrate.
+  context_summary: 'I/O schema (core) — Pydantic request/response models for the canonical /chat contract, history included — schema-validated I/O at the HTTP boundary. Part of the T0 chat substrate.
 
     Provides: io_schema, request_validation.'
   verification:
@@ -6826,6 +6914,7 @@ cross_cutting_docs:
 - docs/cross-cutting/authorization-rbac.md
 - docs/cross-cutting/backpressure.md
 - docs/cross-cutting/caching-strategies.md
+- docs/cross-cutting/context-management.md
 - docs/cross-cutting/cost-tracking.md
 - docs/cross-cutting/distributed-locking.md
 - docs/cross-cutting/dlq-operations.md
@@ -7237,6 +7326,13 @@ cross_cutting:
   caching-strategies: docs/cross-cutting/caching-strategies.md
   multi-tenancy: docs/cross-cutting/multi-tenancy.md
   multi tenancy: docs/cross-cutting/multi-tenancy.md
+  context management: docs/cross-cutting/context-management.md
+  context-management: docs/cross-cutting/context-management.md
+  conversation history: docs/cross-cutting/context-management.md
+  chat history: docs/cross-cutting/context-management.md
+  sliding window: docs/cross-cutting/context-management.md
+  multi-turn: docs/cross-cutting/context-management.md
+  multi turn: docs/cross-cutting/context-management.md
 non_recipe_stems:
 - changelog
 - contributing

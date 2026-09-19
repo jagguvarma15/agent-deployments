@@ -223,6 +223,7 @@ load_list:
   - {path: ../cross-cutting/audit-logging.md, required: false}
   - {path: ../cross-cutting/pii-gdpr.md, required: false}
   - {path: ../cross-cutting/prompt-management.md, required: false}
+  - {path: ../cross-cutting/context-management.md, required: false}
 ---
 
 # Recipe: Restaurant Rebooking
@@ -258,7 +259,7 @@ Feed these files to your AI coding assistant to build this agent:
 - `docs/stack/secrets-management.md` — Resy / OpenTable / Toast credential handling, JWT signing key, DB URL
 
 **Production concerns (load for Tier 3):**
-- `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/auth-jwt.md` (admin endpoints)
+- `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/observability.md` · `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/auth-jwt.md` (admin endpoints) · `docs/cross-cutting/context-management.md`
 - `docs/cross-cutting/idempotency.md` · `docs/cross-cutting/resilience.md` · `docs/cross-cutting/backpressure.md` · `docs/cross-cutting/dlq-operations.md` · `docs/cross-cutting/health-graceful-shutdown.md`
 - `docs/cross-cutting/security-hardening.md` · `docs/cross-cutting/authorization-rbac.md` · `docs/cross-cutting/audit-logging.md` · `docs/cross-cutting/pii-gdpr.md` · `docs/cross-cutting/cost-tracking.md` · `docs/cross-cutting/model-routing.md`
 

@@ -1,6 +1,7 @@
 """Streamlit chat UI for the project's agent backend.
 
-Calls ``POST $AGENT_URL/chat`` with the running message history and streams
+Calls ``POST $AGENT_URL/chat`` with the contract's ``{"message", "history"}``
+body (prior turns oldest first, wire roles ``user``/``agent``) and streams
 the response into the assistant bubble. Falls back to a non-streaming POST
 when the backend doesn't honor SSE.
 
@@ -46,8 +47,22 @@ def _stream_chat(messages: list[dict[str, Any]]) -> Iterator[str]:
 
     Tries SSE first (``Accept: text/event-stream``); on a non-SSE response,
     falls back to reading the whole body and yielding it once.
+
+    ``messages`` is the full session list including the just-appended user
+    turn; the wire shape splits it into the /chat contract's ``message`` +
+    ``history`` (session role ``assistant`` maps to wire role ``agent``).
     """
-    payload = {"messages": messages}
+    *prior, latest = messages
+    payload = {
+        "message": str(latest.get("content", "")),
+        "history": [
+            {
+                "role": "agent" if m.get("role") == "assistant" else "user",
+                "text": str(m.get("content", "")),
+            }
+            for m in prior
+        ],
+    }
     try:
         with httpx.stream(
             "POST",

@@ -16,9 +16,10 @@ Content-Type: application/json
 ```
 
 - `message` (required) — the user's latest turn.
-- `history` (optional) — prior turns, oldest first. The minimal UI is stateless
-  and may omit it; backends that need conversation context should accept it when
-  present and tolerate its absence.
+- `history` (recommended) — prior turns, oldest first. Both default UIs send it;
+  backends must accept it, tolerate its absence, and trim it deterministically to
+  the recipe's context budget before the model call — see
+  [context management](../cross-cutting/context-management.md).
 
 ## Response
 
@@ -41,6 +42,13 @@ If a recipe's backend already exposes its logic under a different path (e.g.
 `/support`, `/ask`), add a thin `POST /chat` adapter that maps `{message}` to that
 handler and wraps its output as `{"reply": ...}`. Do not rename the native route —
 add `/chat` alongside it.
+
+## Multi-turn
+
+Clients cap what they send as a courtesy, but the server-side trim is the
+authoritative bound — the wire accepts any history length. When passing turns to
+an SDK, map the wire role `agent` to the SDK's `assistant`; the wire never carries
+`assistant` or `system` roles.
 
 ## System prompt
 

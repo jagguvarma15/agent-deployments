@@ -107,6 +107,7 @@ load_list:
   - {path: ../cross-cutting/testing-strategy.md, required: false}
   - {path: ../cross-cutting/eval-data.md, required: false}
   - {path: ../cross-cutting/prompt-management.md, required: false}
+  - {path: ../cross-cutting/context-management.md, required: false}
 roles:
   - name: researcher
     description: Subagent that takes a research question and returns a list of cited findings.
@@ -143,7 +144,7 @@ Feed these files to your AI coding assistant to build this agent:
 **Optional (load when relevant):**
 - `docs/stack/tool-protocol-mcp.md` — if you plan to expose tools via MCP
 - `docs/stack/tracing-langfuse.md` — if you enable `obs.langfuse`
-- `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/eval-data.md` · `docs/cross-cutting/logging-structured.md`
+- `docs/cross-cutting/testing-strategy.md` · `docs/cross-cutting/eval-data.md` · `docs/cross-cutting/logging-structured.md` · `docs/cross-cutting/context-management.md`
 
 ### Generation prompt
 
