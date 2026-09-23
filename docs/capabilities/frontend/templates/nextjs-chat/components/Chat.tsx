@@ -4,8 +4,11 @@ import { useChat } from "ai/react";
 import { Message } from "@/components/Message";
 
 export function Chat() {
+  // streamProtocol "text": the /api/agent proxy returns the backend's
+  // non-streaming {reply} as a plain-text body (the canonical /chat contract
+  // forbids SSE), which useChat renders as one complete assistant message.
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
-    useChat({ api: "/api/agent" });
+    useChat({ api: "/api/agent", streamProtocol: "text" });
 
   return (
     <div className="flex flex-1 flex-col gap-4">
