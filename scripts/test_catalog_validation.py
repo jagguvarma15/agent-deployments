@@ -725,6 +725,26 @@ def test_check_flag_freshness() -> None:
         assert not Path(out).exists()
 
 
+def test_collect_pattern_docs_tolerates_pre_urlified_entries() -> None:
+    """The cohort lists are aliased and urlified in place before
+    collect_pattern_docs runs; already-absolute overviews must not be
+    re-prefixed (the blob/main/https://... doubles)."""
+    already = g.BLUEPRINTS_DOC_URL_BASE + "patterns/react/overview.md"
+    catalog = {
+        "patterns": [
+            {"tier_files": {"overview": already}},
+            {"tier_files": {"overview": "patterns/rag/overview.md"}},
+            {"dir": "primitives/memory"},
+        ],
+    }
+    out = g.collect_pattern_docs(catalog)
+    assert already in out
+    assert g.BLUEPRINTS_DOC_URL_BASE + "patterns/rag/overview.md" in out
+    assert g.BLUEPRINTS_DOC_URL_BASE + "primitives/memory/overview.md" in out
+    for url in out:
+        assert url.count("https://") == 1, url
+
+
 def main() -> int:
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for test in tests:
