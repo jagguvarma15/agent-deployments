@@ -1217,7 +1217,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1229,7 +1229,7 @@ recipes:
     capabilities:
     - obs.langfuse
     - relational.postgres
-    est_total_tokens: 37442
+    est_total_tokens: 38224
   env_contract:
   - name: LANGFUSE_HOST
     source_capability: obs.langfuse
@@ -1531,7 +1531,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1541,7 +1541,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 41594
+    est_total_tokens: 42376
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -1832,7 +1832,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -1842,7 +1842,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 38451
+    est_total_tokens: 39233
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2175,7 +2175,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/architecture.md
       required: true
       source: pattern_level:architecture
@@ -2194,7 +2194,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 39451
+    est_total_tokens: 40233
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2528,7 +2528,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/architecture.md
       required: true
       source: pattern_level:architecture
@@ -2548,7 +2548,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 42224
+    est_total_tokens: 43006
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -2885,7 +2885,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -2895,7 +2895,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 40554
+    est_total_tokens: 41336
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3223,7 +3223,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
       required: true
       source: pattern_level:overview
@@ -3237,7 +3237,7 @@ recipes:
     - vector_db.qdrant
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 43127
+    est_total_tokens: 43909
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3562,7 +3562,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -3572,7 +3572,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 39031
+    est_total_tokens: 39813
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -3853,7 +3853,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -3863,7 +3863,7 @@ recipes:
     - obs.langfuse
     - eval.promptfoo
     - relational.postgres
-    est_total_tokens: 38151
+    est_total_tokens: 38933
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -4171,7 +4171,7 @@ recipes:
       required: false
       source: load_list
       cache_tier: warm
-      est_tokens: 4091
+      est_tokens: 4873
     - path: https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/architecture.md
       required: true
       source: pattern_level:architecture
@@ -4190,7 +4190,7 @@ recipes:
     - cache.redis
     - obs.langfuse
     - eval.promptfoo
-    est_total_tokens: 40691
+    est_total_tokens: 41473
   env_contract:
   - name: DATABASE_URL
     source_capability: relational.postgres
@@ -4430,20 +4430,23 @@ recipes:
     required: false
     when: capabilities contains 'obs.langfuse'
     cache_tier: hot
+  - path: ../cross-cutting/context-management.md
+    required: false
+    cache_tier: warm
   - path: ../stack/secrets-management.md
-    required: true
+    required: false
     cache_tier: hot
   - path: ../cross-cutting/idempotency.md
-    required: true
+    required: false
     cache_tier: warm
   - path: ../cross-cutting/resilience.md
-    required: true
+    required: false
     cache_tier: warm
   - path: ../cross-cutting/backpressure.md
-    required: true
+    required: false
     cache_tier: warm
   - path: ../cross-cutting/dlq-operations.md
-    required: true
+    required: false
     cache_tier: warm
   - path: ../cross-cutting/logging-structured.md
     required: false
@@ -4479,9 +4482,6 @@ recipes:
     required: false
     cache_tier: warm
   - path: ../cross-cutting/prompt-management.md
-    required: false
-    cache_tier: warm
-  - path: ../cross-cutting/context-management.md
     required: false
     cache_tier: warm
   runtime_modes:
@@ -4608,28 +4608,33 @@ recipes:
       cache_tier: hot
       when: capabilities contains 'obs.langfuse'
       est_tokens: 1127
+    - path: ../cross-cutting/context-management.md
+      required: false
+      source: load_list
+      cache_tier: warm
+      est_tokens: 4873
     - path: ../stack/secrets-management.md
-      required: true
+      required: false
       source: load_list
       cache_tier: hot
       est_tokens: 2556
     - path: ../cross-cutting/idempotency.md
-      required: true
+      required: false
       source: load_list
       cache_tier: warm
       est_tokens: 2179
     - path: ../cross-cutting/resilience.md
-      required: true
+      required: false
       source: load_list
       cache_tier: warm
       est_tokens: 4059
     - path: ../cross-cutting/backpressure.md
-      required: true
+      required: false
       source: load_list
       cache_tier: warm
       est_tokens: 2529
     - path: ../cross-cutting/dlq-operations.md
-      required: true
+      required: false
       source: load_list
       cache_tier: warm
       est_tokens: 2423
@@ -4693,11 +4698,6 @@ recipes:
       source: load_list
       cache_tier: warm
       est_tokens: 4392
-    - path: ../cross-cutting/context-management.md
-      required: false
-      source: load_list
-      cache_tier: warm
-      est_tokens: 4091
     - path: ../stack/connection-pooling-pgbouncer.md
       required: false
       source: adapter_stack:relational.postgres
@@ -4724,7 +4724,7 @@ recipes:
     - frontend.nextjs-chat
     - host.vercel
     - eval.promptfoo
-    est_total_tokens: 85804
+    est_total_tokens: 86586
   env_contract:
   - name: REDIS_URL
     source_capability: cache.redis
@@ -5327,10 +5327,9 @@ capabilities:
   est_tokens: 650
   card:
     name: Next.js Chat UI
-    description: Next.js 14 (App Router) chat template wired for Vercel AI SDK streaming responses.
+    description: Next.js 14 (App Router) chat template speaking the canonical /chat contract through a same-origin adapter proxy.
     capabilities_provided:
     - chat_ui
-    - sse_streaming
     - tool_call_rendering
     required_credentials: []
   tags:
@@ -5344,7 +5343,7 @@ capabilities:
   implements:
     port: frontend
     interface_version: '1.0'
-  context_summary: 'Next.js Chat UI (frontend) — Next.js 14 (App Router) chat template wired for Vercel AI SDK streaming responses.
+  context_summary: 'Next.js Chat UI (frontend) — Next.js 14 (App Router) chat template speaking the canonical /chat contract through a same-origin adapter proxy.
 
     Env vars: NEXT_PUBLIC_AGENT_URL. Provides: chat_ui, streaming_ui.'
   verification:
@@ -6935,28 +6934,28 @@ cross_cutting_docs:
 - docs/cross-cutting/testing-strategy.md
 - docs/cross-cutting/validation-strategy.md
 pattern_docs:
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/agentic_rag/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/evaluator-optimizer/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/long_horizon/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/orchestrator-worker/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/parallel-calls/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/plan_and_execute/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/prompt-chaining/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/rag/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/react/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/reflection/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/routing/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/saga/overview.md
 primitive_docs:
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/memory/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/skills/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/sub_agents/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/primitives/tool_use/overview.md
 modifier_docs:
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
-- https://github.com/jagguvarma15/agent-blueprints/blob/main/https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/guardrails/overview.md
+- https://github.com/jagguvarma15/agent-blueprints/blob/main/modifiers/human_in_the_loop/overview.md
 suggestions:
   blueprints_version: 7420e28
   description: Per-combo stack recommendations scoped to upstream blueprints version 7420e28. One file per pattern × primitives × modifiers combination.
