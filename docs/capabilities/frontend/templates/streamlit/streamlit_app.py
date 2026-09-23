@@ -46,12 +46,18 @@ def _stream_chat(messages: list[dict[str, Any]]) -> Iterator[str]:
     """Yield response chunks from the backend.
 
     Tries SSE first (``Accept: text/event-stream``); on a non-SSE response,
-    falls back to reading the whole body and yielding it once.
+    falls back to reading the whole body and yielding it once. HTTP errors
+    propagate to the caller, which renders them and marks the committed turn
+    as a UI-local error so it is never re-sent as history.
 
     ``messages`` is the full session list including the just-appended user
     turn; the wire shape splits it into the /chat contract's ``message`` +
     ``history`` (session role ``assistant`` maps to wire role ``agent``).
+    Error turns are filtered out, and the last 40 turns are a courtesy
+    client cap — the backend trim is the authoritative bound.
     """
+    if not messages:
+        return
     *prior, latest = messages
     payload = {
         "message": str(latest.get("content", "")),
@@ -61,52 +67,48 @@ def _stream_chat(messages: list[dict[str, Any]]) -> Iterator[str]:
                 "text": str(m.get("content", "")),
             }
             for m in prior
-        ],
+            if not m.get("error")
+        ][-40:],
     }
-    try:
-        with httpx.stream(
-            "POST",
-            CHAT_ENDPOINT,
-            json=payload,
-            headers={"Accept": "text/event-stream"},
-            timeout=REQUEST_TIMEOUT,
-        ) as response:
-            response.raise_for_status()
-            ctype = response.headers.get("content-type", "")
-            if "event-stream" not in ctype and "text/plain" not in ctype:
-                yield response.read().decode("utf-8", errors="replace")
-                return
-            for line in response.iter_lines():
-                if not line:
+    with httpx.stream(
+        "POST",
+        CHAT_ENDPOINT,
+        json=payload,
+        headers={"Accept": "text/event-stream"},
+        timeout=REQUEST_TIMEOUT,
+    ) as response:
+        response.raise_for_status()
+        ctype = response.headers.get("content-type", "")
+        if "event-stream" not in ctype and "text/plain" not in ctype:
+            yield response.read().decode("utf-8", errors="replace")
+            return
+        for line in response.iter_lines():
+            if not line:
+                continue
+            # SSE: "data: <chunk>". AI SDK Data Stream: "0:\"chunk\"\n".
+            if line.startswith("data:"):
+                chunk = line[len("data:") :].strip()
+                if chunk in ("[DONE]", ""):
                     continue
-                # SSE: "data: <chunk>". AI SDK Data Stream: "0:\"chunk\"\n".
-                if line.startswith("data:"):
-                    chunk = line[len("data:") :].strip()
-                    if chunk in ("[DONE]", ""):
-                        continue
-                    try:
-                        parsed = json.loads(chunk)
-                    except json.JSONDecodeError:
-                        yield chunk
-                        continue
-                    if isinstance(parsed, str):
-                        yield parsed
-                    elif isinstance(parsed, dict) and "content" in parsed:
-                        yield str(parsed["content"])
-                    else:
-                        yield json.dumps(parsed)
-                elif line.startswith("0:"):
-                    raw = line[2:]
-                    try:
-                        yield json.loads(raw)
-                    except json.JSONDecodeError:
-                        yield raw
+                try:
+                    parsed = json.loads(chunk)
+                except json.JSONDecodeError:
+                    yield chunk
+                    continue
+                if isinstance(parsed, str):
+                    yield parsed
+                elif isinstance(parsed, dict) and "content" in parsed:
+                    yield str(parsed["content"])
                 else:
-                    yield line
-    except httpx.HTTPStatusError as exc:
-        yield f"\n\n_Agent returned {exc.response.status_code}._"
-    except httpx.HTTPError as exc:
-        yield f"\n\n_Could not reach agent at {AGENT_URL}: {exc}_"
+                    yield json.dumps(parsed)
+            elif line.startswith("0:"):
+                raw = line[2:]
+                try:
+                    yield json.loads(raw)
+                except json.JSONDecodeError:
+                    yield raw
+            else:
+                yield line
 
 
 user_input = st.chat_input("Ask the agent…")
@@ -118,7 +120,24 @@ if user_input:
     with st.chat_message("assistant"):
         placeholder = st.empty()
         accumulated = ""
-        for chunk in _stream_chat(st.session_state["messages"]):
-            accumulated += chunk
-            placeholder.markdown(accumulated)
-        st.session_state["messages"].append({"role": "assistant", "content": accumulated})
+        error_text: str | None = None
+        try:
+            for chunk in _stream_chat(st.session_state["messages"]):
+                accumulated += chunk
+                placeholder.markdown(accumulated)
+        except httpx.HTTPStatusError as exc:
+            error_text = f"_Agent returned {exc.response.status_code}._"
+        except httpx.HTTPError as exc:
+            error_text = f"_Could not reach agent at {AGENT_URL}: {exc}_"
+        if error_text is not None:
+            # Render the failure, but mark the committed turn as UI-local:
+            # error turns are filtered out of the history payload, so the
+            # model is never told it previously answered with an error banner.
+            placeholder.markdown(error_text)
+            st.session_state["messages"].append(
+                {"role": "assistant", "content": error_text, "error": True}
+            )
+        elif accumulated.strip():
+            # Never commit an empty assistant turn (a stream that produced
+            # nothing would otherwise cost budget on every later request).
+            st.session_state["messages"].append({"role": "assistant", "content": accumulated})
