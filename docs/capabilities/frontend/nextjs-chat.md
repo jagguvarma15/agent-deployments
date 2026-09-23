@@ -15,8 +15,8 @@ cost_tier: free
 est_tokens: 650
 card:
   name: Next.js Chat UI
-  description: "Next.js 14 (App Router) chat template wired for Vercel AI SDK streaming responses."
-  capabilities_provided: [chat_ui, sse_streaming, tool_call_rendering]
+  description: "Next.js 14 (App Router) chat template speaking the canonical /chat contract through a same-origin adapter proxy."
+  capabilities_provided: [chat_ui, tool_call_rendering]
   required_credentials: []
 emit_files:
   - source: templates/nextjs-chat/**
@@ -33,7 +33,7 @@ when_to_load: "recipe declares frontend.nextjs-chat"
 
 > Template tree: `templates/nextjs-chat/` (sits next to this file). Vendor docs: https://sdk.vercel.ai/docs.
 
-**Used for:** a runnable chat UI on `http://localhost:3000` that streams agent responses.
+**Used for:** a runnable chat UI on `http://localhost:3000` that talks the canonical `/chat` contract through a same-origin adapter proxy.
 
 ## Local setup
 
@@ -52,7 +52,7 @@ The scaffold's formatter runs `pnpm exec prettier --write frontend/` after copy 
 The scaffold copies the entire `templates/nextjs-chat/` subtree under `frontend/`. The generator must NOT re-emit any path matching this glob — the copier SKIPs with a warning if collision occurs.
 
 LLM's responsibility for a frontend capability:
-1. Wire backend endpoints the template expects (default: `POST /api/agent` returning a Vercel AI SDK stream).
+1. Wire the backend `POST /chat` endpoint per the canonical chat contract (non-streaming JSON `{message, history}` -> `{reply}`; see `docs/reference/chat-contract.md`). The template's `/api/agent` proxy adapts the UI's Vercel AI SDK wire shape to it.
 2. Optionally specialize `frontend/app/page.tsx` (e.g. add domain-specific message bubbles).
 3. Add per-recipe branding via `frontend/app/branding.ts` (generated file the template imports).
 
@@ -67,13 +67,14 @@ LLM's responsibility for a frontend capability:
 The template ships with the agent-call wiring. The relevant glue:
 
 ```tsx
-// frontend/app/page.tsx (excerpt from the shipped template)
+// frontend/components/Chat.tsx (excerpt from the shipped template)
 "use client";
 import { useChat } from "ai/react";
 
-export default function Chat() {
+export function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: `${process.env.NEXT_PUBLIC_AGENT_URL}/api/agent`,
+    api: "/api/agent",
+    streamProtocol: "text",
   });
 
   return (
@@ -101,7 +102,7 @@ Pair with [`host.vercel`](../host/vercel.md). The emitted `vercel.json` (from `e
 |---------|-------|-----|
 | `Failed to fetch` on first message | Backend not yet listening on `NEXT_PUBLIC_AGENT_URL` | Bring up backend first (`docker compose up agent`); confirm port |
 | CORS error in browser console | Backend doesn't allow the frontend origin | Add `http://localhost:3000` to the backend's CORS allowlist |
-| Streaming text appears all at once | Backend buffers instead of streaming | Confirm backend writes `text/event-stream` headers; Vercel AI SDK reads SSE |
+| Replies render as raw JSON or every request 422s | Backend not on the canonical contract | Expose `POST /chat` accepting `{message, history}` and returning `{reply}` (non-streaming JSON); the proxy adapts the UI shape |
 | `pnpm install` fails on Node 18 | Template requires Node ≥ 20 | Upgrade Node (`nvm install 20`); the README lists exact min |
 
 ## See also
