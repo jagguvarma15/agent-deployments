@@ -13,6 +13,10 @@ document.title = AGENT_TITLE;
 interface Msg {
   role: "user" | "agent";
   text: string;
+  // Set on locally-generated error bubbles (network failures, non-2xx).
+  // Error turns render in the transcript but are never sent as history —
+  // the model must not be told it previously said "Request failed (503)".
+  error?: true;
 }
 
 interface Field {
@@ -94,12 +98,18 @@ export function App() {
     setBusy(true);
     try {
       // `messages` is still the pre-append closure value here: exactly the
-      // prior turns, oldest first. slice(-40) is a courtesy client cap; the
-      // backend trim is the authoritative bound.
+      // prior turns, oldest first. Error bubbles are filtered out and the
+      // extra field stripped so the wire carries pure ChatTurn objects;
+      // slice(-40) is a courtesy client cap — the backend trim is the
+      // authoritative bound.
+      const history = messages
+        .filter((m) => !m.error)
+        .slice(-40)
+        .map(({ role, text: turnText }) => ({ role, text: turnText }));
       const res = await fetch(`${AGENT_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history: messages.slice(-40) }),
+        body: JSON.stringify({ message: text, history }),
       });
       if (res.status === 409) {
         // Missing or invalid credential → go to the secure setup page (full-page
@@ -117,12 +127,20 @@ export function App() {
         return;
       }
       const reply = res.ok ? await readReply(res) : `Request failed (${res.status}).`;
-      setMessages((m) => [...m, { role: "agent", text: reply }]);
+      setMessages((m) =>
+        res.ok
+          ? [...m, { role: "agent", text: reply }]
+          : [...m, { role: "agent", text: reply, error: true }],
+      );
     } catch {
       setGate({ type: "unreachable" });
       setMessages((m) => [
         ...m,
-        { role: "agent", text: `Can't reach the agent at ${AGENT_URL}. Is it running?` },
+        {
+          role: "agent",
+          text: `Can't reach the agent at ${AGENT_URL}. Is it running?`,
+          error: true,
+        },
       ]);
     } finally {
       setBusy(false);
