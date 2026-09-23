@@ -10,7 +10,7 @@
 - **`trim_history(history, *, budget_tokens, keep_last_turns=2)`** (Py) / **`trimHistory(history, {budgetTokens, keepLastTurns})`** (TS) — a deterministic token-budget sliding window with four guarantees:
   - **Whole exchanges only.** Turns are grouped into user-led exchanges (one user turn plus the agent turns that answer it) and kept or dropped as a unit — the model never sees an answer without its question.
   - **Newest wins, contiguously.** Exchanges are retained from newest to oldest while the estimate fits; the survivors are always a contiguous suffix of the conversation, never a gappy sample.
-  - **A floor, not amnesia.** The newest `keep_last_turns` exchanges are kept even when they exceed the budget — a too-small budget degrades to short memory, not to no memory.
+  - **A bounded floor, not amnesia.** The newest `keep_last_turns` user-led exchanges are kept even when they exceed the budget — up to `max(budget_tokens, FLOOR_TOKEN_CAP)` estimated tokens — so a too-small budget degrades to short memory while a pathologically oversized exchange is dropped rather than re-billed on every call. An agent-led head group (an opening greeting) is never floor-protected.
   - **Pure function.** Same history + same budget = same output. No tokenizer version drift, no clock, no randomness.
 - **`estimate_tokens(text)`** — `max(1, len(text) // 4)`. The chars/4 heuristic over-counts terse code and under-counts dense Unicode relative to real BPE tokenizers; that is acceptable because recipe budgets carry headroom (the default mode's `input_max: 80000` sits well inside the model's real window). Use one estimator everywhere — see Pitfalls.
 - The **latest user message is never trimmed**: it travels as `message`, outside `history`, and is appended after trimming.
@@ -28,12 +28,20 @@ Of the four context levers — select, compress, prune, persist — this doc shi
 The emitted `core.io_schema` package already gives `ChatRequest` a `history: list[ChatTurn]` field. In the `/chat` handler, trim, convert, and pass `message_history`:
 
 ```python
-from agent.context_window import context_input_max, to_model_messages, trim_history
+from agent.context_window import (
+    context_input_max,
+    estimate_tokens,
+    keep_last_turns_floor,
+    to_model_messages,
+    trim_history,
+)
 
 @app.post("/chat")
 async def chat(req: ChatRequest) -> ChatResponse:
     budget = context_input_max() - estimate_tokens(SYSTEM_PROMPT) - estimate_tokens(req.message)
-    trimmed = trim_history(req.history, budget_tokens=budget)
+    trimmed = trim_history(
+        req.history, budget_tokens=budget, keep_last_turns=keep_last_turns_floor()
+    )
     result = await agent.run(req.message, message_history=to_model_messages(trimmed))
     return ChatResponse(reply=result.output)
 ```
@@ -45,12 +53,18 @@ async def chat(req: ChatRequest) -> ChatResponse:
 Parse `{message, history}` from the request body and replace `prompt:` with `messages:`:
 
 ```typescript
-import { contextInputMax, estimateTokens, toCoreMessages, trimHistory } from "./contextWindow";
+import {
+  contextInputMax,
+  estimateTokens,
+  keepLastTurnsFloor,
+  toCoreMessages,
+  trimHistory,
+} from "./contextWindow";
 
 app.post("/chat", async (c) => {
   const { message, history = [] } = await c.req.json();
   const budget = contextInputMax() - estimateTokens(SYSTEM_PROMPT) - estimateTokens(message);
-  const trimmed = trimHistory(history, { budgetTokens: budget });
+  const trimmed = trimHistory(history, { budgetTokens: budget, keepLastTurns: keepLastTurnsFloor() });
   const { text } = await generateText({
     model,
     system: SYSTEM_PROMPT,
@@ -72,7 +86,7 @@ Note the role mapping: the wire role `agent` becomes the SDK role `assistant`. `
 | Var | Default | Effect |
 |-----|---------|--------|
 | `CONTEXT_INPUT_MAX` | recipe `context_budget.input_max` (else `80000`) | Token budget the assembled prompt must fit; history is trimmed against what remains after the system prompt, latest message, and reserve |
-| `CONTEXT_KEEP_LAST_TURNS` | `2` | Floor: newest user-led exchanges kept even when over budget |
+| `CONTEXT_KEEP_LAST_TURNS` | `2` | Floor: newest user-led exchanges kept even when over budget, bounded by `FLOOR_TOKEN_CAP` |
 
 ## Tests
 
@@ -82,7 +96,9 @@ Pure-function table tests (no mocks needed):
 - history under budget is returned unchanged;
 - over budget, the **oldest** exchanges are dropped first and the survivors are a contiguous suffix;
 - an agent turn is never returned without the user turn that prompted it;
-- with `budget_tokens=0`, exactly the `keep_last_turns` floor survives;
+- with `budget_tokens=0`, exactly the `keep_last_turns` newest user-led exchanges survive (each under `FLOOR_TOKEN_CAP`);
+- an agent-led head group is dropped at `budget_tokens=0` (never floor-protected);
+- a single exchange larger than `FLOOR_TOKEN_CAP` is dropped entirely at `budget_tokens=0` (the floor is bounded);
 - calling twice with the same input yields identical output.
 
 Handler test: POST `/chat` with 200 synthetic 2 KB turns in `history`, mock the model call, and assert the list it received fits the budget.
@@ -120,7 +136,10 @@ from __future__ import annotations
 
 import os
 from collections.abc import Sequence
-from typing import Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol, TypeVar
+
+if TYPE_CHECKING:
+    from pydantic_ai.messages import ModelMessage
 
 
 class Turn(Protocol):
@@ -160,6 +179,18 @@ def estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
+FLOOR_TOKEN_CAP = 16_000
+"""Hard ceiling (estimated tokens) on what floor protection may retain.
+
+The keep_last_turns floor deliberately overrides budget_tokens so a
+too-small budget degrades to short memory instead of no memory -- but
+without a ceiling a single pathological multi-megabyte exchange would ride
+the floor into every model call forever. Floor-kept exchanges therefore
+stop at max(budget_tokens, FLOOR_TOKEN_CAP): amnesia beats an unbounded
+bill.
+"""
+
+
 def trim_history(
     history: Sequence[T],
     *,
@@ -168,22 +199,32 @@ def trim_history(
 ) -> list[T]:
     """Keep the newest whole user-led exchanges that fit ``budget_tokens``.
 
-    Guarantees: exchanges are kept or dropped whole (never a dangling reply);
-    the survivors are a contiguous suffix of the conversation; the newest
-    ``keep_last_turns`` exchanges survive even when over budget; and the
+    Guarantees: exchanges are kept or dropped whole (never a dangling
+    reply); the survivors are a contiguous suffix of the conversation; the
+    newest ``keep_last_turns`` user-led exchanges survive even when over
+    budget, up to a hard cap of ``max(budget_tokens, FLOOR_TOKEN_CAP)``
+    estimated tokens (an agent-led head group is never floor-protected, and
+    a pathologically oversized exchange is dropped, not kept); and the
     result is a pure function of the inputs.
     """
     if not history:
         return []
+    hard_cap = max(budget_tokens, FLOOR_TOKEN_CAP)
     exchanges = _group_exchanges(history)
     kept: list[list[T]] = []
     spent = 0
-    for index, exchange in enumerate(reversed(exchanges)):
+    floor_used = 0
+    for exchange in reversed(exchanges):
         cost = sum(estimate_tokens(turn.text) for turn in exchange)
-        if index >= keep_last_turns and spent + cost > budget_tokens:
+        user_led = exchange[0].role == "user"
+        fits_budget = spent + cost <= budget_tokens
+        floor_protected = user_led and floor_used < keep_last_turns and spent + cost <= hard_cap
+        if not fits_budget and not floor_protected:
             break
         kept.append(exchange)
         spent += cost
+        if user_led:
+            floor_used += 1
     kept.reverse()
     return [turn for exchange in kept for turn in exchange]
 
@@ -204,7 +245,7 @@ def _group_exchanges(history: Sequence[T]) -> list[list[T]]:
     return exchanges
 
 
-def to_model_messages(history: Sequence[Turn]) -> list[object]:
+def to_model_messages(history: Sequence[Turn]) -> list[ModelMessage]:
     """Convert wire turns to Pydantic AI's typed message list.
 
     The only framework-specific function in this module -- delete it (and
@@ -219,7 +260,7 @@ def to_model_messages(history: Sequence[Turn]) -> list[object]:
         UserPromptPart,
     )
 
-    messages: list[object] = []
+    messages: list[ModelMessage] = []
     for turn in history:
         if turn.role == "user":
             messages.append(ModelRequest(parts=[UserPromptPart(content=turn.text)]))
@@ -248,20 +289,29 @@ export interface ChatTurn {
   text: string;
 }
 
+/** Strict base-10 integer from env; empty, missing, or malformed -> fallback. */
+function intFromEnv(name: string, fallback: number, minimum: number): number {
+  const raw = (process.env[name] ?? "").trim();
+  // Rejects "", "1e5", "0x10", "-1" -- Number("") is 0 and Number() accepts
+  // exotic notations the Python twin's int() refuses; both languages must
+  // read the same env file identically.
+  if (!/^\d+$/.test(raw)) return fallback;
+  const value = parseInt(raw, 10);
+  return Number.isSafeInteger(value) && value >= minimum ? value : fallback;
+}
+
 /**
  * Token budget for the assembled prompt, from CONTEXT_INPUT_MAX.
  * The generator bakes the recipe's context_budget.input_max in as the env
  * default; a missing or malformed value falls back to `fallback`.
  */
 export function contextInputMax(fallback = 80_000): number {
-  const raw = Number(process.env.CONTEXT_INPUT_MAX ?? "");
-  return Number.isInteger(raw) && raw > 0 ? raw : fallback;
+  return intFromEnv("CONTEXT_INPUT_MAX", fallback, 1);
 }
 
-/** Floor of newest exchanges kept even over budget (CONTEXT_KEEP_LAST_TURNS). */
+/** Floor of newest user-led exchanges kept even over budget (CONTEXT_KEEP_LAST_TURNS). */
 export function keepLastTurnsFloor(fallback = 2): number {
-  const raw = Number(process.env.CONTEXT_KEEP_LAST_TURNS ?? "");
-  return Number.isInteger(raw) && raw >= 0 ? raw : fallback;
+  return intFromEnv("CONTEXT_KEEP_LAST_TURNS", fallback, 0);
 }
 
 /** Deterministic chars/4 estimate. Over/under-counts vs real BPE; budgets carry headroom. */
@@ -270,12 +320,25 @@ export function estimateTokens(text: string): number {
 }
 
 /**
+ * Hard ceiling (estimated tokens) on what floor protection may retain.
+ * The keepLastTurns floor deliberately overrides budgetTokens so a
+ * too-small budget degrades to short memory instead of no memory -- but
+ * without a ceiling a single pathological multi-megabyte exchange would
+ * ride the floor into every model call forever. Floor-kept exchanges stop
+ * at max(budgetTokens, FLOOR_TOKEN_CAP): amnesia beats an unbounded bill.
+ */
+export const FLOOR_TOKEN_CAP = 16_000;
+
+/**
  * Keep the newest whole user-led exchanges that fit `budgetTokens`.
  *
  * Guarantees: exchanges are kept or dropped whole (never a dangling reply);
  * the survivors are a contiguous suffix of the conversation; the newest
- * `keepLastTurns` exchanges survive even when over budget; and the result
- * is a pure function of the inputs.
+ * `keepLastTurns` user-led exchanges survive even when over budget, up to
+ * a hard cap of max(budgetTokens, FLOOR_TOKEN_CAP) estimated tokens (an
+ * agent-led head group is never floor-protected, and a pathologically
+ * oversized exchange is dropped, not kept); and the result is a pure
+ * function of the inputs.
  */
 export function trimHistory(
   history: ChatTurn[],
@@ -283,15 +346,21 @@ export function trimHistory(
 ): ChatTurn[] {
   const keepLastTurns = opts.keepLastTurns ?? 2;
   if (history.length === 0) return [];
+  const hardCap = Math.max(opts.budgetTokens, FLOOR_TOKEN_CAP);
   const exchanges = groupExchanges(history);
   const kept: ChatTurn[][] = [];
   let spent = 0;
-  for (let index = 0; index < exchanges.length; index++) {
-    const exchange = exchanges[exchanges.length - 1 - index];
+  let floorUsed = 0;
+  for (let i = exchanges.length - 1; i >= 0; i--) {
+    const exchange = exchanges[i];
     const cost = exchange.reduce((sum, turn) => sum + estimateTokens(turn.text), 0);
-    if (index >= keepLastTurns && spent + cost > opts.budgetTokens) break;
+    const userLed = exchange[0].role === "user";
+    const fitsBudget = spent + cost <= opts.budgetTokens;
+    const floorProtected = userLed && floorUsed < keepLastTurns && spent + cost <= hardCap;
+    if (!fitsBudget && !floorProtected) break;
     kept.unshift(exchange);
     spent += cost;
+    if (userLed) floorUsed++;
   }
   return kept.flat();
 }
