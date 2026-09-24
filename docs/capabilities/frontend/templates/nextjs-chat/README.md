@@ -1,6 +1,6 @@
 # nextjs-chat template
 
-The agent-scaffold capability `frontend.nextjs-chat` copies this directory verbatim into the generated project under `frontend/`. The result is a runnable Next.js 14 chat shell wired to consume Vercel AI SDK streaming responses from the project's agent service.
+The agent-scaffold capability `frontend.nextjs-chat` copies this directory verbatim into the generated project under `frontend/`. The result is a runnable Next.js 14 chat shell that speaks the canonical `/chat` contract to the project's agent service through a same-origin adapter proxy.
 
 ## Run locally
 
@@ -18,12 +18,12 @@ NEXT_PUBLIC_AGENT_URL=http://localhost:8000
 
 ## Required backend contract
 
-The chat shell speaks the Vercel AI SDK protocol via `useChat({ api: "/api/agent" })`. The backend `/chat` endpoint should:
+The backend exposes `POST /chat` per the canonical chat contract (`docs/reference/chat-contract.md`):
 
-- Accept `POST` with JSON body `{ messages: { role, content }[] }`
-- Return a streaming response in the AI SDK Data Stream Protocol (`text/plain` or `text/event-stream`)
+- Accept `POST` with JSON body `{ "message": "<text>", "history": [{ "role": "user" | "agent", "text": "<text>" }] }` (history optional, oldest first)
+- Return non-streaming JSON `{ "reply": "<text>" }` — no SSE, no chunked token streaming
 
-Most LangGraph / Pydantic AI / Vercel AI SDK backends ship a `/chat` endpoint that already matches this shape. If not, adapt your endpoint to stream `0:"chunk"\n` framed lines.
+The browser side keeps the Vercel AI SDK ergonomics: `useChat({ api: "/api/agent", streamProtocol: "text" })`. The `/api/agent` proxy adapts between the two shapes — it extracts the latest user message plus prior turns from the SDK's `{messages}` body, posts the contract shape to `/chat`, and returns the `reply` as plain text, which the SDK accepts as one complete assistant message.
 
 ## Customizing per recipe
 
@@ -39,11 +39,11 @@ Capability template copy NEVER overwrites a file the generator emits. Any of the
 
 - `pnpm install` (lockfile not shipped; the install step solves it from `package.json`)
 - `pnpm build` exits 0 with no type errors against the pinned versions in `package.json`
-- Manual: `pnpm dev` and visit `http://localhost:3000`; with no backend running you should see "agent error 502" — wire the backend and the chat starts streaming
+- Manual: `pnpm dev` and visit `http://localhost:3000`; with no backend running you should see "agent error" in the banner — wire the backend and replies render
 
 ## Why these choices
 
-- **Next.js 14 App Router**: native streaming-response support; matches the Vercel AI SDK's expected shape.
+- **Next.js 14 App Router**: first-class route handlers for the adapter proxy; native Vercel AI SDK support.
 - **Edge runtime for `/api/agent`**: cheaper, faster cold starts; the proxy is stateless.
 - **Tailwind for styling**: no design-system commitment; trivial to swap out.
 - **No external state management**: the AI SDK's `useChat` covers the only state the UI needs.

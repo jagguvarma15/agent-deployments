@@ -206,11 +206,12 @@ load_list:
   - {path: ../stack/relational-postgres.md, required: false, when: "capabilities contains 'relational.postgres'"}
   - {path: ../stack/cache-redis.md, required: false, when: "capabilities contains 'cache.redis'"}
   - {path: ../stack/tracing-langfuse.md, required: false, when: "capabilities contains 'obs.langfuse'"}
-  - {path: ../stack/secrets-management.md, required: true}
-  - {path: ../cross-cutting/idempotency.md, required: true}
-  - {path: ../cross-cutting/resilience.md, required: true}
-  - {path: ../cross-cutting/backpressure.md, required: true}
-  - {path: ../cross-cutting/dlq-operations.md, required: true}
+  - {path: ../cross-cutting/context-management.md, required: false}
+  - {path: ../stack/secrets-management.md, required: false}
+  - {path: ../cross-cutting/idempotency.md, required: false}
+  - {path: ../cross-cutting/resilience.md, required: false}
+  - {path: ../cross-cutting/backpressure.md, required: false}
+  - {path: ../cross-cutting/dlq-operations.md, required: false}
   - {path: ../cross-cutting/logging-structured.md, required: false}
   - {path: ../cross-cutting/observability.md, required: false}
   - {path: ../cross-cutting/testing-strategy.md, required: false}
@@ -223,7 +224,6 @@ load_list:
   - {path: ../cross-cutting/audit-logging.md, required: false}
   - {path: ../cross-cutting/pii-gdpr.md, required: false}
   - {path: ../cross-cutting/prompt-management.md, required: false}
-  - {path: ../cross-cutting/context-management.md, required: false}
 ---
 
 # Recipe: Restaurant Rebooking
@@ -235,10 +235,18 @@ load_list:
 - Pattern: [Event-Driven Agents](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/event_driven/overview.md) + [Multi-Agent Flat](https://github.com/jagguvarma15/agent-blueprints/blob/main/patterns/multi_agent/overview.md)
 - Framework (Py): [LangGraph](../frameworks/langgraph.md) (explicit state machine fits event-driven lifecycle)
 - Framework (TS): [Mastra](../frameworks/mastra.md) (event-triggered workflows)
-- Stack: [FastAPI](../stack/api-fastapi.md) / [Hono](../stack/api-hono.md) (admin + health endpoints), [Redis](../stack/cache-redis.md) (event stream + idempotency), [Postgres](../stack/relational-postgres.md) (outcomes + state), [Langfuse](../stack/tracing-langfuse.md), [Secrets management](../stack/secrets-management.md) (Resy / OpenTable / Toast credentials)
-- Cross-cutting: [Logging](../cross-cutting/logging-structured.md), [Observability](../cross-cutting/observability.md), [Testing strategy](../cross-cutting/testing-strategy.md), [Multi-tenancy](../cross-cutting/multi-tenancy.md), [Cost tracking](../cross-cutting/cost-tracking.md) (per-tenant per-day USD budget guards the LLM call; graceful-degrade Opus → Sonnet → Haiku above 80% of budget; paid-tool spend tracked alongside tokens), [Model routing](../cross-cutting/model-routing.md) (per-role `model_hint` already set on intake/eligibility/search/notifier; fallback chains on 429 / 5xx / budget-degrade; deterministic A/B randomization seeded by `(tenant_id, request_id)`), [Idempotency](../cross-cutting/idempotency.md), [Resilience](../cross-cutting/resilience.md) (one [circuit breaker](../cross-cutting/resilience.md#circuit-breakers) per reservation platform — Resy / OpenTable / Toast — so one platform's outage doesn't starve the others), [Backpressure](../cross-cutting/backpressure.md) (bounded `XADD MAXLEN` + semaphore concurrency cap + slow-lane shedding when a platform breaker opens), [DLQ operations](../cross-cutting/dlq-operations.md) (self-contained envelope on `reservations.cancelled.dlq`, replay CLI behind `/admin/replay`, paged on growth-rate not depth), [Health & graceful shutdown](../cross-cutting/health-graceful-shutdown.md), [Security hardening](../cross-cutting/security-hardening.md), [Authorization & RBAC](../cross-cutting/authorization-rbac.md), [Audit logging](../cross-cutting/audit-logging.md), [PII handling](../cross-cutting/pii-gdpr.md)
 
-> **Auth/rate limiting:** the event-driven entry point doesn't need user auth (events come from trusted producers), but the admin/health HTTP layer does — see [auth-jwt.md](../cross-cutting/auth-jwt.md).
+### Stack and production concerns
+
+Referenced by path only — the frontmatter `load_list` (flags and order) is the
+authoritative loading road for these; this recipe leans on more of them than
+any other and linking them all here would force every one into the essential
+context tier.
+
+- Stack: `docs/stack/api-fastapi.md` / `docs/stack/api-hono.md` (admin + health endpoints), `docs/stack/cache-redis.md` (event stream + idempotency), `docs/stack/relational-postgres.md` (outcomes + state), `docs/stack/tracing-langfuse.md`, `docs/stack/secrets-management.md` (Resy / OpenTable / Toast credentials)
+- Cross-cutting: `docs/cross-cutting/logging-structured.md`, `docs/cross-cutting/observability.md`, `docs/cross-cutting/testing-strategy.md`, `docs/cross-cutting/multi-tenancy.md`, `docs/cross-cutting/cost-tracking.md` (per-tenant per-day USD budget guards the LLM call; graceful-degrade Opus → Sonnet → Haiku above 80% of budget; paid-tool spend tracked alongside tokens), `docs/cross-cutting/model-routing.md` (per-role `model_hint` already set on intake/eligibility/search/notifier; fallback chains on 429 / 5xx / budget-degrade; deterministic A/B randomization seeded by `(tenant_id, request_id)`), `docs/cross-cutting/idempotency.md`, `docs/cross-cutting/resilience.md` (one circuit breaker per reservation platform — Resy / OpenTable / Toast — so one platform's outage doesn't starve the others), `docs/cross-cutting/backpressure.md` (bounded `XADD MAXLEN` + semaphore concurrency cap + slow-lane shedding when a platform breaker opens), `docs/cross-cutting/dlq-operations.md` (self-contained envelope on `reservations.cancelled.dlq`, replay CLI behind `/admin/replay`, paged on growth-rate not depth), `docs/cross-cutting/health-graceful-shutdown.md`, `docs/cross-cutting/security-hardening.md`, `docs/cross-cutting/authorization-rbac.md`, `docs/cross-cutting/audit-logging.md`, `docs/cross-cutting/pii-gdpr.md`
+
+> **Auth/rate limiting:** the event-driven entry point doesn't need user auth (events come from trusted producers), but the admin/health HTTP layer does — see `docs/cross-cutting/auth-jwt.md`.
 
 ### Load list
 

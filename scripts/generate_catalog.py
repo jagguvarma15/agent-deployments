@@ -1164,10 +1164,9 @@ def collect_pattern_docs(blueprints_catalog: dict[str, Any]) -> list[str]:
 
     Derives one flat sorted list of GitHub URLs from the reference catalog's
     four cohort blocks (``patterns``, ``workflows``, ``primitives``,
-    ``modifiers``); callers bucket the result into per-cohort fields. Used by
-    scaffold's alias resolver to convert prose mentions ("ReAct", "memory", …)
-    to a blueprint doc URL, which scaffold resolves against its own fetched
-    blueprints checkout.
+    ``modifiers``); callers bucket the result into per-cohort fields. These
+    are forward-looking index fields: scaffold parses but does not consume
+    them yet (its alias resolver reads ``aliases:``, seeded separately).
     """
     out: list[str] = []
     for cohort in ("patterns", "workflows", "primitives", "modifiers"):
@@ -1178,7 +1177,14 @@ def collect_pattern_docs(blueprints_catalog: dict[str, Any]) -> list[str]:
                 d = entry.get("dir")
                 overview = f"{d}/overview.md" if d else None
             if overview:
-                out.append(BLUEPRINTS_DOC_URL_BASE + overview)
+                # Idempotence guard, mirroring _urlify_blueprint_refs._to_url:
+                # the cohort lists are assigned by reference and urlified in
+                # place before this runs, so tier_files values may already be
+                # absolute URLs — re-prefixing produced blob/main/https://...
+                # doubles in pattern_docs / primitive_docs / modifier_docs.
+                if not overview.startswith(("http://", "https://")):
+                    overview = BLUEPRINTS_DOC_URL_BASE + overview
+                out.append(overview)
     return sorted(set(out))
 
 
