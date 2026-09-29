@@ -47,3 +47,21 @@ jobs:
             exit 1
           fi
           echo "catalog.yaml matches generator output"
+
+  pip-audit:
+    name: pip-audit (scripts/requirements.txt)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: pip-audit
+        uses: pypa/gh-action-pip-audit@v1.1.0
+        with:
+          inputs: scripts/requirements.txt
