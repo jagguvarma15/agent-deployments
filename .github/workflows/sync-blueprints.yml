@@ -150,7 +150,7 @@ jobs:
 
       - name: Open sync PR
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: 'chore(blueprints): sync reference catalog to ${{ steps.target.outputs.ref }}'
           title: 'chore(blueprints): sync reference catalog to ${{ steps.target.outputs.ref }}'
